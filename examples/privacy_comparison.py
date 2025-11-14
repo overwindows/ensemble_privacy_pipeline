@@ -11,7 +11,12 @@ from collections import defaultdict
 from typing import Dict, List
 
 # Import from our pipeline
-from ensemble_privacy_pipeline import PrivacyRedactor, MockLLMEvaluator, ConsensusAggregator
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+from src.privacy_core import PrivacyRedactor, ConsensusAggregator
+from examples.real_llm_example import RealLLMEvaluator
 
 
 # ============================================================================
@@ -374,25 +379,63 @@ def run_comparison():
     print("   Original queries → QUERY_SEARCH_001, QUERY_SEARCH_002, ...")
     print("   Original titles → QUERY_MSN_001, QUERY_MSN_002, ...")
 
-    # Step 2: Ensemble Evaluation
-    models = [
-        MockLLMEvaluator("GPT-4", bias=0.0),
-        MockLLMEvaluator("Claude", bias=0.02),
-        MockLLMEvaluator("Gemini", bias=-0.01),
-    ]
+    # Step 2 & 3: Ensemble Evaluation + Consensus
+    # Use real LLM APIs with your SambaNova models
 
-    all_results = []
-    for model in models:
-        results = model.evaluate_interest(masked_data, candidate_topics)
-        all_results.append(results)
+    api_key = os.getenv("SAMBANOVA_API_KEY")
 
-    print("\n✓ Step 2: Ensemble Evaluation (3 models)")
+    if api_key:
+        print("\n✓ Step 2: Ensemble Evaluation (calling 4 real SambaNova models)")
 
-    # Step 3: Consensus
-    aggregator = ConsensusAggregator()
-    safe_results = aggregator.aggregate_median(all_results)
+        model_names = [
+            "gpt-oss-120b",
+            "DeepSeek-V3.1",
+            "Qwen3-32B",
+            "DeepSeek-V3-0324"
+        ]
 
-    print("\n✓ Step 3: Consensus Aggregation")
+        all_results = []
+        for i, model_name in enumerate(model_names, 1):
+            print(f"   Model {i}/{len(model_names)}: {model_name}...", end=" ", flush=True)
+            try:
+                evaluator = RealLLMEvaluator(model_name=model_name, api_key=api_key)
+                results = evaluator.evaluate_interest(masked_data, candidate_topics)
+                all_results.append(results)
+                print("✓")
+            except Exception as e:
+                print(f"❌ Error: {e}")
+                # Fallback
+                all_results.append([
+                    {"ItemId": t["ItemId"], "QualityScore": 0.5, "QualityReason": "error"}
+                    for t in candidate_topics
+                ])
+
+        print("\n✓ Step 3: Consensus Aggregation")
+        aggregator = ConsensusAggregator()
+        safe_results = aggregator.aggregate_median(all_results)
+    else:
+        print("\n⚠️  SAMBANOVA_API_KEY not set - using hardcoded example output")
+        print("✓ Step 2: Ensemble Evaluation (would use 4 real LLM models)")
+        print("✓ Step 3: Consensus Aggregation")
+
+        # Fallback: Expected safe output format (NO specific queries/titles!)
+        safe_results = [
+            {
+                "ItemId": "A",
+                "QualityScore": 0.85,
+                "QualityReason": "Strong:MSNClicks+BingSearch+MAI"
+            },
+            {
+                "ItemId": "B",
+                "QualityScore": 0.25,
+                "QualityReason": "no supporting evidence"
+            },
+            {
+                "ItemId": "C",
+                "QualityScore": 0.85,
+                "QualityReason": "Strong:MSNClicks+BingSearch+MAI"
+            }
+        ]
 
     print("\n✅ OUTPUT (SAFE - No Private Data):")
     print(json.dumps(safe_results, indent=2))

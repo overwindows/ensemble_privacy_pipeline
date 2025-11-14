@@ -2,9 +2,12 @@
 Ensemble-Redaction Consensus Pipeline - Core Components
 
 This package contains the core privacy-preserving pipeline components.
+
+For real LLM evaluation, use:
+    from examples.real_llm_example import RealLLMEvaluator
 """
 
-from .pipeline import PrivacyRedactor, MockLLMEvaluator, ConsensusAggregator
+from .privacy_core import PrivacyRedactor, ConsensusAggregator, analyze_privacy_leakage
 
-__all__ = ['PrivacyRedactor', 'MockLLMEvaluator', 'ConsensusAggregator']
-__version__ = '1.0.0'
+__all__ = ['PrivacyRedactor', 'ConsensusAggregator', 'analyze_privacy_leakage']
+__version__ = '2.0.0'

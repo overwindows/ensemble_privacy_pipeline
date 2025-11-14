@@ -28,6 +28,12 @@ try:
 except ImportError:
     HAS_ANTHROPIC = False
 
+try:
+    from sambanova import SambaNova
+    HAS_SAMBANOVA = True
+except ImportError:
+    HAS_SAMBANOVA = False
+
 
 # ============================================================================
 # SYSTEM PROMPT (From Your Appendix A)
@@ -125,17 +131,33 @@ class RealLLMEvaluator:
     Production evaluator using real LLM APIs.
     """
 
-    def __init__(self, model_name: str, api_key: str = None):
+    def __init__(self, model_name: str, api_key: str = None, base_url: str = None):
         """
         Args:
-            model_name: "gpt-4", "claude-3-5-sonnet-20241022", "gemini-pro", etc.
+            model_name: "gpt-4", "claude-3-5-sonnet-20241022", "gemini-pro", "Meta-Llama-3.1-8B-Instruct", etc.
             api_key: API key (or set via environment variable)
+            base_url: Base URL for API (optional, for SambaNova/vLLM)
         """
         self.model_name = model_name
         self.api_key = api_key or self._get_api_key()
+        self.base_url = base_url
 
         # Determine provider
-        if "gpt" in model_name.lower():
+        # IMPORTANT: Check SambaNova models FIRST (before generic "gpt" check)
+        if any(keyword in model_name.lower() for keyword in ["gpt-oss", "deepseek", "qwen", "llama", "mistral"]):
+            # SambaNova Cloud API
+            self.provider = "sambanova"
+            if not HAS_SAMBANOVA:
+                raise ImportError("Install sambanova: pip install sambanova")
+
+            # Use official SambaNova SDK
+            api_base = base_url or os.getenv("SAMBANOVA_BASE_URL", "https://api.sambanova.ai/v1")
+            self.client = SambaNova(
+                api_key=self.api_key,
+                base_url=api_base
+            )
+
+        elif "gpt" in model_name.lower():
             self.provider = "openai"
             if not HAS_OPENAI:
                 raise ImportError("Install openai: pip install openai")
@@ -157,7 +179,7 @@ class RealLLMEvaluator:
             self.provider = "openai_compatible"
             self.client = openai.OpenAI(
                 api_key=self.api_key or "EMPTY",
-                base_url=os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
+                base_url=base_url or os.getenv("VLLM_BASE_URL", "http://localhost:8000/v1")
             )
 
     def _get_api_key(self) -> str:
@@ -168,6 +190,8 @@ class RealLLMEvaluator:
             return os.getenv("ANTHROPIC_API_KEY")
         elif "gemini" in self.model_name.lower():
             return os.getenv("GOOGLE_API_KEY")
+        elif any(keyword in self.model_name.lower() for keyword in ["gpt-oss", "deepseek", "qwen", "llama", "mistral"]):
+            return os.getenv("SAMBANOVA_API_KEY")
         return None
 
     def evaluate_interest(self, masked_user_data: Dict,
@@ -181,6 +205,8 @@ class RealLLMEvaluator:
 
         if self.provider == "openai" or self.provider == "openai_compatible":
             return self._call_openai(user_prompt)
+        elif self.provider == "sambanova":
+            return self._call_sambanova(user_prompt)
         elif self.provider == "anthropic":
             return self._call_anthropic(user_prompt)
         else:
@@ -223,6 +249,29 @@ class RealLLMEvaluator:
             )
 
             content = message.content[0].text.strip()
+
+            # Parse JSON array
+            results = self._parse_json_response(content)
+            return results
+
+        except Exception as e:
+            print(f"Error calling {self.model_name}: {e}")
+            return []
+
+    def _call_sambanova(self, user_prompt: str) -> List[Dict]:
+        """Call SambaNova Cloud API."""
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.1,  # Low temperature for consistent scoring
+                top_p=0.1,
+            )
+
+            content = response.choices[0].message.content.strip()
 
             # Parse JSON array
             results = self._parse_json_response(content)

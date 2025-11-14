@@ -14,25 +14,13 @@ import time
 from typing import List, Dict, Any
 import numpy as np
 
-# Import evaluation framework
-from evaluation_framework import (
-    EvaluationPipeline,
-    PrivacyEvaluator,
-    UtilityEvaluator,
-    BenchmarkDatasetLoader
-)
+# Add parent directory to path
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-# Import your pipeline components (adjust imports as needed)
-try:
-    from ensemble_privacy_pipeline import (
-        PrivacyRedactor,
-        MockLLMEvaluator,
-        ConsensusAggregator
-    )
-    PIPELINE_AVAILABLE = True
-except ImportError:
-    print("Warning: Could not import pipeline components. Using mock implementations.")
-    PIPELINE_AVAILABLE = False
+# Import pipeline components
+from src.privacy_core import PrivacyRedactor, ConsensusAggregator, analyze_privacy_leakage
+from examples.real_llm_example import RealLLMEvaluator
 
 
 # ============================================================================
@@ -93,44 +81,53 @@ class PrivacyPreservingModel:
     Uses: Masking → Ensemble → Consensus
     """
 
-    def __init__(self, num_models: int = 5):
-        self.num_models = num_models
-        self.redactor = None
-        self.evaluators = None
-        self.aggregator = None
+    def __init__(self, model_names: List[str], api_key: str):
+        self.model_names = model_names
+        self.api_key = api_key
+        self.redactor = PrivacyRedactor()
+        self.aggregator = ConsensusAggregator()
 
-    def evaluate(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        # Create evaluators for each model
+        self.evaluators = [
+            RealLLMEvaluator(model_name=model, api_key=api_key)
+            for model in model_names
+        ]
+
+    def evaluate(self, user_data: Dict[str, Any], candidate_topics: List[Dict]) -> Dict[str, Any]:
         """
         Evaluate WITH privacy protection.
 
         Returns outputs with only generic metadata (no PII).
         """
-        # Mock privacy-preserving output (no PII leaked!)
-        return {
-            'ItemId': 'health-topic',
-            'QualityScore': 0.85,
-            'QualityReason': 'VeryStrong:MSNClicks+BingSearch'  # ✅ No specific queries!
-        }
-
-        # NOTE: When you integrate your actual pipeline, replace above with:
         # Step 1: Redact sensitive data
-        # masked_data = self.redactor.redact_user_data(user_data)
+        masked_data = self.redactor.redact_user_data(user_data)
 
         # Step 2: Ensemble evaluation
-        evaluations = []
+        all_results = []
         for evaluator in self.evaluators:
-            result = evaluator.evaluate_interest(masked_data, topic="health")
-            evaluations.append(result)
+            try:
+                results = evaluator.evaluate_interest(masked_data, candidate_topics)
+                all_results.append(results)
+            except Exception as e:
+                print(f"Warning: Model {evaluator.model_name} failed: {e}")
+                # Add fallback
+                all_results.append([
+                    {"ItemId": t["ItemId"], "QualityScore": 0.5, "QualityReason": "error"}
+                    for t in candidate_topics
+                ])
 
         # Step 3: Consensus aggregation
-        final_score = self.aggregator.aggregate_scores([e['score'] for e in evaluations])
+        consensus = self.aggregator.aggregate_median(all_results)
 
-        # Step 4: Safe output (no PII!)
-        return {
-            'ItemId': 'health-topic',
-            'QualityScore': final_score,
-            'QualityReason': 'VeryStrong:MSNClicks+BingSearch'  # ✅ Generic only!
-        }
+        # Return first result (single topic evaluation)
+        if consensus:
+            return consensus[0]
+        else:
+            return {
+                'ItemId': candidate_topics[0]['ItemId'],
+                'QualityScore': 0.5,
+                'QualityReason': 'no consensus'
+            }
 
 
 # ============================================================================
