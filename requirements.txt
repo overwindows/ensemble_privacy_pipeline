@@ -1,0 +1,22 @@
+# Core dependencies
+numpy>=1.21.0
+scikit-learn>=1.0.0
+
+# For real LLM APIs (optional)
+openai>=1.0.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
+
+# For transformers/embeddings (optional)
+torch>=2.0.0
+transformers>=4.30.0
+
+# For public benchmark datasets
+datasets>=2.14.0
+huggingface_hub>=0.17.0
+
+# Development dependencies (optional)
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+mypy>=0.950

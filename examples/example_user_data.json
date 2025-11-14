@@ -1,0 +1,94 @@
+{
+  "description": "Example user data for privacy-preserving interest evaluation",
+  "user_id": "example_user_001",
+  "data": {
+    "MSNClicks": [
+      {
+        "title": "New diabetes treatment shows promise in clinical trials",
+        "timestamp": "2024-01-15T10:30:00"
+      },
+      {
+        "title": "Understanding type 2 diabetes: symptoms and prevention",
+        "timestamp": "2024-01-14T15:20:00"
+      },
+      {
+        "title": "Best fitness trackers for monitoring blood sugar levels",
+        "timestamp": "2024-01-13T09:15:00"
+      }
+    ],
+    "BingSearch": [
+      {
+        "query": "diabetes diet plan",
+        "timestamp": "2024-01-15T11:00:00"
+      },
+      {
+        "query": "how to lower blood sugar naturally",
+        "timestamp": "2024-01-14T16:30:00"
+      }
+    ],
+    "BingClickedQueries": [
+      {
+        "query": "continuous glucose monitoring devices",
+        "url": "https://www.healthline.com/diabetes-cgm"
+      },
+      {
+        "query": "diabetes support groups near me",
+        "url": "https://www.diabetes.org/support"
+      }
+    ],
+    "MSNUpvotes": [
+      {
+        "title": "Living well with diabetes: expert advice and tips"
+      }
+    ],
+    "MAI": [
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Health",
+      "Fitness",
+      "Fitness",
+      "Fitness",
+      "Technology"
+    ],
+    "demographics": {
+      "age": 42,
+      "gender": "F",
+      "location": "Seattle, WA"
+    }
+  },
+  "candidate_topics": [
+    {
+      "ItemId": "A",
+      "Topic": "Managing diabetes with healthy eating and exercise"
+    },
+    {
+      "ItemId": "B",
+      "Topic": "Latest advancements in artificial intelligence"
+    },
+    {
+      "ItemId": "C",
+      "Topic": "Women's health: wellness tips for busy professionals",
+      "Demographics": {
+        "gender": "F"
+      }
+    },
+    {
+      "ItemId": "D",
+      "Topic": "Men's grooming and style trends",
+      "Demographics": {
+        "gender": "M"
+      }
+    },
+    {
+      "ItemId": "E",
+      "Topic": "Fitness tracking apps and wearable technology"
+    }
+  ]
+}

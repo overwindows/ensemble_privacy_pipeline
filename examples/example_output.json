@@ -1,0 +1,53 @@
+{
+  "description": "Example output from ensemble-redaction pipeline",
+  "user_id": "example_user_001",
+  "pipeline_version": "1.0.0",
+  "ensemble_config": {
+    "num_models": 5,
+    "consensus_method": "median_majority_voting",
+    "privacy_parameters": {
+      "masking_level": "medium",
+      "filtering_enabled": true
+    }
+  },
+  "results": [
+    {
+      "ItemId": "A",
+      "QualityScore": 0.85,
+      "QualityReason": "VeryStrong:MSNUpvotes+MSNClicks+BingSearch"
+    },
+    {
+      "ItemId": "B",
+      "QualityScore": 0.25,
+      "QualityReason": "no supporting evidence"
+    },
+    {
+      "ItemId": "C",
+      "QualityScore": 0.85,
+      "QualityReason": "VeryStrong:MSNUpvotes+MSNClicks+BingSearch"
+    },
+    {
+      "ItemId": "D",
+      "QualityScore": 0.2,
+      "QualityReason": "demographic mismatch"
+    },
+    {
+      "ItemId": "E",
+      "QualityScore": 0.45,
+      "QualityReason": "Weak:MAI"
+    }
+  ],
+  "privacy_metrics": {
+    "pii_leak_rate": 0.0,
+    "query_leak_count": 0,
+    "title_leak_count": 0,
+    "reconstruction_attack_success": false,
+    "leakage_severity": "NONE"
+  },
+  "utility_metrics": {
+    "score_accuracy": "high",
+    "json_validity": 1.0,
+    "format_stability": 1.0
+  },
+  "note": "This output contains ONLY aggregated metadata. No specific queries, titles, or individual behavioral traces are included."
+}
