@@ -1,146 +1,106 @@
 Example Task: Evaluate topic relevance for a single user while ensuring that no sensitive personal data (such as medical conditions, queries, demographics, or behavioral traces) is exposed to the model.
 The system must generate accurate interest scores using only masked, redacted, and privacy-preserving intermediate representations.
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                     1. RAW USER DATA  (SENSITIVE INPUT)                      │
-│------------------------------------------------------------------------------│
-│ MSNClicks:                                                                   │
-│   - "New diabetes treatment shows promise in clinical trials"                │
-│   - "Understanding type 2 diabetes: symptoms and prevention"                 │
-│   - "Best fitness trackers for monitoring blood sugar levels"                │
-│   - "Depression and chronic illness: Finding support"                        │
-│                                                                              │
-│ BingSearch:                                                                  │
-│   - "diabetes diet plan"                                                     │
-│   - "how to lower blood sugar naturally"                                     │
-│   - "diabetes medication side effects"                                       │
-│                                                                              │
-│ BingClickedQueries:                                                          │
-│   - "continuous glucose monitoring devices"                                  │
-│                                                                              │
-│ MSNUpvotes:                                                                  │
-│   - "Living well with diabetes: expert advice and tips"                      │
-│                                                                              │
-│ MAI Tags: 10×Health, 3×Fitness, 1×Technology                                 │
-│ Demographics: age 42, gender F, location Seattle                             │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                     2. REDACTION & MASKING LAYER (Transformation)            │
-│------------------------------------------------------------------------------│
-│ Transformation performed:                                                    │
-│                                                                              │
-│ Queries → Tokens:                                                            │
-│   - "diabetes diet plan"                   → QUERY_SEARCH_001                │
-│   - "how to lower blood sugar naturally"   → QUERY_SEARCH_002                │
-│   - "diabetes medication side effects"     → QUERY_SEARCH_003                │
-│                                                                              │
-│ Articles → Tokens:                                                           │
-│   - "New diabetes treatment..."            → QUERY_MSN_001                   │
-│   - "Understanding type 2 diabetes..."     → QUERY_MSN_002                   │
-│   - "Best fitness trackers..."             → QUERY_MSN_003                   │
-│   - "Depression and chronic illness..."    → QUERY_MSN_004                   │
-│                                                                              │
-│ Clicked Query → Token:                                                       │
-│   - "continuous glucose monitoring..."     → QUERY_CLICKED_001               │
-│                                                                              │
-│ Demographics:                                                                │
-│   - age 42 → "35–44"                                                         │
-│   - gender unchanged                                                         │
-│                                                                              │
-│------------------------------------------------------------------------------│
-│ MASKED OUTPUT DATA:                                                          │
-│                                                                              │
-│ {                                                                            │
-│   "MSNClicks": [                                                             │
-│      {"token": "QUERY_MSN_001", "timestamp": "recent"},                      │
-│      {"token": "QUERY_MSN_002", "timestamp": "recent"},                      │
-│      {"token": "QUERY_MSN_003", "timestamp": "recent"},                      │
-│      {"token": "QUERY_MSN_004", "timestamp": "recent"}                       │
-│   ],                                                                         │
-│   "BingSearch": [                                                            │
-│      {"token": "QUERY_SEARCH_001", "timestamp": "recent"},                   │
-│      {"token": "QUERY_SEARCH_002", "timestamp": "recent"},                   │
-│      {"token": "QUERY_SEARCH_003", "timestamp": "recent"}                    │
-│   ],                                                                         │
-│   "BingClickedQueries": [                                                    │
-│      {"token": "QUERY_CLICKED_001", "clicked_url_domain": "healthline.com"}  │
-│   ],                                                                         │
-│   "MSNUpvotes": [ {"token": "QUERY_UPVOTE_001"} ],                           │
-│   "MAI": { "Health":10, "Fitness":3, "Technology":1 },                       │
-│   "demographics": { "age_range": "35-44", "gender": "F"},                    │
-│ }                                                                            │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                       3. SAFE PROMPT GENERATION (Intermediate)               │
-│------------------------------------------------------------------------------│
-│ - Model only sees tokens (e.g., QUERY_MSN_003), NOT raw text                 │
-│ - Prompt explicitly forbids reconstruction                                   │
-│ - Evidence categories allowed: MAI, ClickedQueries, MSNUpvotes, SearchCount  │
-│                                                                              │
-│ Example SAFE prompt content:                                                 │
-│   “You will evaluate topic relevance using ONLY token IDs and category-level │
-│    evidence. You MUST NOT infer medical terms, diseases, or reconstruct user │
-│    queries.”                                                                 │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                     4. ENSEMBLE MODEL EVALUATION (4× LLMs)                   │
-│------------------------------------------------------------------------------│
-│ Each model uses: masked data + safe prompt → structured JSON output          │
-│                                                                              │
-│ MODEL 1 — gpt-oss-120b                                                       │
-│   A:0.75  B:0.6  C:0.78  D:0.1  E:0.58                                       │
-│                                                                              │
-│ MODEL 2 — DeepSeek-V3.1                                                      │
-│   A:0.82  B:0.2  C:0.75  D:0.2  E:0.7                                        │
-│                                                                              │
-│ MODEL 3 — Qwen3-32B                                                          │
-│   A:0.75  B:0.6  C:0.75  D:0.2  E:0.6                                        │
-│                                                                              │
-│ MODEL 4 — DeepSeek-V3-0324                                                   │
-│   A:0.75  B:0.2  C:0.82  D:0.2  E:0.65                                       │
-│                                                                              │
-│------------------------------------------------------------------------------│
-│ Note: None of these models sees “diabetes” or any raw query — only tokens.   │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                          5. CONSENSUS AGGREGATION (Median)                   │
-│------------------------------------------------------------------------------│
-│ Median scores across 4 models:                                               │
-│                                                                              │
-│   A → 0.75                                                                   │
-│   B → 0.40 (median of 0.6,0.2,0.6,0.2)                                       │
-│   C → 0.77 (median of 0.78,0.75,0.75,0.82)                                   │
-│   D → 0.20                                                                   |
-│   E → 0.62 (median of 0.58,0.7,0.6,0.65)                                     │
-│                                                                              │
-│ Final Evidence Reasons (intersection):                                       │
-│   - Uses only high-level evidence                                            │
-│   - Never mentions “diabetes”, symptoms, or queries                          │
-└──────────────────────────────────────────────────────────────────────────────┘
-                                        │
-                                        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         6. SANITIZED FINAL OUTPUT (Safe)                     │
-│------------------------------------------------------------------------------│
-│ [                                                                            │
-│   {"ItemId":"A","QualityScore":0.75,                                         │
-│      "QualityReason":"Strong:MSNClicks+BingSearch+BingClickedQueries+MAI"},  │
-│   {"ItemId":"B","QualityScore":0.40, "QualityReason":"Strong:MAI"},          │
-│   {"ItemId":"C","QualityScore":0.77, "QualityReason":"Strong:MAI+Clicks"},   │
-│   {"ItemId":"D","QualityScore":0.20, "QualityReason":"gender mismatch"},     │
-│   {"ItemId":"E","QualityScore":0.62, "QualityReason":"Strong:MAI"}           │
-│ ]                                                                            │
-│                                                                              │
-│ ✔ No disease names                                                           │
-│ ✔ No raw queries                                                             │
-│ ✔ No symptoms / diagnosis                                                    │
-│ ✔ Only category-level behavioral patterns                                    │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                       1. RAW USER DATA (FULLY EXPOSED)                        │
+│-------------------------------------------------------------------------------│
+│ MSNClicks:                                                                    │
+│   - "New diabetes treatment shows promise in clinical trials"                 │
+│   - "Understanding type 2 diabetes: symptoms and prevention"                  │
+│   - "Best fitness trackers for monitoring blood sugar levels"                 │
+│   - "Depression and chronic illness: Finding support"                         │
+│                                                                               │
+│ BingSearch:                                                                   │
+│   - "diabetes diet plan"                                                      │
+│   - "how to lower blood sugar naturally"                                      │
+│   - "diabetes medication side effects"                                        │
+│                                                                               │
+│ BingClickedQueries:                                                           │
+│   - "continuous glucose monitoring devices"                                   │
+│                                                                               │
+│ MSNUpvotes:                                                                   │
+│   - "Living well with diabetes: expert advice and tips"                       │
+│                                                                               │
+│ MAI Tags: 10×Health, 3×Fitness, 1×Technology                                  │
+│ Demographics: { age: 42, gender: "F", location: "Seattle, WA" }               │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                       2. UNSAFE PROMPT & DIRECT FEED                          │
+│-------------------------------------------------------------------------------│
+│ Raw data is placed directly into the model prompt:                            │
+│                                                                               │
+│   “Here is the user's data:                                                   │
+│     - ‘New diabetes treatment shows promise in clinical trials’               │
+│     - ‘diabetes diet plan’                                                    │
+│     - age 42 female in Seattle                                                │
+│     - searches about blood sugar, medication side effects                     │
+│     - continuous glucose monitoring devices                                   │
+│    Evaluate relevance for topics A–E.”                                        │
+│                                                                               │
+│ Risks here:                                                                   │
+│   🔴 Full disease names are exposed                                           │
+│   🔴 User’s medical condition is fully reconstructable                        │
+│   🔴 Exact queries are visible                                                │
+│   🔴 Age, gender, and location exposed                                        │
+│   🔴 Model may amplify or memorize sensitive info                             │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                    3. SINGLE LLM INFERENCE (UNSANDBOXED)                      │
+│-------------------------------------------------------------------------------│
+│ Model: gpt-oss-120b                                                           │
+│                                                                               │
+│ Model uses ALL sensitive data directly, e.g.:                                 │
+│   - Mentions “diabetes” repeatedly                                            │
+│   - Identifies disease-specific behavior                                      │
+│   - Infers gender relevance                                                   │
+│   - Uses exact medical queries to justify scoring                             │
+│                                                                               │
+│ INTERMEDIATE REASONING THE MODEL PRODUCED:                                    │
+│   - “User’s activity is dominated by diabetes-related content…”               │
+│   - “4 MSN article clicks (all about diabetes, its symptoms, treatment…”      │
+│   - “searches about diabetes diet, blood sugar control…”                      │
+│   - “user is a 42-year-old female”                                            │
+│                                                                               │
+│ This step directly leaks:                                                     │
+│   🔴 Health condition                                                         │
+│   🔴 Medication concerns                                                      │
+│   🔴 Disease management behavior                                              │
+│   🔴 Demographics                                                             │
+│   🔴 Clickstream content                                                      │
+└───────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                          4. VANILLA OUTPUT (UNSAFE)                           │
+│-------------------------------------------------------------------------------│
+│ The final output directly includes sensitive facts:                           │
+│                                                                               │
+│ BASELINE OUTPUT (actual from your logs):                                      │
+│ [                                                                             │
+│   {                                                                           │
+│     "ItemId": "A",                                                            │
+│     "QualityScore": 0.95,                                                     │
+│     "QualityReason":                                                          │
+│        "The user’s recent activity is dominated by diabetes-related           │
+│         content: 4 MSN article clicks (all about diabetes, its symptoms,      │
+│         treatment, and mental health impact), 3 Bing searches explicitly      │
+│         about diabetes diet, natural blood-sugar control, and medication      │
+│         side-effects, plus a clicked query for continuous glucose monitoring."│
+│   },                                                                          │
+│   { "ItemId": "B", "QualityScore": 0.2,  "QualityReason": "…" },              │
+│   { "ItemId": "C", "QualityScore": 0.52, "QualityReason": "…" },              │
+│   { "ItemId": "D", "QualityScore": 0.05, "QualityReason": "…" },              │
+│   { "ItemId": "E", "QualityScore": 0.85, "QualityReason": "…" }               │
+│ ]                                                                             │
+│                                                                               │
+│ Problems:                                                                     │
+│   🔴 Model fully describes diabetes condition                                 │
+│   🔴 Mentions symptoms, treatments, blood sugar, medication                   │
+│   🔴 Mentions “42-year-old female”                                            │
+│   🔴 Gives explicit medical justification                                     │
+│   🔴 This output alone leaks protected health info (PHI)                      │
+└───────────────────────────────────────────────────────────────────────────────┘
