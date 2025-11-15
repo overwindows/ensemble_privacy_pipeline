@@ -11,7 +11,7 @@ Instead uses generic field names that align with real public datasets:
 - demographics: Age, gender, location (optional)
 
 Usage:
-  export SAMBANOVA_API_KEY='your-key-here'
+  export LLM_API_KEY='your-key-here'
   python3 benchmarks/neutral_benchmark.py --benchmark all --num-samples 20
 """
 
@@ -179,11 +179,38 @@ def benchmark_privacy_leakage(samples: List[Dict], model_names: List[str], api_k
     print("="*80)
 
     print(f"\nTesting {len(samples)} samples with {len(model_names)} models...")
+    sys.stdout.flush()
 
     # Initialize pipeline
+    print("[DEBUG] Initializing PrivacyRedactor...")
+    sys.stdout.flush()
     redactor = PrivacyRedactor()
+    print("[DEBUG] ✓ PrivacyRedactor initialized")
+    sys.stdout.flush()
+
+    print("[DEBUG] Initializing ConsensusAggregator...")
+    sys.stdout.flush()
     aggregator = ConsensusAggregator()
-    evaluators = [RealLLMEvaluator(model_name=model, api_key=api_key) for model in model_names]
+    print("[DEBUG] ✓ ConsensusAggregator initialized")
+    sys.stdout.flush()
+
+    print(f"[DEBUG] Initializing {len(model_names)} LLM evaluators...")
+    sys.stdout.flush()
+    evaluators = []
+    for model in model_names:
+        print(f"[DEBUG]   Creating evaluator for {model}...")
+        sys.stdout.flush()
+        try:
+            evaluator = RealLLMEvaluator(model_name=model, api_key=api_key)
+            evaluators.append(evaluator)
+            print(f"[DEBUG]   ✓ {model} evaluator ready")
+            sys.stdout.flush()
+        except Exception as e:
+            print(f"[DEBUG]   ❌ Failed to create {model} evaluator: {e}")
+            sys.stdout.flush()
+            raise
+    print(f"[DEBUG] ✓ All {len(evaluators)} evaluators initialized")
+    sys.stdout.flush()
 
     results = {
         'total_samples': len(samples),
@@ -193,26 +220,48 @@ def benchmark_privacy_leakage(samples: List[Dict], model_names: List[str], api_k
         'safe_samples': [],
     }
 
+    print(f"[DEBUG] Starting sample processing loop ({len(samples)} samples)...")
+    sys.stdout.flush()
+
     for i, sample in enumerate(samples, 1):
-        print(f"\n  Sample {i}/{len(samples)}: {sample['id']}")
+        print(f"\n[DEBUG] === Processing Sample {i}/{len(samples)} ===")
+        print(f"  Sample {i}/{len(samples)}: {sample['id']}")
+        sys.stdout.flush()
 
         # Step 1: Redact
+        print(f"[DEBUG]   Step 1: Redacting sample {i}...")
+        sys.stdout.flush()
         masked_data = redactor.redact_user_data(sample['user_data'])
+        print(f"[DEBUG]   ✓ Redaction complete")
+        sys.stdout.flush()
 
         # Step 2: Ensemble evaluation
+        print(f"[DEBUG]   Step 2: Running {len(evaluators)} model evaluations...")
+        sys.stdout.flush()
         all_results = []
-        for evaluator in evaluators:
+        for j, evaluator in enumerate(evaluators, 1):
             try:
+                print(f"[DEBUG]     Evaluating with model {j}/{len(evaluators)}: {evaluator.model_name}...")
+                sys.stdout.flush()
                 eval_results = evaluator.evaluate_interest(masked_data, sample['candidate_topics'])
                 all_results.append(eval_results)
+                print(f"[DEBUG]     ✓ {evaluator.model_name} complete")
+                sys.stdout.flush()
             except Exception as e:
                 print(f"    ⚠️  Model {evaluator.model_name} error: {e}")
+                sys.stdout.flush()
 
         # Step 3: Consensus
+        print(f"[DEBUG]   Step 3: Aggregating results from {len(all_results)} models...")
+        sys.stdout.flush()
         if all_results:
             consensus = aggregator.aggregate_median(all_results)
+            print(f"[DEBUG]   ✓ Consensus aggregation complete")
+            sys.stdout.flush()
 
             # Step 4: Check for PII leakage
+            print(f"[DEBUG]   Step 4: Checking for PII leakage...")
+            sys.stdout.flush()
             output_str = json.dumps(consensus)
 
             leaked_pii = []
@@ -227,12 +276,18 @@ def benchmark_privacy_leakage(samples: List[Dict], model_names: List[str], api_k
                     'leaked_pii': leaked_pii,
                     'output': consensus
                 })
+                print(f"[DEBUG]   ✓ PII check complete")
                 print(f"    ❌ PII LEAKED: {leaked_pii}")
+                sys.stdout.flush()
             else:
                 results['safe_samples'].append(sample['id'])
+                print(f"[DEBUG]   ✓ PII check complete")
                 print(f"    ✅ NO PII LEAKED")
+                sys.stdout.flush()
         else:
+            print(f"[DEBUG]   ⚠️  No results to aggregate - all models failed")
             print(f"    ⚠️  All models failed")
+            sys.stdout.flush()
 
     results['pii_exposure_rate'] = results['pii_exposed_count'] / results['total_samples']
 
@@ -338,20 +393,24 @@ def main():
     args = parser.parse_args()
 
     # Check API key
-    api_key = os.getenv('SAMBANOVA_API_KEY')
+    print("[DEBUG] Step 1: Checking API key...")
+    api_key = os.getenv('LLM_API_KEY')
     if not api_key:
-        print("❌ Error: SAMBANOVA_API_KEY not set!")
+        print("❌ Error: LLM_API_KEY not set!")
         print("\nSet your API key:")
-        print("  export SAMBANOVA_API_KEY='your-key-here'")
+        print("  export LLM_API_KEY='your-key-here'")
         sys.exit(1)
+    print(f"[DEBUG] ✓ API Key found: {api_key[:20]}... (length: {len(api_key)})")
 
     print("="*80)
     print("VENDOR-NEUTRAL PRIVACY PIPELINE - BENCHMARK SUITE")
     print("="*80)
     print(f"\n✓ API Key: {api_key[:20]}...")
     print(f"✓ Samples per dataset: {args.num_samples}")
+    sys.stdout.flush()  # Force output
 
     # Your 4-model ensemble
+    print("[DEBUG] Step 2: Setting up model names...")
     model_names = [
         "gpt-oss-120b",
         "DeepSeek-V3.1",
@@ -360,31 +419,44 @@ def main():
     ]
 
     print(f"✓ Models: {', '.join(model_names)}")
+    sys.stdout.flush()
 
     # Generate test data
     print("\n📝 Generating vendor-neutral test data...")
+    print("[DEBUG] Step 3: Creating data generator...")
     data_gen = NeutralDataGenerator()
+    print("[DEBUG] ✓ Data generator created")
+    sys.stdout.flush()
 
     all_samples = []
 
     if args.domains in ['medical', 'all']:
+        print("[DEBUG] Generating medical samples...")
         medical_samples = data_gen.generate_medical_samples(args.num_samples)
         all_samples.extend(medical_samples)
         print(f"  ✓ Medical samples: {len(medical_samples)}")
+        sys.stdout.flush()
 
     if args.domains in ['financial', 'all']:
+        print("[DEBUG] Generating financial samples...")
         financial_samples = data_gen.generate_financial_samples(args.num_samples)
         all_samples.extend(financial_samples)
         print(f"  ✓ Financial samples: {len(financial_samples)}")
+        sys.stdout.flush()
 
     if args.domains in ['education', 'all']:
+        print("[DEBUG] Generating education samples...")
         education_samples = data_gen.generate_education_samples(args.num_samples)
         all_samples.extend(education_samples)
         print(f"  ✓ Education samples: {len(education_samples)}")
+        sys.stdout.flush()
 
     print(f"  ✓ Total samples: {len(all_samples)}")
+    print(f"[DEBUG] Step 4: Sample generation complete - {len(all_samples)} samples")
+    sys.stdout.flush()
 
     # Run benchmarks
+    print("[DEBUG] Step 5: Setting up benchmark configuration...")
     all_results = {
         'config': {
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -395,13 +467,19 @@ def main():
         },
         'benchmarks': {}
     }
+    print("[DEBUG] ✓ Configuration set")
+    sys.stdout.flush()
 
     start_time = time.time()
 
     if args.benchmark in ['privacy_leakage', 'all']:
+        print(f"\n[DEBUG] Step 6: Starting privacy_leakage benchmark with {len(all_samples)} samples...")
+        sys.stdout.flush()
         all_results['benchmarks']['privacy_leakage'] = benchmark_privacy_leakage(
             all_samples, model_names, api_key
         )
+        print("[DEBUG] ✓ privacy_leakage benchmark complete")
+        sys.stdout.flush()
 
     if args.benchmark in ['utility', 'all']:
         all_results['benchmarks']['utility'] = benchmark_utility_preservation(

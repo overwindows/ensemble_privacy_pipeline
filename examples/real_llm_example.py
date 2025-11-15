@@ -48,8 +48,8 @@ Each element must have exactly:
 Forbidden keys: error, invalid, status.
 
 Rules:
-1. Data Sources: MSNClicks, MSNUpvotes, BingSearch, BingClickedQueries, MAI, demographics.
-   Distinct sources = different source types. Multiple keywords inside one MAI category = ONE source.
+1. Data Sources: browsing_history, raw_queries, demographics.
+   Distinct sources = different source types.
 
 2. Noise Filtering:
    Ignore all navigation / utility queries (youtube, login, homepage, bare domains, translators, URL-only).
@@ -74,23 +74,21 @@ Rules:
 
 5. Reason Format:
    Must follow:
-     "Strong:MSNClicks+BingSearch"
-     "Weak:MAI"
+     "Strong:browsing_history+raw_queries"
+     "Weak:raw_queries"
      "None:no supporting evidence"
    NEVER invent titles or queries.
 
-6. MAI Weighting: MAI category = one source no matter count.
-
-7. Hallucination Guard:
+6. Hallucination Guard:
    Use ONLY provided masked data. If uncertain → lower score.
 
-8. Output format:
+7. Output format:
    [
-     {"ItemId":"A","QualityScore":0.61,"QualityReason":"MSNClicks+BingSearch"},
+     {"ItemId":"A","QualityScore":0.61,"QualityReason":"browsing_history+raw_queries"},
      {"ItemId":"B","QualityScore":0.20,"QualityReason":"gender mismatch"}
    ]
 
-9. After closing bracket STOP.
+8. After closing bracket STOP.
 """
 
 
@@ -136,26 +134,36 @@ class RealLLMEvaluator:
         Args:
             model_name: "gpt-4", "claude-3-5-sonnet-20241022", "gemini-pro", "Meta-Llama-3.1-8B-Instruct", etc.
             api_key: API key (or set via environment variable)
-            base_url: Base URL for API (optional, for SambaNova/vLLM)
+            base_url: Base URL for API (optional, for custom API endpoints)
         """
+        import sys
+        print(f"[RealLLMEvaluator] Initializing for model: {model_name}", flush=True)
+
         self.model_name = model_name
         self.api_key = api_key or self._get_api_key()
         self.base_url = base_url
 
+        print(f"[RealLLMEvaluator] API key length: {len(self.api_key) if self.api_key else 0}", flush=True)
+
         # Determine provider
-        # IMPORTANT: Check SambaNova models FIRST (before generic "gpt" check)
+        # Check for custom LLM API models first
         if any(keyword in model_name.lower() for keyword in ["gpt-oss", "deepseek", "qwen", "llama", "mistral"]):
-            # SambaNova Cloud API
+            # Custom LLM API (OpenAI-compatible endpoint)
+            print(f"[RealLLMEvaluator] Provider: custom_llm_api", flush=True)
+
             self.provider = "sambanova"
             if not HAS_SAMBANOVA:
                 raise ImportError("Install sambanova: pip install sambanova")
 
-            # Use official SambaNova SDK
+            # Use OpenAI-compatible API client
             api_base = base_url or os.getenv("SAMBANOVA_BASE_URL", "https://api.sambanova.ai/v1")
+            print(f"[RealLLMEvaluator] Creating API client with base_url: {api_base}", flush=True)
+
             self.client = SambaNova(
                 api_key=self.api_key,
                 base_url=api_base
             )
+            print(f"[RealLLMEvaluator] ✓ API client created successfully", flush=True)
 
         elif "gpt" in model_name.lower():
             self.provider = "openai"
@@ -191,7 +199,7 @@ class RealLLMEvaluator:
         elif "gemini" in self.model_name.lower():
             return os.getenv("GOOGLE_API_KEY")
         elif any(keyword in self.model_name.lower() for keyword in ["gpt-oss", "deepseek", "qwen", "llama", "mistral"]):
-            return os.getenv("SAMBANOVA_API_KEY")
+            return os.getenv("LLM_API_KEY")
         return None
 
     def evaluate_interest(self, masked_user_data: Dict,
@@ -259,7 +267,7 @@ class RealLLMEvaluator:
             return []
 
     def _call_sambanova(self, user_prompt: str) -> List[Dict]:
-        """Call SambaNova Cloud API."""
+        """Call Custom LLM API."""
         try:
             response = self.client.chat.completions.create(
                 model=self.model_name,

@@ -9,7 +9,7 @@ to provide a complete, thorough evaluation of the ensemble-redaction privacy pip
     Estimated cost: $300-380 | Estimated time: 7-9 hours
 
 Usage:
-  export SAMBANOVA_API_KEY='your-key-here'
+  export LLM_API_KEY='your-key-here'
   python3 run_all_benchmarks.py
 
 Benchmarks included (using public datasets and vendor-neutral formats):
@@ -41,11 +41,11 @@ import time
 from datetime import datetime
 
 # Check API key
-api_key = os.getenv('SAMBANOVA_API_KEY')
+api_key = os.getenv('LLM_API_KEY')
 if not api_key:
-    print("❌ Error: SAMBANOVA_API_KEY not set!")
+    print("❌ Error: LLM_API_KEY not set!")
     print("\nSet your API key:")
-    print("  export SAMBANOVA_API_KEY='your-key-here'")
+    print("  export LLM_API_KEY='your-key-here'")
     sys.exit(1)
 
 print("=" * 80)
@@ -184,22 +184,67 @@ for i, bench in enumerate(benchmarks, 1):
     cmd = ["python3", bench['script']] + bench['args']
     print(f"\n▶ Running: {' '.join(cmd)}")
     print(f"⏱  Started at: {datetime.now().strftime('%H:%M:%S')}")
+    print(f"🔑 API Key available: {api_key[:20]}... (length: {len(api_key)})")
 
     try:
-        result = subprocess.run(
+        # Stream output in real-time while also saving to log
+        log_file = f"{bench['script'].replace('/', '_').replace('.py', '')}_log.txt"
+
+        import subprocess as sp
+        import select
+
+        # Create environment with API key explicitly set
+        env = os.environ.copy()
+        env['LLM_API_KEY'] = api_key  # Ensure API key is passed
+        env['PYTHONUNBUFFERED'] = '1'  # Disable Python output buffering
+
+        print(f"[DEBUG] Starting subprocess with unbuffered output...", flush=True)
+        process = sp.Popen(
             cmd,
-            capture_output=True,
+            stdout=sp.PIPE,
+            stderr=sp.STDOUT,
             text=True,
-            timeout=3600  # 1 hour timeout per benchmark
+            bufsize=1,
+            env=env  # Pass environment variables to subprocess
         )
+        print(f"[DEBUG] Subprocess started with PID: {process.pid}", flush=True)
+
+        output_lines = []
+        last_output_time = time.time()
+        with open(log_file, 'w') as log:
+            try:
+                print(f"[DEBUG] Entering output reading loop...", flush=True)
+                line_count = 0
+                for line in process.stdout:
+                    line_count += 1
+                    print(line, end='')  # Real-time output to console
+                    log.write(line)      # Save to log file
+                    output_lines.append(line)
+                    log.flush()
+                    last_output_time = time.time()
+
+                    # Debug heartbeat every 10 lines
+                    if line_count % 10 == 0:
+                        print(f"[DEBUG] Read {line_count} lines so far...", flush=True)
+
+                print(f"[DEBUG] Finished reading output ({line_count} total lines)", flush=True)
+                print(f"[DEBUG] Waiting for process to complete...", flush=True)
+                process.wait(timeout=10800)  # 3 hour timeout
+                print(f"[DEBUG] Process completed with return code: {process.returncode}", flush=True)
+
+            except sp.TimeoutExpired:
+                print(f"[DEBUG] Process timeout after 3 hours", flush=True)
+                process.kill()
+                raise
 
         elapsed_time = time.time() - start_time
+        result_stdout = ''.join(output_lines)
 
-        if result.returncode == 0:
+        if process.returncode == 0:
             print(f"\n✅ SUCCESS ({elapsed_time:.1f}s)")
+            print(f"   Log saved to: {log_file}")
 
             # Try to extract results file
-            output_lines = result.stdout.split('\n')
             results_file = None
             for line in output_lines:
                 if 'saved to:' in line.lower() or 'results:' in line.lower():
@@ -213,20 +258,20 @@ for i, bench in enumerate(benchmarks, 1):
                 "script": bench['script'],
                 "status": "success",
                 "elapsed_time": elapsed_time,
-                "results_file": results_file
+                "results_file": results_file,
+                "log_file": log_file
             }
 
         else:
             print(f"\n❌ FAILED ({elapsed_time:.1f}s)")
-            print(f"\nError output:")
-            print(result.stderr[:500])
+            print(f"   Check log: {log_file}")
 
             benchmark_result = {
                 "name": bench['name'],
                 "script": bench['script'],
                 "status": "failed",
                 "elapsed_time": elapsed_time,
-                "error": result.stderr[:500]
+                "log_file": log_file
             }
 
     except subprocess.TimeoutExpired:

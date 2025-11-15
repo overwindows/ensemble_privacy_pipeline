@@ -79,7 +79,7 @@ Topics to evaluate:
 For each topic, provide a QualityScore (0-1) and explain your reasoning with specific evidence from the user data.
 Output as JSON array."""
 
-        # Call SambaNova API
+        # Call LLM API
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -514,11 +514,11 @@ def main():
     """Main execution."""
 
     # Check for API key
-    api_key = os.getenv("SAMBANOVA_API_KEY")
+    api_key = os.getenv("LLM_API_KEY")
     if not api_key:
-        print("❌ Error: SAMBANOVA_API_KEY not set!")
+        print("❌ Error: LLM_API_KEY not set!")
         print("\nSet your API key:")
-        print("  export SAMBANOVA_API_KEY='your-key-here'")
+        print("  export LLM_API_KEY='your-key-here'")
         sys.exit(1)
 
     print(f"✓ API Key found: {api_key[:20]}...\n")

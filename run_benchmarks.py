@@ -8,7 +8,7 @@ Evaluates your approach on multiple benchmarks:
 3. Comparison with Baseline (no privacy)
 
 Usage:
-  export SAMBANOVA_API_KEY='your-key-here'
+  export LLM_API_KEY='your-key-here'
   python3 run_benchmarks.py --benchmark all --num-samples 50
 
 Supported Benchmarks:
@@ -328,11 +328,11 @@ def main():
     args = parser.parse_args()
 
     # Check API key
-    api_key = os.getenv('SAMBANOVA_API_KEY')
+    api_key = os.getenv('LLM_API_KEY')
     if not api_key:
-        print("❌ Error: SAMBANOVA_API_KEY not set!")
+        print("❌ Error: LLM_API_KEY not set!")
         print("\nSet your API key:")
-        print("  export SAMBANOVA_API_KEY='your-key-here'")
+        print("  export LLM_API_KEY='your-key-here'")
         sys.exit(1)
 
     print("="*80)

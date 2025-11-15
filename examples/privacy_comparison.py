@@ -380,12 +380,12 @@ def run_comparison():
     print("   Original titles → QUERY_MSN_001, QUERY_MSN_002, ...")
 
     # Step 2 & 3: Ensemble Evaluation + Consensus
-    # Use real LLM APIs with your SambaNova models
+    # Use real LLM APIs with your LLM models
 
-    api_key = os.getenv("SAMBANOVA_API_KEY")
+    api_key = os.getenv("LLM_API_KEY")
 
     if api_key:
-        print("\n✓ Step 2: Ensemble Evaluation (calling 4 real SambaNova models)")
+        print("\n✓ Step 2: Ensemble Evaluation (calling 4 real LLM models)")
 
         model_names = [
             "gpt-oss-120b",
@@ -414,7 +414,7 @@ def run_comparison():
         aggregator = ConsensusAggregator()
         safe_results = aggregator.aggregate_median(all_results)
     else:
-        print("\n⚠️  SAMBANOVA_API_KEY not set - using hardcoded example output")
+        print("\n⚠️  LLM_API_KEY not set - using hardcoded example output")
         print("✓ Step 2: Ensemble Evaluation (would use 4 real LLM models)")
         print("✓ Step 3: Consensus Aggregation")
 

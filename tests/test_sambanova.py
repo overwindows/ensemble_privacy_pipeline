@@ -4,7 +4,7 @@ Quick test script for SambaNova API integration
 
 Usage:
   1. Install: pip install sambanova
-  2. Set your API key: export SAMBANOVA_API_KEY='your-key-here'
+  2. Set your API key: export LLM_API_KEY='your-key-here'
   3. Run: python3 test_sambanova.py
 """
 
@@ -24,11 +24,11 @@ def main():
     print("=" * 80)
 
     # Check for API key
-    api_key = os.getenv("SAMBANOVA_API_KEY")
+    api_key = os.getenv("LLM_API_KEY")
     if not api_key:
-        print("\n❌ Error: SAMBANOVA_API_KEY not set!")
+        print("\n❌ Error: LLM_API_KEY not set!")
         print("\nPlease set your API key:")
-        print("  export SAMBANOVA_API_KEY='your-api-key-here'")
+        print("  export LLM_API_KEY='your-api-key-here'")
         print("\nGet your key from: https://cloud.sambanova.ai/")
         sys.exit(1)
 

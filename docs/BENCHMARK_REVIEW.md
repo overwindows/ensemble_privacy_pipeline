@@ -240,7 +240,7 @@ Both benchmarks use `--simulate` flag:
 ## 9. Final Checklist ✅
 
 ### Before Running
-- ✅ API key set: `export SAMBANOVA_API_KEY='...'`
+- ✅ API key set: `export LLM_API_KEY='...'`
 - ✅ Dependencies installed: `pip install datasets huggingface_hub numpy`
 - ✅ Internet connection stable
 - ✅ Sufficient API credits ($400+ recommended)
@@ -282,7 +282,7 @@ No issues found. Proceed with confidence! 🚀
 
 ```bash
 # Set API key
-export SAMBANOVA_API_KEY='your-key-here'
+export LLM_API_KEY='your-key-here'
 
 # Run full evaluation
 python3 run_all_benchmarks.py

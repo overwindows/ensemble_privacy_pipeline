@@ -4,6 +4,51 @@ This folder contains various benchmark scripts for evaluating the privacy pipeli
 
 ## Working Benchmarks
 
+### ✅ `neutral_benchmark.py` ⭐ VENDOR-NEUTRAL FLAGSHIP!
+- **Status**: Production-ready (part of comprehensive benchmark suite)
+- **Purpose**: **Vendor-neutral synthetic benchmark** - the CLEANEST baseline for ensemble-redaction evaluation
+- **Key Features**:
+  - 🎯 **No Microsoft-specific field names** (unlike legacy demos)
+  - 🏥 **Multi-domain coverage**: Medical, Financial, Education
+  - 🔐 **Privacy-first design**: Tests ensemble consensus on masked PII
+  - 📊 **Dual testing**: Privacy leakage + Utility preservation
+- **Usage**:
+  ```bash
+  # Test all domains (300 samples = 100 medical + 100 financial + 100 education)
+  python3 benchmarks/neutral_benchmark.py --benchmark all --domains all --num-samples 100
+
+  # Test single domain
+  python3 benchmarks/neutral_benchmark.py --benchmark privacy_leakage --domains medical --num-samples 50
+
+  # Test utility only
+  python3 benchmarks/neutral_benchmark.py --benchmark utility --domains all --num-samples 20
+  ```
+- **What it tests**:
+  1. **Privacy Leakage Test**: Does the ensemble-redaction pipeline prevent PII exposure?
+     - Generates synthetic user data with known PII (names, conditions, medications, etc.)
+     - Applies **4-model ensemble** (gpt-oss-120b, DeepSeek-V3.1, Qwen3-32B, DeepSeek-V3-0324)
+     - Checks if PII keywords appear in **consensus output** (median voting)
+     - Reports: PII exposure rate, protection rate
+  2. **Utility Preservation Test**: Does the pipeline maintain accuracy?
+     - Tests topic matching accuracy
+     - Verifies ensemble maintains 85%+ accuracy despite PII masking
+- **Domains**:
+  - **Medical**: Health conditions, medications, doctor names, hospital visits
+  - **Financial**: Bank accounts, credit cards, transaction amounts, institutions
+  - **Education**: Schools, GPAs, majors, scholarships, professors
+- **Field Format**: Uses **vendor-neutral** schema
+  - `raw_queries`: Generic search queries/prompts
+  - `browsing_history`: Web pages viewed
+  - `demographics`: Age, gender, location (optional)
+  - ❌ No `MSNClicks`, `BingSearch`, or `MAI` (those are in legacy demos only)
+- **Why vendor-neutral?**
+  - Aligns with public dataset formats (ai4privacy, PUPA, TAB)
+  - Generalizable to any LLM API (not Microsoft-specific)
+  - Academic publication-ready
+- **Cost**: ~$40-50 for 300 samples (1,200 API calls = 300 samples × 4 models)
+- **Output**: `neutral_benchmark_results.json`
+- **Estimated time**: 60-75 minutes for 300 samples
+
 ### ✅ `comparison.py`
 - **Status**: Production-ready (imports fixed)
 - **Purpose**: Compare baseline vs privacy-preserving approaches
@@ -109,7 +154,7 @@ python3 run_benchmarks.py --benchmark all --num-samples 20
 
 This unified benchmark runner:
 - ✅ Works out of the box
-- ✅ Uses your real SambaNova models
+- ✅ Uses your configured LLM API models
 - ✅ Tests privacy leakage, utility, and baseline comparison
 - ✅ Generates JSON results report
 
