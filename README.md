@@ -24,7 +24,7 @@ Privacy-preserving LLM pipeline using input masking and ensemble consensus votin
 **Key Features:**
 - Training-free: Works with any LLM API without model training
 - Zero PII leakage: Input masking prevents exposure of sensitive data
-- Maintains utility: High accuracy on benchmark tasks
+- Utility evaluation: Benchmarks measure task performance on protected pipeline
 - Production-ready: Comprehensive benchmark suite available
 
 ## Quick Results
@@ -32,7 +32,7 @@ Privacy-preserving LLM pipeline using input masking and ensemble consensus votin
 The pipeline is designed to:
 - **Prevent PII leakage**: Input masking ensures LLMs never process raw sensitive data
 - **Block reconstruction attacks**: Ensemble consensus filters out identifiable information
-- **Maintain utility**: High accuracy on benchmark tasks while preserving privacy
+- **Preserve utility**: Benchmarks evaluate task performance to measure utility preservation
 
 Run the benchmarks to see actual results on your data and models.
 
