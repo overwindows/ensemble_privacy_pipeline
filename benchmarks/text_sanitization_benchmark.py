@@ -47,7 +47,7 @@ from typing import List, Dict, Any, Tuple
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.privacy_core import PrivacyRedactor, ConsensusAggregator
-from examples.real_llm_example import RealLLMEvaluator
+from examples.llm_evaluators import DocumentSanitizationEvaluator, check_pii_leakage
 
 
 # ============================================================================
@@ -210,8 +210,9 @@ The court found that {org_name} had failed to adequately protect the applicant's
 
 def evaluate_text_sanitization(samples: List[Dict], model_names: List[str], api_key: str) -> Dict:
     """
-    Evaluate text sanitization on TAB benchmark.
+    Evaluate DOCUMENT SANITIZATION on TAB benchmark.
 
+    Task: Sanitize legal/court documents by masking PII for public release
     Metrics:
     1. PII Masking Rate: % of PII entities successfully masked
     2. Direct ID Protection: % of DIRECT identifiers protected
@@ -219,17 +220,16 @@ def evaluate_text_sanitization(samples: List[Dict], model_names: List[str], api_
     4. Privacy Leakage: % of PII entities exposed in output
     """
     print("\n" + "="*80)
-    print("TEXT SANITIZATION BENCHMARK EVALUATION")
+    print("BENCHMARK: DOCUMENT SANITIZATION")
     print("TAB (Text Anonymization Benchmark)")
     print("="*80)
+    print("\nTask: Sanitize legal documents for public release")
 
     print(f"\n✓ Samples: {len(samples)}")
     print(f"✓ Models: {len(model_names)}")
 
-    # Initialize pipeline
-    redactor = PrivacyRedactor()
-    aggregator = ConsensusAggregator()
-    evaluators = [RealLLMEvaluator(model_name=model, api_key=api_key) for model in model_names]
+    # Initialize document sanitization evaluators
+    evaluators = [DocumentSanitizationEvaluator(model_name=model, api_key=api_key) for model in model_names]
 
     results = {
         'total_samples': len(samples),
@@ -257,74 +257,67 @@ def evaluate_text_sanitization(samples: List[Dict], model_names: List[str], api_
         print(f"    Text length: {len(sample['text'])} chars")
         print(f"    PII entities: {sample['total_pii']} (Direct: {sample['direct_identifiers']}, Quasi: {sample['quasi_identifiers']})")
 
-        # Convert to pipeline format
-        user_data = {
-            'raw_queries': [sample['text'][:500]],  # First 500 chars for evaluation
-            'demographics': {}
-        }
-
-        # Dummy candidate topic
-        candidate_topics = [
-            {'ItemId': 'A', 'Topic': 'Legal case analysis'},
-            {'ItemId': 'B', 'Topic': 'Unrelated content'},
-        ]
-
         try:
-            # Step 1: Redact
-            masked_data = redactor.redact_user_data(user_data)
+            # Extract PII entity text values
+            pii_texts = [entity['text'] for entity in sample['pii_entities'] if entity.get('text')]
 
-            # Step 2: Ensemble evaluation
-            all_results = []
+            # Step 1: Each model sanitizes the document
+            sanitized_outputs = []
             for evaluator in evaluators:
                 try:
-                    eval_results = evaluator.evaluate_interest(masked_data, candidate_topics)
-                    all_results.append(eval_results)
+                    # Sanitize document (limit to first 1000 chars for cost)
+                    sanitized = evaluator.sanitize_document(sample['text'][:1000])
+                    sanitized_outputs.append(sanitized)
                 except Exception as e:
                     print(f"      ⚠️  Model {evaluator.model_name} error: {e}")
 
-            # Step 3: Consensus
-            if all_results:
-                consensus = aggregator.aggregate_median(all_results)
-                output_str = json.dumps(consensus) + json.dumps(masked_data)
+            # Step 2: Use ensemble consensus (for simplicity, use first model's output)
+            if sanitized_outputs:
+                final_sanitized = sanitized_outputs[0]
 
-                # Check for PII leakage
-                leaked_entities = []
-                for entity in sample['pii_entities']:
-                    entity_text = entity['text']
-                    if entity_text and entity_text.lower() in output_str.lower():
-                        leaked_entities.append(entity)
+                # Step 3: Check for PII leakage in sanitized output
+                leakage_check = check_pii_leakage(final_sanitized, pii_texts)
 
                 # Update statistics
                 results['total_pii_entities'] += sample['total_pii']
-                results['pii_entities_leaked'] += len(leaked_entities)
+                results['pii_entities_leaked'] += leakage_check['leaked_count']
 
                 results['direct_identifiers_total'] += sample['direct_identifiers']
-                direct_leaked = sum(1 for e in leaked_entities if e['identifier_type'] == 'DIRECT')
-                results['direct_identifiers_leaked'] += direct_leaked
-
                 results['quasi_identifiers_total'] += sample['quasi_identifiers']
-                quasi_leaked = sum(1 for e in leaked_entities if e['identifier_type'] == 'QUASI')
+
+                # Count leaked direct vs quasi identifiers
+                direct_leaked = 0
+                quasi_leaked = 0
+                for entity in sample['pii_entities']:
+                    if entity['text'] in leakage_check['leaked_entities']:
+                        if entity['identifier_type'] == 'DIRECT':
+                            direct_leaked += 1
+                        elif entity['identifier_type'] == 'QUASI':
+                            quasi_leaked += 1
+
+                results['direct_identifiers_leaked'] += direct_leaked
                 results['quasi_identifiers_leaked'] += quasi_leaked
 
                 # Entity type breakdown
                 for entity in sample['pii_entities']:
                     entity_type = entity['type']
                     results['entity_type_breakdown'][entity_type]['total'] += 1
-                    if entity in leaked_entities:
+                    if entity['text'] in leakage_check['leaked_entities']:
                         results['entity_type_breakdown'][entity_type]['leaked'] += 1
 
-                if leaked_entities:
-                    results['leaked_samples'].append({
-                        'id': sample['id'],
-                        'leaked_count': len(leaked_entities),
-                        'leaked_entities': [e['text'] for e in leaked_entities[:5]],
-                        'leak_rate': len(leaked_entities) / sample['total_pii']
-                    })
-                    print(f"      ❌ PII LEAKED: {len(leaked_entities)}/{sample['total_pii']} entities")
-                    print(f"         Direct: {direct_leaked}, Quasi: {quasi_leaked}")
-                else:
+                if leakage_check['is_protected']:
                     results['protected_samples'].append(sample['id'])
                     print(f"      ✅ ALL PII PROTECTED ({sample['total_pii']} entities)")
+                else:
+                    results['leaked_samples'].append({
+                        'id': sample['id'],
+                        'leaked_count': leakage_check['leaked_count'],
+                        'leaked_entities': leakage_check['leaked_entities'][:5],
+                        'leak_rate': leakage_check['leakage_rate']
+                    })
+                    print(f"      ❌ PII LEAKED: {leakage_check['leaked_count']}/{sample['total_pii']} entities")
+                    print(f"         Direct: {direct_leaked}, Quasi: {quasi_leaked}")
+                    print(f"         Examples: {leakage_check['leaked_entities'][:3]}")
 
             else:
                 print(f"      ⚠️  All models failed")
@@ -512,6 +505,7 @@ def main():
     results_with_config = {
         'config': {
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'task': 'Document Sanitization',
             'dataset': 'TAB' if args.dataset_path else 'ECHR-simulated',
             'num_samples': args.num_samples,
             'models': model_names,
@@ -527,6 +521,7 @@ def main():
         },
         'entity_type_breakdown': dict(results['entity_type_breakdown']),
         'baseline_comparison': comparison,
+        'leaked_samples': results['leaked_samples'][:10],  # First 10 for review
         'time_seconds': elapsed,
     }
 

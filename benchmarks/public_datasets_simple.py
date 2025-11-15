@@ -23,7 +23,7 @@ import re
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.privacy_core import PrivacyRedactor, ConsensusAggregator, analyze_privacy_leakage
-from examples.real_llm_example import RealLLMEvaluator
+from examples.llm_evaluators import TextMaskingEvaluator, check_pii_leakage
 
 
 # ============================================================================
@@ -102,82 +102,80 @@ class DatasetLoader:
 
 def evaluate_on_dataset(samples: List[Dict], model_names: List[str], api_key: str) -> Dict:
     """
-    Evaluate privacy pipeline on real dataset samples.
+    Evaluate TEXT MASKING on real PII dataset samples.
 
+    Task: Mask PII in text using ensemble LLMs
     Tests:
-    1. PII Leakage: Do any PII entities appear in output?
-    2. Detection Rate: Can pipeline identify PII-containing samples?
-    3. Utility: Is output still useful?
+    1. PII Masking Rate: % of PII entities successfully masked
+    2. PII Leakage: Do any PII entities appear in masked output?
+    3. Utility: Is the masked text still coherent and useful?
     """
     print("\n" + "="*80)
-    print("BENCHMARK EVALUATION ON PUBLIC DATASET")
+    print("BENCHMARK: TEXT MASKING (PII Redaction)")
     print("="*80)
+    print("\nTask: Mask PII in text samples from ai4privacy/pii-masking-200k")
 
-    # Initialize pipeline
-    redactor = PrivacyRedactor()
-    aggregator = ConsensusAggregator()
-    evaluators = [RealLLMEvaluator(model_name=model, api_key=api_key) for model in model_names]
+    # Initialize evaluators for text masking
+    evaluators = [TextMaskingEvaluator(model_name=model, api_key=api_key) for model in model_names]
 
     results = {
         'total_samples': len(samples),
-        'samples_with_pii': 0,
+        'total_pii_entities': 0,
+        'pii_fully_masked_count': 0,
         'pii_leaked_count': 0,
-        'pii_protected_count': 0,
         'pii_types_found': defaultdict(int),
         'failed_samples': [],
+        'leaked_samples': [],
     }
 
     # Process each sample
     for i, sample in enumerate(samples, 1):
         print(f"\n  Sample {i}/{len(samples)}: {sample['id']}")
-        print(f"    PII entities: {sample['pii_count']} ({', '.join(sample['pii_entities'][:3])}...)")
-
-        if sample['pii_count'] > 0:
-            results['samples_with_pii'] += 1
+        print(f"    PII entities: {sample['pii_count']} types: {', '.join(sample['pii_entities'][:5])}")
 
         try:
-            # Convert to pipeline format
-            user_data = {
-                'raw_queries': [sample['source_text']],
-                'demographics': {}
-            }
+            # Extract actual PII values from source text by comparing with masked version
+            pii_values = []
+            source_words = set(sample['source_text'].lower().split())
+            masked_words = set(sample['masked_text'].lower().split())
 
-            candidate_topics = [
-                {'ItemId': 'A', 'Topic': 'Privacy-related content'},
-                {'ItemId': 'B', 'Topic': 'Generic content'},
-            ]
+            # Simple heuristic: words in source but not in masked are likely PII
+            # (This is imperfect but sufficient for benchmark)
+            potential_pii = source_words - masked_words
+            pii_values = [word for word in potential_pii if len(word) > 2 and not word.startswith('[')]
 
-            # Step 1: Redact
-            masked_data = redactor.redact_user_data(user_data)
+            results['total_pii_entities'] += len(pii_values)
 
-            # Step 2: Ensemble evaluation
-            all_results = []
+            # Step 1: Ask each model to mask the text
+            masked_outputs = []
             for evaluator in evaluators:
                 try:
-                    eval_results = evaluator.evaluate_interest(masked_data, candidate_topics)
-                    all_results.append(eval_results)
+                    # Mask the source text
+                    masked_output = evaluator.mask_text(sample['source_text'][:1000])  # Limit to 1000 chars
+                    masked_outputs.append(masked_output)
                 except Exception as e:
                     print(f"      ⚠️  Model {evaluator.model_name} error: {e}")
 
-            # Step 3: Consensus
-            if all_results:
-                consensus = aggregator.aggregate_median(all_results)
-                output_str = json.dumps(consensus)
+            # Step 2: Ensemble consensus - use majority voting on masking
+            if masked_outputs:
+                # For simplicity, use the first model's output (could do consensus voting)
+                final_masked = masked_outputs[0]
 
-                # Check for PII leakage
-                leaked = False
-                for entity_type in sample['pii_entities']:
-                    # Check if any PII from source appears in output
-                    if any(term.lower() in output_str.lower() for term in [entity_type, 'email', 'phone', 'name', 'address']):
-                        leaked = True
-                        break
+                # Step 3: Check for PII leakage in the masked output
+                leakage_check = check_pii_leakage(final_masked, pii_values)
 
-                if leaked:
-                    results['pii_leaked_count'] += 1
-                    print(f"      ❌ PII LEAKED in output")
+                if leakage_check['is_protected']:
+                    results['pii_fully_masked_count'] += 1
+                    print(f"      ✅ ALL PII MASKED ({len(pii_values)} entities protected)")
                 else:
-                    results['pii_protected_count'] += 1
-                    print(f"      ✅ PII PROTECTED")
+                    results['pii_leaked_count'] += 1
+                    results['leaked_samples'].append({
+                        'id': sample['id'],
+                        'leaked_entities': leakage_check['leaked_entities'][:3],
+                        'leak_rate': leakage_check['leakage_rate']
+                    })
+                    print(f"      ❌ PII LEAKED: {leakage_check['leaked_count']}/{len(pii_values)} entities")
+                    print(f"         Examples: {leakage_check['leaked_entities'][:3]}")
 
                 # Count PII types
                 for pii_type in sample['pii_entities']:
@@ -192,8 +190,8 @@ def evaluate_on_dataset(samples: List[Dict], model_names: List[str], api_key: st
             results['failed_samples'].append(sample['id'])
 
     # Calculate metrics
-    results['pii_leak_rate'] = results['pii_leaked_count'] / results['samples_with_pii'] if results['samples_with_pii'] > 0 else 0
-    results['protection_rate'] = results['pii_protected_count'] / results['samples_with_pii'] if results['samples_with_pii'] > 0 else 0
+    results['masking_success_rate'] = results['pii_fully_masked_count'] / results['total_samples'] if results['total_samples'] > 0 else 0
+    results['leakage_rate'] = results['pii_leaked_count'] / results['total_samples'] if results['total_samples'] > 0 else 0
 
     return results
 
@@ -247,12 +245,12 @@ def main():
     print("RESULTS SUMMARY")
     print("="*80)
     print(f"\n✓ Total samples evaluated: {results['total_samples']}")
-    print(f"✓ Samples with PII: {results['samples_with_pii']}")
-    print(f"✓ PII leaked: {results['pii_leaked_count']}")
-    print(f"✓ PII protected: {results['pii_protected_count']}")
+    print(f"✓ Total PII entities: {results['total_pii_entities']}")
+    print(f"✓ Samples with full masking: {results['pii_fully_masked_count']}")
+    print(f"✓ Samples with PII leaked: {results['pii_leaked_count']}")
     print(f"✓ Failed samples: {len(results['failed_samples'])}")
-    print(f"\n✓ PII Leak Rate: {results['pii_leak_rate']*100:.2f}%")
-    print(f"✓ Protection Rate: {results['protection_rate']*100:.2f}%")
+    print(f"\n✓ Masking Success Rate: {results['masking_success_rate']*100:.2f}%")
+    print(f"✓ PII Leakage Rate: {results['leakage_rate']*100:.2f}%")
     print(f"\n✓ Time: {elapsed:.1f}s ({elapsed/results['total_samples']:.1f}s per sample)")
 
     print("\n📊 Top PII Types Found:")
@@ -263,12 +261,22 @@ def main():
     results_with_config = {
         'config': {
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'task': 'Text Masking (PII Redaction)',
             'dataset': 'ai4privacy/pii-masking-200k',
             'num_samples': args.num_samples,
             'models': model_names,
         },
-        'results': {k: v for k, v in results.items() if k != 'pii_types_found'},
+        'results': {
+            'total_samples': results['total_samples'],
+            'total_pii_entities': results['total_pii_entities'],
+            'masking_success_rate': results['masking_success_rate'],
+            'leakage_rate': results['leakage_rate'],
+            'pii_fully_masked_count': results['pii_fully_masked_count'],
+            'pii_leaked_count': results['pii_leaked_count'],
+            'failed_count': len(results['failed_samples']),
+        },
         'pii_types': dict(results['pii_types_found']),
+        'leaked_samples': results['leaked_samples'][:10],  # First 10 for review
     }
 
     with open(args.output, 'w') as f:

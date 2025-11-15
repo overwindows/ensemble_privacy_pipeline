@@ -131,15 +131,15 @@ python3 run_all_benchmarks.py  # 3,569 samples, 7-9 hours
 
 ### Included Benchmarks
 
-All benchmarks use public datasets:
+All benchmarks use public datasets and test different privacy-preserving tasks:
 
-| Benchmark | Samples | Type | Description |
+| Benchmark | Samples | Task | Description |
 |-----------|---------|------|-------------|
-| **Vendor-Neutral Synthetic** | 300 | Synthetic | Medical, financial, education data |
-| **[ai4privacy/pii-masking-200k](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)** | 1,000 | Public | 54 PII types from HuggingFace |
-| **[PUPA (NAACL 2025)](https://github.com/Columbia-NLP-Lab/PAPILLON)** | 901 | Simulated | WildChat-style conversations |
-| **[TAB - Text Anonymization Benchmark](https://github.com/NorskRegnesentral/text-anonymization-benchmark)** | 1,268 | Simulated | ECHR court cases |
-| **Differential Privacy** | 100 | Synthetic | Canary, MIA, DP evaluation |
+| **Vendor-Neutral Synthetic** | 300 | Interest Evaluation | Medical, financial, education behavioral data |
+| **[ai4privacy/pii-masking-200k](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)** | 1,000 | Text Masking | 54 PII types - test masking quality |
+| **[PUPA (NAACL 2025)](https://github.com/Columbia-NLP-Lab/PAPILLON)** | 901 | Question Answering | Answer questions without leaking PII |
+| **[TAB - Text Anonymization Benchmark](https://github.com/NorskRegnesentral/text-anonymization-benchmark)** | 1,268 | Document Sanitization | Anonymize court documents for publication |
+| **Differential Privacy** | 100 | Interest Evaluation | Canary exposure, MIA, DP comparison |
 
 ### Dataset References
 

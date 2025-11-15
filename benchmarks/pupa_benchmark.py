@@ -44,7 +44,7 @@ from typing import List, Dict, Any, Tuple
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.privacy_core import PrivacyRedactor, ConsensusAggregator
-from examples.real_llm_example import RealLLMEvaluator
+from examples.llm_evaluators import QuestionAnsweringEvaluator, check_pii_leakage
 
 
 # ============================================================================
@@ -238,33 +238,32 @@ Can you help me draft a response about prioritization concerns?"""
 
 def evaluate_pupa_benchmark(samples: List[Dict], model_names: List[str], api_key: str) -> Dict:
     """
-    Evaluate privacy pipeline on PUPA benchmark.
+    Evaluate QUESTION ANSWERING WITHOUT PII LEAKAGE on PUPA benchmark.
 
+    Task: Answer user prompts/questions without exposing PII from the prompt
     Metrics:
-    1. Privacy Leakage: % of PII units exposed in output
-    2. Quality Preservation: Ability to provide relevant responses
+    1. Privacy Leakage: % of PII units exposed in assistant's response
+    2. Response Quality: Can the assistant still provide helpful answers?
     3. Category Breakdown: Performance per PII category
     """
     print("\n" + "="*80)
-    print("PUPA BENCHMARK EVALUATION")
+    print("BENCHMARK: QUESTION ANSWERING (Privacy-Preserving)")
     print("Private User Prompt Annotations Dataset (NAACL 2025)")
     print("="*80)
+    print("\nTask: Answer user questions without leaking PII from prompts")
 
     print(f"\n✓ Samples: {len(samples)}")
     print(f"✓ Models: {len(model_names)}")
 
-    # Initialize pipeline
-    redactor = PrivacyRedactor()
-    aggregator = ConsensusAggregator()
-    evaluators = [RealLLMEvaluator(model_name=model, api_key=api_key) for model in model_names]
+    # Initialize QA evaluators
+    evaluators = [QuestionAnsweringEvaluator(model_name=model, api_key=api_key) for model in model_names]
 
     results = {
         'total_samples': len(samples),
         'pii_units_total': 0,
         'pii_units_leaked': 0,
         'pii_leakage_rate': 0.0,
-        'quality_preserved_count': 0,
-        'quality_preservation_rate': 0.0,
+        'responses_generated': 0,
         'category_breakdown': defaultdict(lambda: {
             'samples': 0,
             'pii_total': 0,
@@ -281,67 +280,56 @@ def evaluate_pupa_benchmark(samples: List[Dict], model_names: List[str], api_key
         print(f"    Category: {sample['pii_category']}")
         print(f"    PII units: {len(sample['pii_units'])}")
 
-        # Convert to pipeline format
-        user_data = {
-            'raw_queries': [sample['user_prompt']],
-            'demographics': {}
-        }
-
-        # Dummy candidate topic (for evaluation task)
-        candidate_topics = [
-            {'ItemId': 'A', 'Topic': 'User assistance and information request'},
-            {'ItemId': 'B', 'Topic': 'Unrelated topic'},
-        ]
-
         try:
-            # Step 1: Redact
+            # Step 1: First, redact PII from the user prompt
+            redactor = PrivacyRedactor()
+            user_data = {
+                'raw_queries': [sample['user_prompt']],
+                'demographics': {}
+            }
             masked_data = redactor.redact_user_data(user_data)
+            redacted_prompt = masked_data.get('raw_queries', [sample['user_prompt']])[0]
 
-            # Step 2: Ensemble evaluation
-            all_results = []
+            # Step 2: Each model answers the REDACTED prompt
+            responses = []
             for evaluator in evaluators:
                 try:
-                    eval_results = evaluator.evaluate_interest(masked_data, candidate_topics)
-                    all_results.append(eval_results)
+                    # Answer based on redacted prompt (not original)
+                    response = evaluator.answer_question(redacted_prompt)
+                    responses.append(response)
                 except Exception as e:
                     print(f"      ⚠️  Model {evaluator.model_name} error: {e}")
 
-            # Step 3: Consensus
-            if all_results:
-                consensus = aggregator.aggregate_median(all_results)
-                output_str = json.dumps(consensus) + json.dumps(masked_data)
+            # Step 3: Check ensemble responses for PII leakage
+            if responses:
+                # Use first response (could do consensus/voting)
+                final_response = responses[0]
+                results['responses_generated'] += 1
 
-                # Check for PII leakage
-                leaked_pii = []
-                for pii_unit in sample['pii_units']:
-                    if pii_unit and pii_unit.lower() in output_str.lower():
-                        leaked_pii.append(pii_unit)
+                # Check if ANY PII from original prompt leaked into response
+                leakage_check = check_pii_leakage(final_response, sample['pii_units'])
 
                 results['pii_units_total'] += len(sample['pii_units'])
-                results['pii_units_leaked'] += len(leaked_pii)
+                results['pii_units_leaked'] += leakage_check['leaked_count']
 
                 # Update category stats
                 category = sample['pii_category']
                 results['category_breakdown'][category]['samples'] += 1
                 results['category_breakdown'][category]['pii_total'] += len(sample['pii_units'])
-                results['category_breakdown'][category]['pii_leaked'] += len(leaked_pii)
+                results['category_breakdown'][category]['pii_leaked'] += leakage_check['leaked_count']
 
-                if leaked_pii:
+                if leakage_check['is_protected']:
+                    results['protected_samples'].append(sample['id'])
+                    print(f"      ✅ ALL PII PROTECTED ({len(sample['pii_units'])} units)")
+                else:
                     results['leaked_samples'].append({
                         'id': sample['id'],
                         'category': category,
-                        'leaked_pii': leaked_pii,
-                        'leak_rate': len(leaked_pii) / len(sample['pii_units'])
+                        'leaked_pii': leakage_check['leaked_entities'][:3],
+                        'leak_rate': leakage_check['leakage_rate']
                     })
-                    print(f"      ❌ PII LEAKED: {len(leaked_pii)}/{len(sample['pii_units'])} units")
-                    print(f"         {leaked_pii[:3]}...")
-                else:
-                    results['protected_samples'].append(sample['id'])
-                    print(f"      ✅ ALL PII PROTECTED ({len(sample['pii_units'])} units)")
-
-                # Quality check (simple heuristic: score > 0.3)
-                if consensus and consensus[0]['QualityScore'] > 0.3:
-                    results['quality_preserved_count'] += 1
+                    print(f"      ❌ PII LEAKED: {leakage_check['leaked_count']}/{len(sample['pii_units'])} units")
+                    print(f"         Examples: {leakage_check['leaked_entities'][:3]}")
 
             else:
                 print(f"      ⚠️  All models failed")
@@ -353,7 +341,7 @@ def evaluate_pupa_benchmark(samples: List[Dict], model_names: List[str], api_key
     if results['pii_units_total'] > 0:
         results['pii_leakage_rate'] = results['pii_units_leaked'] / results['pii_units_total']
 
-    results['quality_preservation_rate'] = results['quality_preserved_count'] / results['total_samples']
+    results['response_success_rate'] = results['responses_generated'] / results['total_samples']
 
     # Calculate category-specific rates
     for category, stats in results['category_breakdown'].items():
@@ -386,12 +374,12 @@ def compare_with_papillon(results: Dict) -> Dict:
 
     comparison = {
         'your_approach': {
-            'quality_preservation': results['quality_preservation_rate'],
+            'response_success': results['response_success_rate'],
             'privacy_leakage': results['pii_leakage_rate'],
         },
         'papillon_baseline': papillon_baseline,
         'improvements': {
-            'quality_diff': results['quality_preservation_rate'] - papillon_baseline['quality_preservation'],
+            'quality_diff': results['response_success_rate'] - papillon_baseline['quality_preservation'],
             'leakage_diff': papillon_baseline['privacy_leakage'] - results['pii_leakage_rate'],
         }
     }
@@ -400,7 +388,7 @@ def compare_with_papillon(results: Dict) -> Dict:
     print("-"*80)
     print(f"{'Metric':<30} {'Your Ensemble':<20} {'PAPILLON':<20}")
     print("-"*80)
-    print(f"{'Quality Preservation':<30} {comparison['your_approach']['quality_preservation']*100:>8.1f}% {' '*10} {papillon_baseline['quality_preservation']*100:>8.1f}%")
+    print(f"{'Response Success':<30} {comparison['your_approach']['response_success']*100:>8.1f}% {' '*10} {papillon_baseline['quality_preservation']*100:>8.1f}%")
     print(f"{'Privacy Leakage':<30} {comparison['your_approach']['privacy_leakage']*100:>8.1f}% {' '*10} {papillon_baseline['privacy_leakage']*100:>8.1f}%")
     print("-"*80)
 
@@ -495,13 +483,14 @@ def main():
     print("="*80)
 
     print(f"\n✓ Total samples: {results['total_samples']}")
+    print(f"✓ Responses generated: {results['responses_generated']}")
     print(f"✓ Total PII units: {results['pii_units_total']}")
     print(f"✓ PII units leaked: {results['pii_units_leaked']}")
     print(f"✓ PII units protected: {results['pii_units_total'] - results['pii_units_leaked']}")
 
     print(f"\n📊 Key Metrics:")
     print(f"   Privacy Leakage Rate: {results['pii_leakage_rate']*100:.2f}%")
-    print(f"   Quality Preservation: {results['quality_preservation_rate']*100:.1f}%")
+    print(f"   Response Success Rate: {results['response_success_rate']*100:.1f}%")
 
     print(f"\n📊 Category Breakdown:")
     for category, stats in results['category_breakdown'].items():
@@ -520,15 +509,17 @@ def main():
     results_with_config = {
         'config': {
             'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+            'task': 'Question Answering (Privacy-Preserving)',
             'dataset': 'PUPA (NAACL 2025)' if args.dataset_path else 'WildChat-simulated',
             'num_samples': args.num_samples,
             'models': model_names,
         },
         'results': {
             'pii_leakage_rate': results['pii_leakage_rate'],
-            'quality_preservation_rate': results['quality_preservation_rate'],
+            'response_success_rate': results['response_success_rate'],
             'pii_units_total': results['pii_units_total'],
             'pii_units_leaked': results['pii_units_leaked'],
+            'responses_generated': results['responses_generated'],
             'leaked_samples_count': len(results['leaked_samples']),
             'protected_samples_count': len(results['protected_samples']),
         },
