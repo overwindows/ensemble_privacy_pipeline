@@ -204,10 +204,13 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate on public privacy datasets')
     parser.add_argument('--num-samples', type=int, default=100,
                        help='Number of samples to evaluate (default: 100)')
-    parser.add_argument('--output', default='public_dataset_results.json',
+    parser.add_argument('--output', default='results/public_dataset_results.json',
                        help='Output file (default: public_dataset_results.json)')
 
     args = parser.parse_args()
+
+    # Create results directory
+    os.makedirs('results', exist_ok=True)
 
     # Check API key
     api_key = os.getenv('LLM_API_KEY')

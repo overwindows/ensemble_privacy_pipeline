@@ -387,10 +387,13 @@ def main():
                        help='Number of samples per dataset (default: 10)')
     parser.add_argument('--domains', choices=['medical', 'financial', 'education', 'all'],
                        default='all', help='Which domain(s) to test')
-    parser.add_argument('--output', default='neutral_benchmark_results.json',
+    parser.add_argument('--output', default='results/neutral_benchmark_results.json',
                        help='Output file for results (default: neutral_benchmark_results.json)')
 
     args = parser.parse_args()
+
+    # Create results directory
+    os.makedirs('results', exist_ok=True)
 
     # Check API key
     print("[DEBUG] Step 1: Checking API key...")

@@ -33,6 +33,7 @@ Usage:
 import argparse
 import hashlib
 import json
+import logging
 import os
 import re
 import sys
@@ -429,10 +430,28 @@ def main():
                        help='Simulate WildChat-style samples (if PUPA not available)')
     parser.add_argument('--num-samples', type=int, default=50,
                        help='Number of samples to evaluate (default: 50)')
-    parser.add_argument('--output', default='pupa_benchmark_results.json',
-                       help='Output file (default: pupa_benchmark_results.json)')
+    parser.add_argument('--output', default='results/pupa_benchmark_results.json',
+                       help='Output file (default: results/pupa_benchmark_results.json)')
 
     args = parser.parse_args()
+
+    # Setup logging and results directories
+    os.makedirs('logs', exist_ok=True)
+    os.makedirs('results', exist_ok=True)
+    log_file = 'logs/pupa_benchmark.log'
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        handlers=[
+            logging.FileHandler(log_file, mode='w'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    # Replace print with logging
+    def print(msg=""):
+        logging.info(msg)
 
     # Check API key
     api_key = os.getenv('LLM_API_KEY')
@@ -446,6 +465,7 @@ def main():
     print("PUPA BENCHMARK - Private User Prompt Annotations (NAACL 2025)")
     print("="*80)
     print(f"\n✓ API Key: {api_key[:20]}...")
+    print(f"✓ Log file: {log_file}")
 
     # Your 4-model ensemble
     model_names = [

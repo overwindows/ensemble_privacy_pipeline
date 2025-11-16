@@ -343,10 +343,13 @@ def main():
     parser = argparse.ArgumentParser(description='DP benchmark comparison')
     parser.add_argument('--num-samples', type=int, default=20,
                        help='Number of samples per test (default: 20, costs ~$2-3)')
-    parser.add_argument('--output', default='dp_benchmark_results.json',
-                       help='Output file (default: dp_benchmark_results.json)')
+    parser.add_argument('--output', default='results/dp_benchmark_results.json',
+                       help='Output file (default: results/dp_benchmark_results.json)')
 
     args = parser.parse_args()
+
+    # Create results directory
+    os.makedirs('results', exist_ok=True)
 
     # Check API key
     api_key = os.getenv('LLM_API_KEY')

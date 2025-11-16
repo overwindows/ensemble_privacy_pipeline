@@ -36,6 +36,7 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
@@ -349,34 +350,14 @@ def evaluate_text_sanitization(samples: List[Dict], model_names: List[str], api_
 
 def compare_with_baselines(results: Dict) -> Dict:
     """
-    Compare with text sanitization baselines.
+    Display TAB benchmark results.
 
-    Baselines:
-    - Naive Redaction: ~60-70% PII protection
-    - SanText (DP-based): ~80-85% PII protection
-    - State-of-the-art: ~90-95% PII protection
+    Note: Baseline comparisons removed - no verified baseline numbers available
+    for direct comparison on TAB dataset. Focus on your actual results.
     """
     print("\n" + "="*80)
-    print("COMPARISON WITH TEXT SANITIZATION BASELINES")
+    print("TAB BENCHMARK RESULTS SUMMARY")
     print("="*80)
-
-    baselines = {
-        'naive_redaction': {
-            'pii_masking_rate': 0.65,
-            'direct_id_protection_rate': 0.70,
-            'quasi_id_protection_rate': 0.60,
-        },
-        'santext_dp': {
-            'pii_masking_rate': 0.82,
-            'direct_id_protection_rate': 0.88,
-            'quasi_id_protection_rate': 0.76,
-        },
-        'sota': {
-            'pii_masking_rate': 0.92,
-            'direct_id_protection_rate': 0.95,
-            'quasi_id_protection_rate': 0.89,
-        },
-    }
 
     comparison = {
         'your_approach': {
@@ -384,28 +365,24 @@ def compare_with_baselines(results: Dict) -> Dict:
             'direct_id_protection_rate': results['direct_id_protection_rate'],
             'quasi_id_protection_rate': results['quasi_id_protection_rate'],
         },
-        'baselines': baselines,
     }
 
-    print("\n📊 Comparison Table:")
+    print("\n📊 Your Results:")
     print("-"*80)
-    print(f"{'Approach':<25} {'PII Masking':<20} {'Direct ID':<20} {'Quasi ID':<20}")
+    print(f"{'Metric':<30} {'Rate':<15} {'Status':<20}")
     print("-"*80)
-    print(f"{'Your Ensemble':<25} {comparison['your_approach']['pii_masking_rate']*100:>8.1f}% {' '*10} {comparison['your_approach']['direct_id_protection_rate']*100:>8.1f}% {' '*10} {comparison['your_approach']['quasi_id_protection_rate']*100:>8.1f}%")
-    print(f"{'Naive Redaction':<25} {baselines['naive_redaction']['pii_masking_rate']*100:>8.1f}% {' '*10} {baselines['naive_redaction']['direct_id_protection_rate']*100:>8.1f}% {' '*10} {baselines['naive_redaction']['quasi_id_protection_rate']*100:>8.1f}%")
-    print(f"{'SanText (DP-based)':<25} {baselines['santext_dp']['pii_masking_rate']*100:>8.1f}% {' '*10} {baselines['santext_dp']['direct_id_protection_rate']*100:>8.1f}% {' '*10} {baselines['santext_dp']['quasi_id_protection_rate']*100:>8.1f}%")
-    print(f"{'State-of-the-art':<25} {baselines['sota']['pii_masking_rate']*100:>8.1f}% {' '*10} {baselines['sota']['direct_id_protection_rate']*100:>8.1f}% {' '*10} {baselines['sota']['quasi_id_protection_rate']*100:>8.1f}%")
+    print(f"{'Overall PII Masking':<30} {comparison['your_approach']['pii_masking_rate']*100:>8.1f}% {' '*5} {'Good' if comparison['your_approach']['pii_masking_rate'] > 0.80 else 'Needs improvement'}")
+    print(f"{'Direct ID Protection':<30} {comparison['your_approach']['direct_id_protection_rate']*100:>8.1f}% {' '*5} {'✅ Near-perfect' if comparison['your_approach']['direct_id_protection_rate'] > 0.95 else 'Good'}")
+    print(f"{'Quasi ID Protection':<30} {comparison['your_approach']['quasi_id_protection_rate']*100:>8.1f}% {' '*5} {'✅ Near-perfect' if comparison['your_approach']['quasi_id_protection_rate'] > 0.95 else 'Good'}")
     print("-"*80)
 
-    # Verdict
-    if comparison['your_approach']['pii_masking_rate'] >= baselines['sota']['pii_masking_rate']:
-        verdict = "✅ Your approach MATCHES or EXCEEDS state-of-the-art!"
-    elif comparison['your_approach']['pii_masking_rate'] >= baselines['santext_dp']['pii_masking_rate']:
-        verdict = "✅ Your approach OUTPERFORMS SanText (DP-based)"
-    elif comparison['your_approach']['pii_masking_rate'] >= baselines['naive_redaction']['pii_masking_rate']:
-        verdict = "✅ Your approach OUTPERFORMS naive redaction"
+    # Verdict based on your results only
+    if comparison['your_approach']['direct_id_protection_rate'] >= 0.95:
+        verdict = "✅ Excellent direct identifier protection (near-perfect)"
+    elif comparison['your_approach']['pii_masking_rate'] >= 0.80:
+        verdict = "✅ Good overall PII protection"
     else:
-        verdict = "⚠️  Room for improvement compared to baselines"
+        verdict = "⚠️  Room for improvement"
 
     print(f"\n💡 Verdict: {verdict}")
     print("-"*80)
@@ -427,10 +404,28 @@ def main():
                        help='Number of samples to evaluate (default: 50)')
     parser.add_argument('--split', type=str, default='test', choices=['train', 'dev', 'test'],
                        help='Dataset split to use (default: test)')
-    parser.add_argument('--output', default='text_sanitization_results.json',
-                       help='Output file (default: text_sanitization_results.json)')
+    parser.add_argument('--output', default='results/text_sanitization_results.json',
+                       help='Output file (default: results/text_sanitization_results.json)')
 
     args = parser.parse_args()
+
+    # Setup logging and results directories
+    os.makedirs('logs', exist_ok=True)
+    os.makedirs('results', exist_ok=True)
+    log_file = 'logs/text_sanitization_benchmark.log'
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(message)s',
+        handlers=[
+            logging.FileHandler(log_file, mode='w'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    # Replace print with logging
+    def print(msg=""):
+        logging.info(msg)
 
     # Check API key
     api_key = os.getenv('LLM_API_KEY')
@@ -444,6 +439,7 @@ def main():
     print("TEXT SANITIZATION BENCHMARK - TAB")
     print("="*80)
     print(f"\n✓ API Key: {api_key[:20]}...")
+    print(f"✓ Log file: {log_file}")
 
     # Your 4-model ensemble
     model_names = [
@@ -520,7 +516,6 @@ def main():
             'protected_samples_count': len(results['protected_samples']),
         },
         'entity_type_breakdown': dict(results['entity_type_breakdown']),
-        'baseline_comparison': comparison,
         'leaked_samples': results['leaked_samples'][:10],  # First 10 for review
         'time_seconds': elapsed,
     }
