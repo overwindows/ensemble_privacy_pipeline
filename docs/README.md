@@ -1,18 +1,16 @@
 # Documentation
 
-## 📖 Core Documentation
+## Core Documentation
 
-- **[How It Works](ENSEMBLE_PIPELINE_EXPLAINED.md)** - Complete explanation of the ensemble-redaction approach
-- **[Benchmark Guide](BENCHMARK_REVIEW.md)** - Comprehensive evaluation suite documentation
-- **[Contributing](CONTRIBUTING.md)** - Contribution guidelines
+### [Ensemble Pipeline Explained](ENSEMBLE_PIPELINE_EXPLAINED.md)
+Complete technical explanation of the ensemble-redaction privacy-preserving approach.
 
-## 🔧 Technical Details
+### [Benchmarks](BENCHMARKS.md)
+Benchmark evaluation guide with results, usage instructions, and dataset information for ai4privacy, PUPA, TAB, and differential privacy comparisons.
 
-- **[Benchmark Tasks](BENCHMARK_TASKS.md)** - Task-specific architecture and evaluators
-- **[Recent Fixes](FIXES_SUMMARY.md)** - Summary of architectural fixes applied
-- **[Verification Checklist](VERIFICATION_CHECKLIST.md)** - Pre-flight checklist for benchmark execution
+## Additional Resources
 
-## 🔗 Quick Links
-
-- **[Main README](../README.md)** - Quick start and installation
-- **[Benchmarks Guide](../benchmarks/README.md)** - Benchmark scripts and usage
+- **[Main README](../README.md)** - Quick start, installation, and usage
+- **[Source Code](../src/)** - Core privacy pipeline implementation
+- **[Benchmark Scripts](../benchmarks/)** - Evaluation scripts
+- **[Examples](../examples/)** - Usage examples and demonstrations
