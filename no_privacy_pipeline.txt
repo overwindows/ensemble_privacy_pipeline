@@ -1,106 +1,156 @@
-Example Task: Evaluate topic relevance for a single user while ensuring that no sensitive personal data (such as medical conditions, queries, demographics, or behavioral traces) is exposed to the model.
-The system must generate accurate interest scores using only masked, redacted, and privacy-preserving intermediate representations.
+================================================================================
+BASELINE (NO PRIVACY PROTECTION): Topic Relevance Evaluation
+================================================================================
+
+TASK: Calculate topic relevance scores for a single user given candidate topics
+
+INPUT:
+  - User behavioral data: MSN clicks, Bing searches, clicked queries, upvotes,
+    MAI tags, demographics
+  - Candidate topics: List of topics (e.g., "Healthcare & Wellness",
+    "Technology News", "Financial Planning")
+
+OUTPUT:
+  - For each topic: relevance score (0.0-1.0) + reasoning based on user behavior
+
+PRIVACY CHALLENGE:
+  - User data contains sensitive information (medical conditions, financial
+    status, personal queries, demographics)
+  - Standard approach: Feed raw data directly to LLM
+  - Risk: Data exposure, model memorization, privacy violations
+  - Required: Accurate scores WITHOUT exposing sensitive personal data
+
+================================================================================
+
 
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│                       1. RAW USER DATA (FULLY EXPOSED)                        │
-│-------------------------------------------------------------------------------│
-│ MSNClicks:                                                                    │
-│   - "New diabetes treatment shows promise in clinical trials"                 │
-│   - "Understanding type 2 diabetes: symptoms and prevention"                  │
-│   - "Best fitness trackers for monitoring blood sugar levels"                 │
-│   - "Depression and chronic illness: Finding support"                         │
-│                                                                               │
-│ BingSearch:                                                                   │
-│   - "diabetes diet plan"                                                      │
-│   - "how to lower blood sugar naturally"                                      │
-│   - "diabetes medication side effects"                                        │
-│                                                                               │
-│ BingClickedQueries:                                                           │
-│   - "continuous glucose monitoring devices"                                   │
-│                                                                               │
-│ MSNUpvotes:                                                                   │
-│   - "Living well with diabetes: expert advice and tips"                       │
-│                                                                               │
-│ MAI Tags: 10×Health, 3×Fitness, 1×Technology                                  │
-│ Demographics: { age: 42, gender: "F", location: "Seattle, WA" }               │
+│                       STEP 1: RAW USER DATA (EXPOSED)                         │
 └───────────────────────────────────────────────────────────────────────────────┘
-                                         │
-                                         ▼
+
+MSN Article Clicks:
+  • "New diabetes treatment shows promise in clinical trials"
+  • "Understanding type 2 diabetes: symptoms and prevention"
+  • "Best fitness trackers for monitoring blood sugar levels"
+  • "Depression and chronic illness: Finding support"
+
+Bing Search Queries:
+  • "diabetes diet plan"
+  • "how to lower blood sugar naturally"
+  • "diabetes medication side effects"
+
+Bing Clicked Queries:
+  • "continuous glucose monitoring devices"
+
+MSN Upvotes:
+  • "Living well with diabetes: expert advice and tips"
+
+MAI Tags:
+  • 10× Health, 3× Fitness, 1× Technology
+
+Demographics:
+  • Age: 42, Gender: Female, Location: Seattle, WA                                      ▼
+
+
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│                       2. UNSAFE PROMPT & DIRECT FEED                          │
-│-------------------------------------------------------------------------------│
-│ Raw data is placed directly into the model prompt:                            │
-│                                                                               │
-│   “Here is the user's data:                                                   │
-│     - ‘New diabetes treatment shows promise in clinical trials’               │
-│     - ‘diabetes diet plan’                                                    │
-│     - age 42 female in Seattle                                                │
-│     - searches about blood sugar, medication side effects                     │
-│     - continuous glucose monitoring devices                                   │
-│    Evaluate relevance for topics A–E.”                                        │
-│                                                                               │
-│ Risks here:                                                                   │
-│   🔴 Full disease names are exposed                                           │
-│   🔴 User’s medical condition is fully reconstructable                        │
-│   🔴 Exact queries are visible                                                │
-│   🔴 Age, gender, and location exposed                                        │
-│   🔴 Model may amplify or memorize sensitive info                             │
+│                    STEP 2: UNSAFE PROMPT CONSTRUCTION                         │
 └───────────────────────────────────────────────────────────────────────────────┘
-                                         │
-                                         ▼
+
+Raw data is embedded directly into the LLM prompt:
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ PROMPT SENT TO MODEL:                                                   │
+  │                                                                         │
+  │ "Given the following user data:                                         │
+  │                                                                         │
+  │  MSN Clicks:                                                            │
+  │    - 'New diabetes treatment shows promise in clinical trials'          │
+  │    - 'Understanding type 2 diabetes: symptoms and prevention'           │
+  │    - 'Best fitness trackers for monitoring blood sugar levels'          │
+  │    - 'Depression and chronic illness: Finding support'                  │
+  │                                                                         │
+  │  Bing Searches:                                                         │
+  │    - 'diabetes diet plan'                                               │
+  │    - 'how to lower blood sugar naturally'                               │
+  │    - 'diabetes medication side effects'                                 │
+  │                                                                         │
+  │  Demographics: age 42, female, Seattle, WA                              │
+  │                                                                         │
+  │  Evaluate relevance for these candidate topics:                         │
+  │    A. Healthcare & Wellness                                             │
+  │    B. Technology & Gadgets                                              │
+  │    C. Sports & Recreation                                               │
+  │    D. Entertainment & Movies                                            │
+  │    E. Fitness & Nutrition                                               │
+  │                                                                         │
+  │  Return JSON with QualityScore (0.0-1.0) and QualityReason for each."  │
+  └─────────────────────────────────────────────────────────────────────────┘
+                                      ▼
+
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│                    3. SINGLE LLM INFERENCE (UNSANDBOXED)                      │
-│-------------------------------------------------------------------------------│
-│ Model: gpt-oss-120b                                                           │
-│                                                                               │
-│ Model uses ALL sensitive data directly, e.g.:                                 │
-│   - Mentions “diabetes” repeatedly                                            │
-│   - Identifies disease-specific behavior                                      │
-│   - Infers gender relevance                                                   │
-│   - Uses exact medical queries to justify scoring                             │
-│                                                                               │
-│ INTERMEDIATE REASONING THE MODEL PRODUCED:                                    │
-│   - “User’s activity is dominated by diabetes-related content…”               │
-│   - “4 MSN article clicks (all about diabetes, its symptoms, treatment…”      │
-│   - “searches about diabetes diet, blood sugar control…”                      │
-│   - “user is a 42-year-old female”                                            │
-│                                                                               │
-│ This step directly leaks:                                                     │
-│   🔴 Health condition                                                         │
-│   🔴 Medication concerns                                                      │
-│   🔴 Disease management behavior                                              │
-│   🔴 Demographics                                                             │
-│   🔴 Clickstream content                                                      │
+│                    STEP 3: SINGLE LLM INFERENCE (UNSAFE)                      │
 └───────────────────────────────────────────────────────────────────────────────┘
-                                         │
-                                         ▼
+
+Model: gpt-oss-120b (single model, no privacy layer)
+
+The LLM processes ALL raw sensitive data and generates reasoning that directly
+references private information:
+
+INTERMEDIATE REASONING GENERATED BY MODEL:
+  • "User's activity is dominated by diabetes-related content"
+  • "4 MSN article clicks all about diabetes, symptoms, treatment"
+  • "3 Bing searches about diabetes diet, blood sugar control, medication"
+  • "User is a 42-year-old female interested in health management"
+  • "Strong focus on glucose monitoring and disease management"
+                                      ▼
 ┌───────────────────────────────────────────────────────────────────────────────┐
-│                          4. VANILLA OUTPUT (UNSAFE)                           │
-│-------------------------------------------------------------------------------│
-│ The final output directly includes sensitive facts:                           │
-│                                                                               │
-│ BASELINE OUTPUT (actual from your logs):                                      │
-│ [                                                                             │
-│   {                                                                           │
-│     "ItemId": "A",                                                            │
-│     "QualityScore": 0.95,                                                     │
-│     "QualityReason":                                                          │
-│        "The user’s recent activity is dominated by diabetes-related           │
-│         content: 4 MSN article clicks (all about diabetes, its symptoms,      │
-│         treatment, and mental health impact), 3 Bing searches explicitly      │
-│         about diabetes diet, natural blood-sugar control, and medication      │
-│         side-effects, plus a clicked query for continuous glucose monitoring."│
-│   },                                                                          │
-│   { "ItemId": "B", "QualityScore": 0.2,  "QualityReason": "…" },              │
-│   { "ItemId": "C", "QualityScore": 0.52, "QualityReason": "…" },              │
-│   { "ItemId": "D", "QualityScore": 0.05, "QualityReason": "…" },              │
-│   { "ItemId": "E", "QualityScore": 0.85, "QualityReason": "…" }               │
-│ ]                                                                             │
-│                                                                               │
-│ Problems:                                                                     │
-│   🔴 Model fully describes diabetes condition                                 │
-│   🔴 Mentions symptoms, treatments, blood sugar, medication                   │
-│   🔴 Mentions “42-year-old female”                                            │
-│   🔴 Gives explicit medical justification                                     │
-│   🔴 This output alone leaks protected health info (PHI)                      │
+│                       STEP 4: FINAL OUTPUT (UNSAFE)                           │
 └───────────────────────────────────────────────────────────────────────────────┘
+
+The system returns results that directly expose sensitive information:
+
+OUTPUT JSON:
+[
+  {
+    "ItemId": "A",
+    "Topic": "Healthcare & Wellness",
+    "QualityScore": 0.95,
+    "QualityReason": "The user's recent activity is dominated by diabetes-related
+                      content: 4 MSN article clicks (all about diabetes, its
+                      symptoms, treatment, and mental health impact), 3 Bing
+                      searches explicitly about diabetes diet, natural blood-sugar
+                      control, and medication side-effects, plus a clicked query
+                      for continuous glucose monitoring. This indicates strong
+                      interest in healthcare topics, particularly diabetes
+                      management."
+  },
+  {
+    "ItemId": "B",
+    "Topic": "Technology & Gadgets",
+    "QualityScore": 0.52,
+    "QualityReason": "Some interest indicated by searches for fitness trackers
+                      and glucose monitoring devices, which are health-tech
+                      gadgets for managing diabetes."
+  },
+  {
+    "ItemId": "C",
+    "Topic": "Sports & Recreation",
+    "QualityScore": 0.05,
+    "QualityReason": "No clear indicators of interest in sports or recreational
+                      activities."
+  },
+  {
+    "ItemId": "D",
+    "Topic": "Entertainment & Movies",
+    "QualityScore": 0.05,
+    "QualityReason": "No content related to entertainment or movies in user's
+                      recent activity."
+  },
+  {
+    "ItemId": "E",
+    "Topic": "Fitness & Nutrition",
+    "QualityScore": 0.85,
+    "QualityReason": "Strong interest shown through searches for diabetes diet
+                      plans and natural blood sugar management, plus MAI tags
+                      showing 3× Fitness interest."
+  }
+]
