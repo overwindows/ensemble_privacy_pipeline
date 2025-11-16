@@ -26,10 +26,37 @@
           <mxGeometry x="4" y="100" width="420" height="30" as="geometry" />
         </mxCell>
         <mxCell id="KiQpio770h8wytzC0xPC-19" value="STEP 4: FINAL OUTPUT&amp;nbsp;" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="240" width="440" height="760" as="geometry" />
+          <mxGeometry x="200" y="240" width="440" height="730" as="geometry" />
         </mxCell>
         <mxCell id="KiQpio770h8wytzC0xPC-20" value="&lt;div&gt;The system returns results that directly expose sensitive information:&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;OUTPUT JSON:&lt;/div&gt;&lt;div&gt;[&lt;/div&gt;&lt;div&gt;&amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;ItemId&quot;: &quot;A&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;Topic&quot;: &quot;Healthcare &amp;amp; Wellness&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityScore&quot;: 0.95,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityReason&quot;: &quot;The user&#39;s recent activity is dominated by diabetes-related&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; content: 4 MSN article clicks (all about diabetes, its&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; symptoms, treatment, and mental health impact), 3 Bing&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; searches explicitly about diabetes diet, natural blood-sugar&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; control, and medication side-effects, plus a clicked query&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; for continuous glucose monitoring. This indicates strong&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; interest in healthcare topics, particularly diabetes&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; management.&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;ItemId&quot;: &quot;B&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;Topic&quot;: &quot;Technology &amp;amp; Gadgets&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityScore&quot;: 0.52,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityReason&quot;: &quot;Some interest indicated by searches for fitness trackers&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; and glucose monitoring devices, which are health-tech&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; gadgets for managing diabetes.&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;ItemId&quot;: &quot;C&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;Topic&quot;: &quot;Sports &amp;amp; Recreation&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityScore&quot;: 0.05,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityReason&quot;: &quot;No clear indicators of interest in sports or recreational&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; activities.&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;ItemId&quot;: &quot;D&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;Topic&quot;: &quot;Entertainment &amp;amp; Movies&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityScore&quot;: 0.05,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityReason&quot;: &quot;No content related to entertainment or movies in user&#39;s&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; recent activity.&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;ItemId&quot;: &quot;E&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;Topic&quot;: &quot;Fitness &amp;amp; Nutrition&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityScore&quot;: 0.85,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;QualityReason&quot;: &quot;Strong interest shown through searches for diabetes diet&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; plans and natural blood sugar management, plus MAI tags&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; showing 3× Fitness interest.&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; }&lt;/div&gt;&lt;div&gt;]&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="KiQpio770h8wytzC0xPC-19">
-          <mxGeometry y="30" width="440" height="730" as="geometry" />
+          <mxGeometry y="30" width="440" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="KiQpio770h8wytzC0xPC-24" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.486;entryY=-0.002;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="KiQpio770h8wytzC0xPC-15">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="413" y="-480" as="sourcePoint" />
+            <mxPoint x="413" y="-450" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="413" y="-460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KiQpio770h8wytzC0xPC-25" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="414" y="-40" as="sourcePoint" />
+            <mxPoint x="414" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="414" y="-10" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="KiQpio770h8wytzC0xPC-26" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="413" y="200" as="sourcePoint" />
+            <mxPoint x="413" y="240" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="413" y="230" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
