@@ -89,13 +89,6 @@ final_output = aggregator.aggregate_median(all_results)
 | **Document Sanitization** ([TAB](https://github.com/NorskRegnesentral/text-anonymization-benchmark)) | Court document anonymization | 1,268 | 99.9% direct IDs (1267/1268)<br>99.9% quasi IDs (3806/3807)<br>83.7% overall (5308/6340) | PERSON/ORG/LOC: 99.9%<br>CODE: 18.9% | `python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 1268` |
 | **Differential Privacy Comparison** | Adversarial privacy testing (canary exposure, MIA) | 100 | 0.0% canary exposure (0/10)<br>98.5% MIA resistance | Comparable to DP (ε=1.0) | `python3 benchmarks/dp_benchmark.py --num-samples 100` |
 
-**Observations:**
-- **Vendor-Neutral Synthetic**: Complete privacy protection achieved on synthetic data with maintained task performance
-- **Text Masking**: 28.8% full protection reflects challenges in detecting all 54 PII types, particularly quasi-identifiers and domain-specific codes
-- **Question Answering**: Higher response success (100.0% vs. 85.5%) compared to PAPILLON, though with higher PII leakage (18.8% vs. 7.5%), suggesting different privacy-utility trade-offs
-- **Document Sanitization**: Strong protection for direct identifiers (PERSON, ORG, LOC), lower performance on CODE entities (legal references) suggests need for specialized handling
-- **Differential Privacy**: Comparable adversarial privacy resistance to ε=1.0 DP on these tests; note that formal DP provides mathematical guarantees while this approach provides empirical measurements
-
 ## Comparison with Differential Privacy
 
 | Aspect | This Approach | Differential Privacy |
