@@ -2,54 +2,32 @@
 
 **A Training-Free Privacy-Preserving Approach for LLM Inference on Sensitive User Data**
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-
 ## Table of Contents
 
 - [Overview](#overview)
-- [Benchmark Results](#benchmark-results)
-- [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Usage](#usage)
-- [Detailed Results](#detailed-results)
-- [Available Benchmarks](#available-benchmarks)
+- [Benchmarks and Results](#benchmarks-and-results)
+- [Comparison with Differential Privacy](#comparison-with-differential-privacy)
 - [References](#references)
 
 ## Overview
 
 This repository implements a privacy-preserving pipeline for LLM inference that combines input masking with ensemble consensus voting. The approach is designed to reduce personally identifiable information (PII) exposure when processing sensitive user data through large language models.
 
-**Key Characteristics:**
+**Features:**
 - Training-free implementation compatible with any LLM API
 - Input masking layer to redact PII before model inference
 - Ensemble consensus to reduce individual model variance
 - Evaluation on public privacy benchmarks
 
-## Benchmark Results
-
-Evaluation on 3,569 samples across 5 privacy-preserving tasks:
-
-| Benchmark | Privacy Metric | Task Performance | Notes |
-|-----------|----------------|------------------|-------|
-| **Vendor-Neutral Synthetic** | 100.0% protection | 85.0% accuracy | Synthetic data evaluation |
-| **Text Masking (ai4privacy)** | 28.8% full protection | 1000 samples | 54 PII types evaluated |
-| **Question Answering (PUPA)** | 81.2% PII protected | 100.0% response rate | NAACL 2025 dataset |
-| **Document Sanitization (TAB)** | 99.9% direct IDs | 83.7% overall masking | ACL 2022 dataset |
-| **Differential Privacy** | 0.0% canary exposure | 98.5% MIA resistance | Adversarial testing |
-
-**Summary of Findings:**
+**Overall Results Summary:**
+- Evaluated on 3,569 samples across 5 privacy-preserving tasks
 - Privacy protection rates range from 81-100% across different benchmark tasks
 - Task performance maintained at 85-100% on evaluated metrics
 - Comparable results to existing privacy-preserving approaches on select benchmarks
 
 ## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package manager)
-
-### Setup
 
 ```bash
 # Clone the repository
@@ -79,8 +57,6 @@ python3 run_all_benchmarks.py
 
 ## Usage
 
-### Basic Example
-
 ```python
 from src.privacy_core import PrivacyRedactor, ConsensusAggregator
 from examples.real_llm_example import RealLLMEvaluator
@@ -103,152 +79,33 @@ aggregator = ConsensusAggregator()
 final_output = aggregator.aggregate_median(all_results)
 ```
 
-### Available Commands
+## Benchmarks and Results
 
-```bash
-# Full benchmark suite (3,569 samples)
-python3 run_all_benchmarks.py
+| Benchmark | Task | Samples | Privacy Protection | Task Performance | Command |
+|-----------|------|---------|-------------------|------------------|---------|
+| **Vendor-Neutral Synthetic** | Interest evaluation on behavioral data (medical, financial, education) | 300 | 100.0% (300/300) | 85.0% accuracy (255/300) | `python3 benchmarks/neutral_benchmark.py --benchmark all --domains all --num-samples 100` |
+| **Text Masking** ([ai4privacy](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)) | PII masking across 54 entity types | 1,000 | 28.8% full protection (288/1000)<br>71.2% partial leakage | 4,012 PII entities tested | `python3 benchmarks/public_datasets_simple.py --num-samples 1000` |
+| **Question Answering** ([PUPA](https://github.com/Columbia-NLP-Lab/PAPILLON)) | Response generation without PII leakage | 901 | 81.2% protected (3904/4806 PII units)<br>18.8% leakage | 100.0% response success<br>(vs. PAPILLON 85.5%) | `python3 benchmarks/pupa_benchmark.py --simulate --num-samples 901` |
+| **Document Sanitization** ([TAB](https://github.com/NorskRegnesentral/text-anonymization-benchmark)) | Court document anonymization | 1,268 | 99.9% direct IDs (1267/1268)<br>99.9% quasi IDs (3806/3807)<br>83.7% overall (5308/6340) | PERSON/ORG/LOC: 99.9%<br>CODE: 18.9% | `python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 1268` |
+| **Differential Privacy Comparison** | Adversarial privacy testing (canary exposure, MIA) | 100 | 0.0% canary exposure (0/10)<br>98.5% MIA resistance | Comparable to DP (ε=1.0) | `python3 benchmarks/dp_benchmark.py --num-samples 100` |
 
-# Privacy comparison demonstration
-python3 examples/privacy_comparison.py
+**Observations:**
+- **Vendor-Neutral Synthetic**: Complete privacy protection achieved on synthetic data with maintained task performance
+- **Text Masking**: 28.8% full protection reflects challenges in detecting all 54 PII types, particularly quasi-identifiers and domain-specific codes
+- **Question Answering**: Higher response success (100.0% vs. 85.5%) compared to PAPILLON, though with higher PII leakage (18.8% vs. 7.5%), suggesting different privacy-utility trade-offs
+- **Document Sanitization**: Strong protection for direct identifiers (PERSON, ORG, LOC), lower performance on CODE entities (legal references) suggests need for specialized handling
+- **Differential Privacy**: Comparable adversarial privacy resistance to ε=1.0 DP on these tests; note that formal DP provides mathematical guarantees while this approach provides empirical measurements
 
-# Individual benchmarks
-python3 benchmarks/neutral_benchmark.py --benchmark all --num-samples 100
-python3 benchmarks/public_datasets_simple.py --num-samples 1000
-python3 benchmarks/pupa_benchmark.py --simulate --num-samples 901
-python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 1268
-python3 benchmarks/dp_benchmark.py --num-samples 100
-```
+## Comparison with Differential Privacy
 
-## Detailed Results
+| Aspect | This Approach | Differential Privacy |
+|--------|--------------|----------------------|
+| **Privacy Guarantee** | Empirical (benchmark-measured) | Formal (mathematical proof) |
+| **Training Required** | No | Yes (DP-SGD) |
+| **Utility** | Measured on benchmarks | Typically experiences utility degradation |
+| **Applicability** | Inference-time only | Training and/or inference |
 
-### 1. Vendor-Neutral Synthetic Benchmark
-**Task**: Interest evaluation on synthetic behavioral data (medical, financial, education domains)
-
-**Results**:
-- Privacy Protection: 100.0% (300/300 samples)
-- Task Accuracy: 85.0% (255/300 correct matches)
-- Average Score: 0.21
-- Processing Time: 4,174s (~14s per sample)
-
-**Observations**: Complete privacy protection achieved on synthetic data with maintained task performance.
-
----
-
-### 2. Text Masking (ai4privacy/pii-masking-200k)
-**Task**: PII masking across 54 different entity types
-
-**Results**:
-- Full Protection Rate: 28.8% (288/1000 samples)
-- Partial Leakage: 71.2% (712/1000 samples with at least one entity leaked)
-- Total PII Entities: 4,012 across 1,000 samples
-- Common PII Types: FIRSTNAME (290), LASTNAME (98), DATE (86), EMAIL (83)
-- Processing Time: 5,875s (~6s per sample)
-
-**Observations**: The 28.8% full protection rate reflects the challenge of detecting and masking all 54 PII types, particularly quasi-identifiers and domain-specific codes. This highlights areas for improvement in comprehensive PII detection.
-
----
-
-### 3. Question Answering (PUPA - NAACL 2025)
-**Task**: Response generation without PII leakage from prompts
-
-**Results**:
-- PII Leakage Rate: 18.8% (902/4806 PII units leaked)
-- PII Protection Rate: 81.2% (3904/4806 PII units protected)
-- Response Success Rate: 100.0% (901/901 responses generated)
-- Processing Time: 11,170s (~12s per sample)
-
-**Category-Specific Performance**:
-- Job/Visa Applications: 32.8% leakage
-- Financial Information: 19.7% leakage
-- Quoted Emails/Messages: 0.9% leakage
-
-**Comparison with PAPILLON (NAACL 2025)**:
-| Metric | This Approach | PAPILLON |
-|--------|---------------|----------|
-| Response Success | 100.0% | 85.5% |
-| Privacy Leakage | 18.8% | 7.5% |
-
-**Observations**: Higher response success rate achieved compared to PAPILLON, though with higher PII leakage (11.3 percentage points). This suggests a privacy-utility trade-off that differs from the PAPILLON approach.
-
----
-
-### 4. Document Sanitization (TAB)
-**Task**: Anonymization of court documents for public release
-
-**Results**:
-- Overall PII Masking: 83.7% (5308/6340 entities protected)
-- Direct ID Protection: 99.9% (1267/1268)
-- Quasi ID Protection: 99.9% (3806/3807)
-- Processing Time: 8,958s (~7s per sample)
-
-**Entity Type Performance**:
-- PERSON: 99.9% protected
-- ORG: 99.9% protected
-- LOC: 99.9% protected
-- DATETIME: 99.9% protected
-- CODE (legal references): 18.9% protected
-
-**Observations**: Strong protection achieved for direct identifiers (PERSON, ORG). Lower performance on CODE entities (legal references) suggests specialized handling may be needed for domain-specific identifiers.
-
----
-
-### 5. Differential Privacy Comparison
-**Task**: Adversarial privacy evaluation (canary exposure, membership inference)
-
-**Results**:
-- Canary Exposure Rate: 0.0% (0/10 canaries exposed)
-- MIA Resistance: 98.5% (member/non-member score difference: 0.015)
-- Processing Time: 559s
-
-**Comparison with Differential Privacy**:
-| Approach | Canary Exposure | MIA Resistance |
-|----------|----------------|----------------|
-| This Approach | 0.0% | 98.5% |
-| DP (ε=1.0) | ~8.0% | ~85.0% |
-| DP (ε=5.0) | ~18.0% | ~65.0% |
-
-**Observations**: Results suggest comparable adversarial privacy resistance to ε=1.0 differential privacy on these specific tests. Note that formal DP provides mathematical guarantees, while this approach provides empirical measurements.
-
----
-
-## Available Benchmarks
-
-### Public Datasets
-
-The evaluation uses publicly available datasets for reproducibility:
-
-| Benchmark | Samples | Task | Dataset Source |
-|-----------|---------|------|----------------|
-| **Vendor-Neutral Synthetic** | 300 | Interest Evaluation | Synthetic data (this work) |
-| **ai4privacy/pii-masking-200k** | 1,000 | Text Masking | [HuggingFace](https://huggingface.co/datasets/ai4privacy/pii-masking-200k) |
-| **PUPA** | 901 | Question Answering | [GitHub](https://github.com/Columbia-NLP-Lab/PAPILLON) |
-| **TAB** | 1,268 | Document Sanitization | [GitHub](https://github.com/NorskRegnesentral/text-anonymization-benchmark) |
-| **Differential Privacy** | 100 | Adversarial Testing | Methodology-based (this work) |
-
-### Running Benchmarks
-
-```bash
-# Set API key
-export LLM_API_KEY='your-key-here'
-
-# Run full suite
-python3 run_all_benchmarks.py  # 3,569 samples, estimated 7-9 hours
-
-# Run individual benchmarks
-python3 benchmarks/neutral_benchmark.py --benchmark all --num-samples 100
-python3 benchmarks/public_datasets_simple.py --num-samples 1000
-python3 benchmarks/pupa_benchmark.py --simulate --num-samples 901
-python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 1268
-python3 benchmarks/dp_benchmark.py --num-samples 100
-```
-
-### Evaluation Metrics
-
-Benchmarks measure:
-- **PII Protection**: Percentage of PII successfully masked in outputs
-- **Task Performance**: Accuracy on the specific task (e.g., question answering, text masking)
-- **Adversarial Resistance**: Canary exposure and membership inference attack resistance
+**Note:** Differential Privacy provides formal mathematical guarantees (ε, δ), while this approach provides empirical privacy measurements on specific benchmarks. Both approaches have complementary strengths depending on use case requirements.
 
 ## References
 
@@ -261,30 +118,23 @@ Benchmarks measure:
 
 2. **PUPA (Private User Prompt Annotations)**
    - Source: [GitHub Repository](https://github.com/Columbia-NLP-Lab/PAPILLON)
-   - Paper: Li et al., "PAPILLON: PrivAcy Preservation from Internet-based and Local Language Model Ensembles", NAACL 2025
    - Description: 901 real-world user-agent interactions from WildChat corpus
 
 3. **TAB (Text Anonymization Benchmark)**
    - Source: [GitHub Repository](https://github.com/NorskRegnesentral/text-anonymization-benchmark)
-   - Paper: Pilán et al., "The Text Anonymization Benchmark (TAB): A Dedicated Corpus and Evaluation Framework for Text Anonymization", ACL 2022 Findings
    - Description: 1,268 ECHR court cases with manual PII annotations
 
-### Related Work
+### Papers
 
-- **PAPILLON**: Li et al. (2025). "PAPILLON: PrivAcy Preservation from Internet-based and Local Language Model Ensembles." *NAACL 2025*.
-- **TAB**: Pilán et al. (2022). "The Text Anonymization Benchmark (TAB): A Dedicated Corpus and Evaluation Framework for Text Anonymization." *ACL 2022 Findings*.
-- **SanText**: Yue et al. (2021). "Differential Privacy for Text Analytics via Natural Text Sanitization." *ACL 2021 Findings*. [GitHub](https://github.com/xiangyue9607/SanText)
+1. **PAPILLON**
+   - Li et al. (2025). "PAPILLON: PrivAcy Preservation from Internet-based and Local Language Model Ensembles." *NAACL 2025*.
 
-### Comparison with Differential Privacy
+2. **TAB**
+   - Pilán et al. (2022). "The Text Anonymization Benchmark (TAB): A Dedicated Corpus and Evaluation Framework for Text Anonymization." *ACL 2022 Findings*.
 
-| Aspect | This Approach | Differential Privacy |
-|--------|--------------|----------------------|
-| **Privacy Guarantee** | Empirical (benchmark-measured) | Formal (mathematical proof) |
-| **Training Required** | No | Yes (DP-SGD) |
-| **Utility** | Measured on benchmarks | Typically experiences utility degradation |
-| **Applicability** | Inference-time only | Training and/or inference |
-
-**Note**: Differential Privacy provides formal mathematical guarantees (ε, δ), while this approach provides empirical privacy measurements on specific benchmarks. Both approaches have complementary strengths depending on use case requirements.
+3. **SanText**
+   - Yue et al. (2021). "Differential Privacy for Text Analytics via Natural Text Sanitization." *ACL 2021 Findings*.
+   - [GitHub Repository](https://github.com/xiangyue9607/SanText)
 
 ### Models
 
@@ -294,19 +144,7 @@ The pipeline is designed to work with any LLM API. Models used in benchmark eval
 - Qwen3-32B
 - DeepSeek-V3-0324
 
----
+### Documentation
 
-## Documentation
-
-For additional documentation, see:
-- [Pipeline Architecture](docs/ENSEMBLE_PIPELINE_EXPLAINED.md)
-- [Benchmark Details](docs/BENCHMARKS.md)
-
----
-
-## Getting Started
-
-```bash
-export LLM_API_KEY='your-key-here'
-python3 run_all_benchmarks.py
-```
+- **[Pipeline Architecture](docs/ENSEMBLE_PIPELINE_EXPLAINED.md)** - Complete technical explanation of the ensemble-redaction approach
+- **[Benchmark Details](docs/BENCHMARKS.md)** - Detailed benchmark guide with usage instructions
