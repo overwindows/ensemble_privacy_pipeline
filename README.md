@@ -13,19 +13,13 @@
 
 ## Overview
 
-This repository implements a privacy-preserving pipeline for LLM inference that combines input masking with ensemble consensus voting. The approach is designed to reduce personally identifiable information (PII) exposure when processing sensitive user data through large language models.
+This repository implements a privacy-preserving pipeline for LLM inference that combines input masking with ensemble consensus voting. The approach is designed to reduce PII exposure when processing sensitive user data through large language models.
 
 **Features:**
 - Training-free implementation compatible with any LLM API
 - Input masking layer to redact PII before model inference
 - Ensemble consensus to reduce individual model variance
 - Evaluation on public privacy benchmarks
-
-**Overall Results Summary:**
-- Evaluated on 3,569 samples across 5 privacy-preserving tasks
-- Privacy protection rates range from 81-100% across different benchmark tasks
-- Task performance maintained at 85-100% on evaluated metrics
-- Comparable results to existing privacy-preserving approaches on select benchmarks
 
 ## Installation
 
@@ -106,7 +100,6 @@ final_output = aggregator.aggregate_median(all_results)
 
 1. **ai4privacy/pii-masking-200k**
    - Source: [HuggingFace Dataset](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)
-   - License: Apache 2.0
    - Description: 200K+ samples with 54 PII types for privacy research
 
 2. **PUPA (Private User Prompt Annotations)**

@@ -2,6 +2,8 @@
 """
 Custom 4-Model Ensemble Privacy Pipeline
 
+Author: Chen Wu
+
 This script uses the following models:
 1. gpt-oss-120b
 2. DeepSeek-V3.1
@@ -118,130 +120,7 @@ Output as JSON array."""
                 
         except Exception as e:
             print(f"Error: {e}")
-            # Fallback to simulated
-            return self._simulate_unsafe_output(raw_user_data, candidate_topics)
-    
-    def _simulate_unsafe_output(self, raw_data: Dict, topics: List[Dict]) -> List[Dict]:
-        """Simulate what an unsafe LLM might output (includes specific data)."""
-        results = []
-        for topic in topics:
-            score, reason = self._score_with_specific_data(topic["Topic"], raw_data)
-            results.append({
-                "ItemId": topic["ItemId"],
-                "QualityScore": score,
-                "QualityReason": reason
-            })
-        return results
-    
-    def _score_with_specific_data(self, topic: str, raw_data: Dict):
-        """Score topic and include specific queries/titles in reason (UNSAFE!)."""
-        topic_lower = topic.lower()
-        evidence = []
-        
-        # Include specific search queries in reason
-        if "BingSearch" in raw_data:
-            for search in raw_data["BingSearch"]:
-                query = search["query"]
-                if any(word in query.lower() for word in topic_lower.split()):
-                    evidence.append(f'searched for "{query}"')
-        
-        # Include specific article titles in reason
-        if "MSNClicks" in raw_data:
-            for click in raw_data["MSNClicks"]:
-                title = click["title"]
-                if any(word in title.lower() for word in topic_lower.split()):
-                    evidence.append(f'read "{title[:60]}..."')
-        
-        if evidence:
-            reason = f"User {' and '.join(evidence[:3])}"  # Include up to 3 examples
-            score = min(0.9, 0.6 + len(evidence) * 0.1)
-        else:
-            reason = "No matching behavior found"
-            score = 0.25
-        
-        return score, reason
-
-
-class BaselineEvaluator:
-    """
-    Baseline approach without privacy protection.
-    This directly uses raw user data - demonstrating what happens WITHOUT the pipeline.
-    """
-    
-    def __init__(self, model_name: str):
-        self.model_name = model_name
-    
-    def evaluate_interest(self, raw_user_data: Dict, candidate_topics: List[Dict]) -> List[Dict]:
-        """
-        Evaluate topics using RAW data (UNSAFE - for comparison only).
-        This simulates a typical system without privacy protection.
-        """
-        results = []
-        
-        for topic in candidate_topics:
-            score, reason, leaked_data = self._score_topic(
-                topic["Topic"],
-                raw_user_data
-            )
-            
-            result = {
-                "ItemId": topic["ItemId"],
-                "QualityScore": score,
-                "QualityReason": reason,
-            }
-            
-            # Include leaked data to show what gets exposed
-            if leaked_data:
-                result["LEAKED_DATA"] = leaked_data
-            
-            results.append(result)
-        
-        return results
-    
-    def _score_topic(self, topic: str, raw_data: Dict):
-        """Score topic and track what data gets leaked."""
-        leaked_data = {}
-        evidence_count = 0
-        topic_lower = topic.lower()
-        
-        # Check search queries - exposes actual searches
-        if "BingSearch" in raw_data:
-            matching = []
-            for search in raw_data["BingSearch"]:
-                query = search["query"]
-                if any(word in query.lower() for word in topic_lower.split()):
-                    matching.append(query)
-                    evidence_count += 1
-            if matching:
-                leaked_data["queries"] = matching
-        
-        # Check article clicks - exposes reading history
-        if "MSNClicks" in raw_data:
-            matching = []
-            for click in raw_data["MSNClicks"]:
-                title = click["title"]
-                if any(word in title.lower() for word in topic_lower.split()):
-                    matching.append(title)
-                    evidence_count += 1
-            if matching:
-                leaked_data["titles"] = matching
-        
-        # Score based on evidence
-        if evidence_count == 0:
-            score = 0.25
-            reason = "No matching behavior"
-        elif evidence_count <= 2:
-            score = 0.60
-            reason = "Some matching behavior"
-        elif evidence_count <= 4:
-            score = 0.75
-            reason = "Multiple matches"
-        else:
-            score = 0.85
-            reason = "Strong match"
-        
-        return score, reason, leaked_data
-
+            raise
 
 # ============================================================================
 # PRIVACY ANALYSIS UTILITIES
@@ -253,27 +132,14 @@ def analyze_leakage(results: List[Dict], pii_keywords: List[str], raw_data: Dict
         "queries_leaked": 0,
         "titles_leaked": 0,
         "pii_keywords_found": [],
-        "has_leaked_data_field": False,
         "leaked_queries": [],
         "leaked_titles": [],
     }
-    
+
     results_str = json.dumps(results).lower()
-    
-    # Check for explicit leaked data fields (from simulated baseline)
-    for result in results:
-        if "LEAKED_DATA" in result:
-            leakage["has_leaked_data_field"] = True
-            leaked = result["LEAKED_DATA"]
-            if "queries" in leaked:
-                leakage["queries_leaked"] += len(leaked["queries"])
-                leakage["leaked_queries"].extend(leaked["queries"])
-            if "titles" in leaked:
-                leakage["titles_leaked"] += len(leaked["titles"])
-                leakage["leaked_titles"].extend(leaked["titles"])
-    
-    # If raw data provided, check if actual queries/titles appear in output
-    if raw_data and not leakage["has_leaked_data_field"]:
+
+    # Check if actual queries/titles from raw data appear in output
+    if raw_data:
         if "BingSearch" in raw_data:
             for search in raw_data["BingSearch"]:
                 query = search["query"]
@@ -281,7 +147,7 @@ def analyze_leakage(results: List[Dict], pii_keywords: List[str], raw_data: Dict
                 if query.lower() in results_str:
                     leakage["queries_leaked"] += 1
                     leakage["leaked_queries"].append(query)
-        
+
         if "MSNClicks" in raw_data:
             for click in raw_data["MSNClicks"]:
                 title = click["title"]
@@ -289,18 +155,18 @@ def analyze_leakage(results: List[Dict], pii_keywords: List[str], raw_data: Dict
                 if title.lower() in results_str:
                     leakage["titles_leaked"] += 1
                     leakage["leaked_titles"].append(title)
-    
+
     # Check for PII keywords in output
     for keyword in pii_keywords:
         if keyword.lower() in results_str:
             leakage["pii_keywords_found"].append(keyword)
-    
+
     return leakage
 
 
 def run_pipeline(raw_user_data: dict, candidate_topics: list, api_key: str, pii_keywords: list = None):
     """
-    Run the complete privacy-preserving pipeline with your 4-model ensemble.
+    Run the complete privacy-preserving pipeline with 4-model ensemble.
     Also runs a baseline (no protection) for comparison.
 
     Args:
@@ -361,17 +227,12 @@ def run_pipeline(raw_user_data: dict, candidate_topics: list, api_key: str, pii_
     baseline_model = ENSEMBLE_MODELS[0]
     print(f"   Model: {baseline_model}")
     
-    try:
-        baseline_evaluator = BaselineUnsafeEvaluator(
-            model_name=baseline_model,
-            api_key=api_key
-        )
-        baseline_results = baseline_evaluator.evaluate_interest(raw_user_data, candidate_topics)
-        print(f"   ✓ Completed")
-    except Exception as e:
-        print(f"   ❌ Error: {e}")
-        baseline_evaluator = BaselineUnsafeEvaluator(model_name="Simulated", api_key="dummy")
-        baseline_results = baseline_evaluator._simulate_unsafe_output(raw_user_data, candidate_topics)
+    baseline_evaluator = BaselineUnsafeEvaluator(
+        model_name=baseline_model,
+        api_key=api_key
+    )
+    baseline_results = baseline_evaluator.evaluate_interest(raw_user_data, candidate_topics)
+    print(f"   ✓ Completed")
     
     print("\n📤 BASELINE OUTPUT:")
     print(json.dumps(baseline_results, indent=2))
