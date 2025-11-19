@@ -156,12 +156,30 @@ def evaluate_on_dataset(samples: List[Dict], model_names: List[str], api_key: st
                 except Exception as e:
                     print(f"      ⚠️  Model {evaluator.model_name} error: {e}")
 
-            # Step 2: Ensemble consensus - use majority voting on masking
+            # Step 2: Ensemble consensus - aggregate WITHOUT using ground truth
             if masked_outputs:
-                # For simplicity, use the first model's output (could do consensus voting)
-                final_masked = masked_outputs[0]
+                # Majority voting: Pick the most common masked output
+                from collections import Counter
+                output_counts = Counter(masked_outputs)
 
-                # Step 3: Check for PII leakage in the masked output
+                if len(output_counts) == 1:
+                    # All models gave same output
+                    final_masked = masked_outputs[0]
+                    consensus_type = "unanimous"
+                elif output_counts.most_common(1)[0][1] >= len(masked_outputs) / 2:
+                    # Majority exists
+                    final_masked = output_counts.most_common(1)[0][0]
+                    consensus_type = "majority"
+                else:
+                    # No clear majority, use shortest output (heuristic: less text = likely safer)
+                    final_masked = min(masked_outputs, key=len)
+                    consensus_type = "shortest_fallback"
+
+                if len(masked_outputs) > 1:
+                    unique_outputs = len(output_counts)
+                    print(f"      📊 Ensemble ({len(masked_outputs)} models): {unique_outputs} unique outputs, consensus: {consensus_type}")
+
+                # Step 3: EVALUATE consensus output against ground truth (not used for selection!)
                 leakage_check = check_pii_leakage(final_masked, pii_values)
 
                 if leakage_check['is_protected']:

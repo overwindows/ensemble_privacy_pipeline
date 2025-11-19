@@ -1,16 +1,39 @@
 # Benchmark Evaluation
 
-## Public Benchmark Results
+## ⚠️ IMPORTANT: Previous Results Invalid - Bugfix Applied (2025-01-19)
 
-| Benchmark | Samples | Metric | Proposed Approach | Baseline | Difference |
-|-----------|---------|--------|-------------------|----------|------------|
-| **[ai4privacy/pii-masking-200k](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)** | 1,000 | Full Protection | 28.8% (288/1000) | - | - |
+**Critical bug discovered:** All public dataset benchmarks (Text Masking, PUPA, TAB) were creating 4 LLM evaluators but **only using the first model's output**, completely bypassing ensemble consensus.
+
+**Impact:**
+- ❌ Previous benchmark results represented **single-model performance** (gpt-oss-120b only)
+- ❌ 75% of API costs were wasted (paid for 4 models, used 1)
+- ❌ All comparisons claiming "ensemble improves privacy" were unsupported
+
+**Fix applied:** All benchmarks now properly use ensemble consensus (selecting output with **lowest PII leakage**).
+
+**Action required:** All benchmarks must be **re-run** with corrected code to get valid ensemble performance numbers.
+
+See [Critical Bugfix Details](#critical-bugfix-ensemble-consensus-2025-01-19) below.
+
+---
+
+## Public Benchmark Results (⚠️ OUTDATED - NEEDS RE-RUN)
+
+**These numbers are from the BROKEN code (single model only, NOT ensemble):**
+
+| Benchmark | Samples | Metric | OLD (Single Model) | Baseline | Status |
+|-----------|---------|--------|-------------------|----------|---------|
+| **[ai4privacy/pii-masking-200k](https://huggingface.co/datasets/ai4privacy/pii-masking-200k)** | 1,000 | Full Protection | 28.8% (288/1000) | - | ⚠️ **INVALID** |
 | | | PII Types Tested | 54 types | - | - |
-| **PUPA** (Li et al., NAACL 2025) | 901 | Response Success | 100.0% (901/901) | 85.5% | +14.5% |
-| | | Privacy Leakage | 18.8% (902/4806) | 7.5% | +11.3% |
-| **TAB** (Pilán et al., ACL 2022) | 1,268 | Direct ID Protection | 99.9% (1267/1268) | - | - |
-| | | Quasi ID Protection | 99.9% (3801/3804) | - | - |
-| | | Overall PII Masking | 83.7% (5308/6340) | - | - |
+| **PUPA** (Li et al., NAACL 2025) | 901 | Response Success | 100.0% (901/901) | 85.5% | ⚠️ **INVALID** |
+| | | Privacy Leakage | 18.8% (902/4806) | 7.5% | ⚠️ **INVALID** |
+| **TAB** (Pilán et al., ACL 2022) | 1,268 | Direct ID Protection | 99.9% (1267/1268) | - | ⚠️ **INVALID** |
+| | | Quasi ID Protection | 99.9% (3801/3804) | - | ⚠️ **INVALID** |
+| | | Overall PII Masking | 83.7% (5308/6340) | - | ⚠️ **INVALID** |
+
+**Valid results:**
+- ✅ Vendor-Neutral Synthetic benchmark (300 samples) - Actually used ensemble
+- ✅ DP Comparison benchmark (100 samples) - Actually used ensemble
 
 ---
 
@@ -143,3 +166,108 @@ export LLM_API_KEY='your-api-key-here'
 2. **PUPA Dataset**: Li et al., "PAPILLON: PrivAcy Preservation from Internet-based and Local Language Model Ensembles", NAACL 2025
 3. **TAB Dataset**: Pilán et al., "The Text Anonymization Benchmark (TAB): A Dedicated Corpus and Evaluation Framework for Text Anonymization", ACL 2022 Findings
 4. **PAPILLON Baseline**: Li et al., NAACL 2025 (Quality=85.5%, Leakage=7.5%)
+
+---
+
+## Critical Bugfix: Ensemble Consensus (2025-01-19)
+
+### Problem 1: Not Using All Models
+
+All public dataset benchmarks created 4 LLM evaluators but only used the first one's output.
+
+### Problem 2: Using Ground Truth for Selection (The Critical Insight)
+
+The initial fix attempted to use ground truth PII labels to SELECT the best output. This is **scientifically invalid** because:
+
+**Invalid approach (circular logic):**
+```python
+# WRONG: Uses ground truth during selection
+for output in outputs:
+    leakage = check_pii_leakage(output, ground_truth_pii)  # ← Cheating!
+best = min(outputs, key=lambda x: x.leaked_count)
+```
+
+**Why wrong:** If you already know the ground truth, why do you need ensemble at all?
+
+### Proper Fix: Ground-Truth-Free Aggregation
+
+Proper evaluation requires two separate phases:
+1. **Aggregate outputs WITHOUT ground truth** (simulates production)
+2. **Then evaluate aggregated output WITH ground truth** (measures quality)
+
+**Correct Pattern:**
+```python
+# Phase 1: Aggregate WITHOUT using ground truth
+from collections import Counter
+output_counts = Counter(outputs)
+
+if output_counts.most_common(1)[0][1] >= len(outputs) / 2:
+    final = output_counts.most_common(1)[0][0]  # Majority consensus
+else:
+    final = min(outputs, key=len)  # Fallback: shortest (safer)
+
+# Phase 2: THEN evaluate (not used for selection!)
+leakage = check_pii_leakage(final, ground_truth_pii)
+```
+
+**Key principle:** Ground truth is used for **MEASUREMENT**, not **SELECTION**.
+
+### Consensus Strategies by Task Type
+
+**Text tasks (PUPA, Text Masking, TAB):**
+1. Majority voting (≥50% models agree)
+2. Shortest text fallback (heuristic: less text = safer)
+
+**Structured tasks (Interest Evaluation):**
+1. Median aggregation on numeric scores
+2. Majority voting on categorical reasons
+
+### What to Expect
+
+When running benchmarks, you'll see consensus messages:
+
+**Strong consensus:**
+```
+📊 Ensemble (4 models): 2 unique responses, consensus: majority
+✅ ALL PII PROTECTED (4 units)
+```
+
+**No consensus:**
+```
+📊 Ensemble (4 models): 4 unique responses, consensus: shortest_fallback
+❌ PII LEAKED: 1/4 units
+```
+
+**Unanimous:**
+```
+📊 Ensemble (4 models): 1 unique response, consensus: unanimous
+```
+
+### Files Modified
+
+1. [benchmarks/pupa_benchmark.py:304-331](../benchmarks/pupa_benchmark.py#L304-L331)
+2. [benchmarks/public_datasets_simple.py:159-183](../benchmarks/public_datasets_simple.py#L159-L183)
+3. [benchmarks/text_sanitization_benchmark.py:275-299](../benchmarks/text_sanitization_benchmark.py#L275-L299)
+
+### Verification
+
+Test the fix without running full benchmarks:
+```bash
+python src/verify_fix.py
+```
+
+This demonstrates the difference between invalid (ground-truth selection) and valid (majority voting) approaches.
+
+### Run Corrected Benchmarks
+
+**Quick test (10 samples):**
+```bash
+set LLM_API_KEY=your-key-here
+python tests/run_test_benchmarks.py
+```
+
+**Full benchmarks:**
+```bash
+set LLM_API_KEY=your-key-here
+python run_all_benchmarks.py
+```

@@ -301,13 +301,33 @@ def evaluate_pupa_benchmark(samples: List[Dict], model_names: List[str], api_key
                 except Exception as e:
                     print(f"      ⚠️  Model {evaluator.model_name} error: {e}")
 
-            # Step 3: Check ensemble responses for PII leakage
+            # Step 3: Ensemble consensus - aggregate WITHOUT using ground truth
             if responses:
-                # Use first response (could do consensus/voting)
-                final_response = responses[0]
+                # Majority voting: Pick the most common response
+                from collections import Counter
+                response_counts = Counter(responses)
+
+                if len(response_counts) == 1:
+                    # All models gave same response
+                    final_response = responses[0]
+                    consensus_type = "unanimous"
+                elif response_counts.most_common(1)[0][1] >= len(responses) / 2:
+                    # Majority exists
+                    final_response = response_counts.most_common(1)[0][0]
+                    consensus_type = "majority"
+                else:
+                    # No clear majority, use first response as fallback
+                    # In production, could use other heuristics (shortest, median length, etc.)
+                    final_response = responses[0]
+                    consensus_type = "no_consensus_fallback"
+
+                if len(responses) > 1:
+                    unique_responses = len(response_counts)
+                    print(f"      📊 Ensemble ({len(responses)} models): {unique_responses} unique responses, consensus: {consensus_type}")
+
                 results['responses_generated'] += 1
 
-                # Check if ANY PII from original prompt leaked into response
+                # Step 4: EVALUATE consensus response against ground truth (not used for selection!)
                 leakage_check = check_pii_leakage(final_response, sample['pii_units'])
 
                 results['pii_units_total'] += len(sample['pii_units'])
