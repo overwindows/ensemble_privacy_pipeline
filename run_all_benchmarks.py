@@ -6,7 +6,6 @@ This script runs ALL available benchmarks with MAXIMUM samples from each dataset
 to provide a complete, thorough evaluation of the ensemble-redaction privacy pipeline.
 
 ⚠️  WARNING: This is a COMPREHENSIVE evaluation using ALL available data samples.
-    Estimated cost: $300-380 | Estimated time: 7-9 hours
 
 Usage:
   export LLM_API_KEY='your-key-here'
@@ -24,13 +23,6 @@ Total: 3,569 samples across 5 benchmarks
 Note: run_benchmarks.py and run_demo_pipeline.py use legacy Microsoft-specific
       field names (MSNClicks, BingSearch) for demo purposes only and are NOT
       included in this comprehensive evaluation suite.
-
-Individual benchmark estimates:
-- Vendor-Neutral: 300 samples, ~60-75 min, ~$40-50
-- ai4privacy: 1,000 samples, ~120-150 min, ~$80-100
-- PUPA: 901 samples, ~90-120 min, ~$60-80
-- TAB: 1,268 samples, ~120-150 min, ~$80-100
-- DP Comparison: 100 samples, ~60-75 min, ~$40-50
 """
 
 import os
@@ -66,9 +58,7 @@ benchmarks = [
         "args": ["--benchmark", "all", "--domains", "all", "--num-samples", "100"],
         "description": "Synthetic data with vendor-neutral field names - 100 samples per domain (300 total)",
         "dataset_type": "Synthetic",
-        "total_samples": 300,
-        "estimated_time": "60-75 min",
-        "estimated_cost": "$40-50"
+        "total_samples": 300
     },
     {
         "name": "ai4privacy/pii-masking-200k",
@@ -76,9 +66,7 @@ benchmarks = [
         "args": ["--num-samples", "1000"],
         "description": "Real PII dataset from Hugging Face - 1,000 samples (from 200K+ available)",
         "dataset_type": "Public Dataset",
-        "total_samples": 1000,
-        "estimated_time": "120-150 min",
-        "estimated_cost": "$80-100"
+        "total_samples": 1000
     },
     {
         "name": "PUPA (NAACL 2025)",
@@ -86,9 +74,7 @@ benchmarks = [
         "args": ["--simulate", "--num-samples", "901"],
         "description": "Private User Prompt Annotations - ALL 901 real user-agent interactions",
         "dataset_type": "Public Dataset",
-        "total_samples": 901,
-        "estimated_time": "90-120 min",
-        "estimated_cost": "$60-80"
+        "total_samples": 901
     },
     {
         "name": "TAB - Text Anonymization Benchmark",
@@ -96,9 +82,7 @@ benchmarks = [
         "args": ["--simulate", "--num-samples", "1268"],
         "description": "ECHR court cases - ALL 1,268 cases with manual PII annotations",
         "dataset_type": "Public Dataset",
-        "total_samples": 1268,
-        "estimated_time": "120-150 min",
-        "estimated_cost": "$80-100"
+        "total_samples": 1268
     },
     {
         "name": "Differential Privacy Comparison",
@@ -106,9 +90,7 @@ benchmarks = [
         "args": ["--num-samples", "100"],
         "description": "Canary exposure, MIA, and DP (ε=1.0, ε=5.0) comparison - 100 samples",
         "dataset_type": "Synthetic",
-        "total_samples": 100,
-        "estimated_time": "60-75 min",
-        "estimated_cost": "$40-50"
+        "total_samples": 100
     }
 ]
 
@@ -117,11 +99,6 @@ print("\n" + "=" * 80)
 print("BENCHMARK PLAN")
 print("=" * 80)
 
-total_estimated_cost_min = 0
-total_estimated_cost_max = 0
-total_estimated_time_min = 0
-total_estimated_time_max = 0
-
 total_samples = sum(bench['total_samples'] for bench in benchmarks)
 
 for i, bench in enumerate(benchmarks, 1):
@@ -129,31 +106,15 @@ for i, bench in enumerate(benchmarks, 1):
     print(f"   Script: {bench['script']}")
     print(f"   Samples: {bench['total_samples']}")
     print(f"   Description: {bench['description']}")
-    print(f"   Estimated time: {bench['estimated_time']}")
-    print(f"   Estimated cost: {bench['estimated_cost']}")
-
-    # Parse cost range
-    cost_parts = bench['estimated_cost'].replace('$', '').split('-')
-    total_estimated_cost_min += int(cost_parts[0])
-    total_estimated_cost_max += int(cost_parts[1])
-
-    # Parse time range (convert to minutes)
-    time_parts = bench['estimated_time'].split('-')
-    total_estimated_time_min += int(time_parts[0].split()[0])
-    total_estimated_time_max += int(time_parts[1].split()[0])
 
 print("\n" + "=" * 80)
 print(f"TOTAL SAMPLES: {total_samples:,}")
-print(f"TOTAL ESTIMATED COST: ${total_estimated_cost_min}-${total_estimated_cost_max}")
-print(f"TOTAL ESTIMATED TIME: {total_estimated_time_min//60}h {total_estimated_time_min%60}m - {total_estimated_time_max//60}h {total_estimated_time_max%60}m")
 print("=" * 80)
 
 # Confirm
 print("\n⚠️  WARNING: FULL DATASET EVALUATION")
 print(f"   This will process {total_samples:,} samples across ALL benchmarks.")
 print("   This is a COMPREHENSIVE evaluation using ALL available data.")
-print(f"   Estimated cost: ${total_estimated_cost_min}-${total_estimated_cost_max}")
-print(f"   Estimated time: {total_estimated_time_min//60}h {total_estimated_time_min%60}m - {total_estimated_time_max//60}h {total_estimated_time_max%60}m")
 print("   Make sure you have:")
 print("   - Stable internet connection")
 print("   - Sufficient API credits")
@@ -174,6 +135,10 @@ print("\n" + "=" * 80)
 print("RUNNING BENCHMARKS")
 print("=" * 80)
 
+# Create logs directory if it doesn't exist
+logs_dir = "logs"
+os.makedirs(logs_dir, exist_ok=True)
+
 for i, bench in enumerate(benchmarks, 1):
     print(f"\n{'=' * 80}")
     print(f"BENCHMARK {i}/{len(benchmarks)}: {bench['name']}")
@@ -188,7 +153,7 @@ for i, bench in enumerate(benchmarks, 1):
 
     try:
         # Stream output in real-time while also saving to log
-        log_file = f"{bench['script'].replace('/', '_').replace('.py', '')}_log.txt"
+        log_file = os.path.join(logs_dir, f"{bench['script'].replace('/', '_').replace('.py', '')}.log")
 
         import subprocess as sp
         import select
