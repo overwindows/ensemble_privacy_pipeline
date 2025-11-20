@@ -2,11 +2,18 @@
 Ensemble-Redaction Consensus Pipeline for Privacy-Preserving Interest Evaluation
 Training-Free, Non-DP Approach
 
+⚠️  DEMO/EDUCATIONAL FILE ONLY ⚠️
+
+This file contains MockLLMEvaluator for educational demonstration purposes.
+For REAL evaluation with actual LLM APIs, see:
+  - benchmarks/ folder for production-ready implementations
+  - examples/real_llm_example.py for RealLLMEvaluator
+
 This demonstrates the 4-step pipeline:
-1. Redaction & Masking
+1. Redaction & Masking (PrivacyRedactor)
 2. Split Inference (optional)
-3. Ensemble LLM Evaluators
-4. Consensus Aggregation
+3. Ensemble LLM Evaluators (use RealLLMEvaluator, not MockLLMEvaluator)
+4. Consensus Aggregation (ConsensusAggregator)
 """
 
 import json
@@ -186,6 +193,18 @@ class SplitInference:
 
 # ============================================================================
 # STEP 3: ENSEMBLE LLM EVALUATORS
+# ============================================================================
+#
+# NOTE: This demo file previously contained MockLLMEvaluator for demonstration.
+# For real evaluation, use RealLLMEvaluator from examples/real_llm_example.py
+# which calls actual LLM APIs.
+#
+# Example:
+#   from examples.real_llm_example import RealLLMEvaluator
+#   evaluator = RealLLMEvaluator(model_name="gpt-oss-120b", api_key=os.getenv("LLM_API_KEY"))
+#   results = evaluator.evaluate_interest(masked_data, candidate_topics)
+#
+# See benchmarks/ folder for complete working examples with real LLMs.
 # ============================================================================
 
 class MockLLMEvaluator:

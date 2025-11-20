@@ -26,12 +26,8 @@ Evaluation Metrics:
 - Precision/Recall/F1 for PII detection
 
 Usage:
-    # With real TAB dataset
     git clone https://github.com/NorskRegnesentral/text-anonymization-benchmark
-    python3 benchmarks/text_sanitization_benchmark.py --dataset-path text-anonymization-benchmark/data
-
-    # With simulated ECHR-style data
-    python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 50
+    python3 benchmarks/text_sanitization_benchmark.py --dataset-path text-anonymization-benchmark/data --num-samples 1268
 """
 
 import argparse
@@ -81,7 +77,6 @@ class TABDatasetLoader:
             print(f"\nTo obtain TAB dataset:")
             print(f"  1. git clone https://github.com/NorskRegnesentral/text-anonymization-benchmark")
             print(f"  2. Point --dataset-path to the cloned repo's 'data' directory")
-            print(f"\nAlternatively, use --simulate flag to generate synthetic samples")
             sys.exit(1)
 
         try:
@@ -134,75 +129,6 @@ class TABDatasetLoader:
         except Exception as e:
             print(f"❌ Error loading TAB dataset: {e}")
             sys.exit(1)
-
-    def simulate_echr_samples(self, num_samples: int = 50) -> List[Dict]:
-        """
-        Simulate ECHR court case samples with realistic PII.
-
-        Generates samples similar to TAB dataset structure.
-        """
-        print(f"\n🔨 Simulating {num_samples} ECHR-style court case samples...")
-
-        samples = []
-
-        entity_types_pool = {
-            'PERSON': ['John Smith', 'Sarah Johnson', 'Dr. Michael Chen', 'Maria Garcia', 'Judge Thompson'],
-            'ORG': ['European Court of Human Rights', 'Ministry of Justice', 'Supreme Court', 'Legal Aid Society'],
-            'LOC': ['Strasbourg', 'Paris', 'London', 'Brussels', 'Geneva'],
-            'DATETIME': ['15 March 2020', '2019', 'January 2021', '10 February 2018'],
-            'CODE': ['Article 8 ECHR', 'Section 42(1)', 'Regulation 2016/679', 'Law No. 2019-222'],
-        }
-
-        for i in range(num_samples):
-            # Generate case text
-            person_name = entity_types_pool['PERSON'][i % len(entity_types_pool['PERSON'])]
-            org_name = entity_types_pool['ORG'][i % len(entity_types_pool['ORG'])]
-            location = entity_types_pool['LOC'][i % len(entity_types_pool['LOC'])]
-            date = entity_types_pool['DATETIME'][i % len(entity_types_pool['DATETIME'])]
-            code = entity_types_pool['CODE'][i % len(entity_types_pool['CODE'])]
-
-            case_text = f"""The applicant, {person_name}, a national born in {date}, complained about \
-violations of their rights under {code}. The case was heard at the {org_name} in {location}. \
-The court found that {org_name} had failed to adequately protect the applicant's rights. \
-{person_name} had been denied access to legal representation during proceedings in {location}."""
-
-            # Extract PII entities
-            pii_entities = [
-                {'text': person_name, 'type': 'PERSON', 'identifier_type': 'DIRECT', 'start': 15, 'end': 15 + len(person_name)},
-                {'text': date, 'type': 'DATETIME', 'identifier_type': 'QUASI', 'start': case_text.find(date), 'end': case_text.find(date) + len(date)},
-                {'text': code, 'type': 'CODE', 'identifier_type': 'NO_MASK', 'start': case_text.find(code), 'end': case_text.find(code) + len(code)},
-                {'text': org_name, 'type': 'ORG', 'identifier_type': 'QUASI', 'start': case_text.find(org_name), 'end': case_text.find(org_name) + len(org_name)},
-                {'text': location, 'type': 'LOC', 'identifier_type': 'QUASI', 'start': case_text.find(location), 'end': case_text.find(location) + len(location)},
-            ]
-
-            # Count by type
-            entity_types = defaultdict(int)
-            for entity in pii_entities:
-                entity_types[entity['type']] += 1
-
-            samples.append({
-                'id': f'simulated_echr_{i}',
-                'text': case_text,
-                'pii_entities': pii_entities,
-                'entity_types': dict(entity_types),
-                'total_pii': len(pii_entities),
-                'direct_identifiers': sum(1 for e in pii_entities if e['identifier_type'] == 'DIRECT'),
-                'quasi_identifiers': sum(1 for e in pii_entities if e['identifier_type'] == 'QUASI'),
-            })
-
-        print(f"✓ Generated {len(samples)} simulated samples")
-
-        # Show distribution
-        total_pii = sum(s['total_pii'] for s in samples)
-        total_direct = sum(s['direct_identifiers'] for s in samples)
-        total_quasi = sum(s['quasi_identifiers'] for s in samples)
-
-        print(f"\n   Statistics:")
-        print(f"     Total PII entities: {total_pii}")
-        print(f"     Direct identifiers: {total_direct} ({total_direct/total_pii*100:.1f}%)")
-        print(f"     Quasi-identifiers: {total_quasi} ({total_quasi/total_pii*100:.1f}%)")
-
-        return samples
 
 
 # ============================================================================
@@ -415,10 +341,8 @@ def compare_with_baselines(results: Dict) -> Dict:
 
 def main():
     parser = argparse.ArgumentParser(description='Text Sanitization benchmark (TAB)')
-    parser.add_argument('--dataset-path', type=str, default=None,
+    parser.add_argument('--dataset-path', type=str, required=True,
                        help='Path to TAB dataset directory')
-    parser.add_argument('--simulate', action='store_true',
-                       help='Simulate ECHR-style samples (if TAB not available)')
     parser.add_argument('--num-samples', type=int, default=50,
                        help='Number of samples to evaluate (default: 50)')
     parser.add_argument('--split', type=str, default='test', choices=['train', 'dev', 'test'],
@@ -471,20 +395,7 @@ def main():
 
     # Load dataset
     loader = TABDatasetLoader()
-
-    if args.dataset_path:
-        samples = loader.load_tab_dataset(args.dataset_path, args.num_samples, args.split)
-    elif args.simulate:
-        samples = loader.simulate_echr_samples(args.num_samples)
-    else:
-        print("\n❌ Error: Must specify either --dataset-path or --simulate")
-        print("\nUsage:")
-        print("  # With real TAB dataset:")
-        print("  git clone https://github.com/NorskRegnesentral/text-anonymization-benchmark")
-        print("  python3 benchmarks/text_sanitization_benchmark.py --dataset-path text-anonymization-benchmark/data")
-        print("\n  # With simulated data:")
-        print("  python3 benchmarks/text_sanitization_benchmark.py --simulate --num-samples 50")
-        sys.exit(1)
+    samples = loader.load_tab_dataset(args.dataset_path, args.num_samples, args.split)
 
     # Run evaluation
     start_time = time.time()
