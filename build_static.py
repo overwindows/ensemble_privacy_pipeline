@@ -115,22 +115,53 @@ def main():
 
 
 JS = r"""
-async function runDemo() {
+// Client-side mirror of src/privacy_core.PrivacyRedactor._mask_query demo logic.
+const NOISE = [
+  /^https?:\/\//i, /youtube\.com/i, /login/i, /homepage/i,
+  /translator/i, /^google$/i, /^facebook$/i, /^mail$/i, /^\w+\.\w+$/i,
+];
+const counters = {};
+
+function maskQuery(query, category) {
+  const lower = query.toLowerCase().trim();
+  for (const re of NOISE) if (re.test(lower)) return null;
+  counters[category] = (counters[category] || 0) + 1;
+  const n = String(counters[category]).padStart(3, '0');
+  return { token: 'QUERY_' + category + '_' + n };
+}
+
+function runDemo() {
   const out = document.getElementById('out');
-  out.innerHTML = '<em>Redacting…</em>';
+  let data;
   try {
-    const resp = await fetch('/api/redact', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: document.getElementById('raw').value,
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.detail || (await resp.text()));
-    out.innerHTML = '<h3>Masked output (raw PII never reaches the LLM)</h3>'
-      + '<pre class="output">' + JSON.stringify(data, null, 2) + '</pre>';
+    data = JSON.parse(document.getElementById('raw').value);
   } catch (e) {
-    out.innerHTML = '<div class="error"><strong>Error:</strong> ' + e.message + '</div>';
+    out.innerHTML = '<div class="error"><strong>Error:</strong> Invalid JSON: ' + e.message + '</div>';
+    return;
   }
+  const result = {};
+  if (Array.isArray(data.raw_queries)) {
+    const q = [];
+    for (const item of data.raw_queries) {
+      if (typeof item === 'string') {
+        const t = maskQuery(item, 'QUERY');
+        if (t) q.push(t);
+      }
+    }
+    if (q.length) result.queries = q;
+  }
+  if (Array.isArray(data.browsing_history)) {
+    const b = [];
+    for (const item of data.browsing_history) {
+      if (typeof item === 'string') {
+        const t = maskQuery(item, 'BROWSING');
+        if (t) b.push(t);
+      }
+    }
+    if (b.length) result.browsing = b;
+  }
+  out.innerHTML = '<h3>Masked output (raw PII never reaches the LLM)</h3>'
+    + '<pre class="output">' + JSON.stringify(result, null, 2) + '</pre>';
 }
 """
 
