@@ -29,8 +29,7 @@ def seed(engine, force=False):
             session.commit()
 
         overview = Page(
-            slug="", title="Ensemble-Redaction Privacy Pipeline",
-            nav_label="Overview",
+            slug="", title="Home", nav_label="Overview",
             hero=(
                 "A **training-free** privacy-preserving approach for LLM inference on sensitive "
                 "user data. It combines an input-masking layer that redacts PII with ensemble "

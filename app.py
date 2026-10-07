@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(__file__)
 engine = get_engine()
 seed(engine)
 
-app = FastAPI(title="Ensemble-Redaction Privacy Pipeline")
+app = FastAPI(title="Chrona")
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 

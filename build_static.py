@@ -24,7 +24,7 @@ def render_md(text):
 
 
 NAV = (
-    '<a class="brand" href="/">Ensemble-Redaction Privacy Pipeline</a>'
+    '<a class="brand" href="/">Chrona</a>'
     '<nav class="nav">'
 )
 
@@ -33,13 +33,13 @@ SHELL = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} · Ensemble Privacy Pipeline</title>
+<title>{title} · Chrona</title>
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <header class="site-header"><div class="wrap header-inner">{nav}</div></header>
 <main class="wrap">{content}</main>
-<footer class="site-footer wrap"><p>Showcase for the ensemble-redaction privacy pipeline.</p></footer>
+<footer class="site-footer wrap"><p>Chrona — ensemble-redaction privacy pipeline showcase.</p></footer>
 </body>
 </html>
 """
