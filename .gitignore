@@ -78,3 +78,5 @@ temp/
 # Showcase webapp
 showcase.db
 __pycache__/
+dist/
+# SWA
