@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Live Demo' }}{% endblock %}
+{% block content %}
+  <article>
+    <div class="hero"><p>Feed in some example <strong>behavioral data</strong> (JSON) and see the redaction layer mask it <strong>before</strong> inference. Sensitive values become surrogate tokens.</p></div>
+
+    <section class="card">
+      <h2>Live redaction demo</h2>
+      <form method="post" action="/demo" class="demo-form">
+        <textarea name="raw" rows="8" spellcheck="false" placeholder='{"raw_queries": ["..."]}'>{{ input }}</textarea>
+        <button type="submit">Redact</button>
+      </form>
+
+      {% if error %}
+        <div class="error"><strong>Error:</strong> {{ error }}</div>
+      {% endif %}
+      {% if result %}
+        <h3>Masked output (raw PII never reaches the LLM)</h3>
+        <pre class="output">{{ result }}</pre>
+      {% endif %}
+    </section>
+  </article>
+{% endblock %}

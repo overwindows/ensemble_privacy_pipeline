@@ -74,3 +74,7 @@ checkpoints/
 tmp/
 temp/
 *.tmp
+
+# Showcase webapp
+showcase.db
+__pycache__/

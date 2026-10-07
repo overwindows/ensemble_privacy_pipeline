@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ title or 'Showcase' }}{% endblock %} · Ensemble Privacy Pipeline</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="/">Ensemble-Redaction Privacy Pipeline</a>
+      <nav class="nav">
+        {% for p in pages %}
+          <a href="{{ '/' if not p.slug else '/page/' + p.slug }}" class="{% if page and page.slug == p.slug %}active{% endif %}">{{ p.nav_label }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer wrap">
+    <p>Showcase for the ensemble-redaction privacy pipeline. Content is illustrative demo material.</p>
+  </footer>
+</body>
+</html>

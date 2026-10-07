@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block content %}
+  <article>
+    <div class="hero">{{ hero|safe }}</div>
+    {% for heading, body in sections %}
+      <section class="card">
+        {% if heading %}<h2>{{ heading }}</h2>{% endif %}
+        <div class="md">{{ body|safe }}</div>
+      </section>
+    {% endfor %}
+  </article>
+{% endblock %}
