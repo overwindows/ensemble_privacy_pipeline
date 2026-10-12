@@ -225,33 +225,47 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   </ol>
 
   <h3>Deploying updates (agent / site owner)</h3>
-  <p>This site is hosted on <strong>Azure Static Web Apps</strong>, not a blob. Updates are deployed with the SWA CLI
-  from the local staging folder (which contains all site content + the auth config):</p>
-  <pre># get the deployment token (as the owner)
-az staticwebapp secrets list -n chrona-showcase-internal -g CSE-Showcase-RG
+  <p>This site is hosted on <strong>Azure Static Web Apps</strong>, not a blob. The version-controlled
+  source lives in this repo's <code>showcase/</code> folder (all site content + the auth config).
+  <strong>An SWA deploy replaces the whole site — stage ALL files and deploy once</strong> (a lone
+  uploaded page would drop everything else).</p>
+  <pre># 1. Get the deployment token (as the owner)
+TOKEN=$(az staticwebapp secrets list -n chrona-showcase-internal -g CSE-Showcase-RG \
+        --query "properties.apiKey" -o tsv)
 
-# deploy the whole folder to the production environment
-swa deploy ./staging_web --deployment-token "&lt;token&gt;" --env production</pre>
+# 2. Deploy the WHOLE showcase/ folder to production (use the StaticSitesClient path;
+#    plain `npx @azure/static-web-apps-cli` may fail to fetch its runner)
+cd /c/Users/wuc/.swa/deploy/134664351bac2104cb9ec773226e5b3fc265675d
+./StaticSitesClient.exe run --deploymentaction upload \
+  --workdir "Q:\ensemble_privacy_pipeline\showcase" \
+  --apiToken "$TOKEN" \
+  --defaultHostname "agreeable-bush-035f3c510.4.azurestaticapps.net" \
+  --skipAppBuild --skipApiBuild --isStaticExport</pre>
 
   <div class="note">
     <strong>Note</strong>:
     <ul>
       <li>The site is gated by Microsoft sign-in via <code>staticwebapp.config.json</code> — anonymous visitors are
       redirected to <code>/.auth/login/aad</code> before any content is served.</li>
+      <li>Because a deploy replaces the site, always deploy the complete <code>showcase/</code> folder — missing files get dropped.</li>
       <li>Old advert: the previous Azure Blob host (<code>privacypshowcase12114.z19.web.core.windows.net</code>) is now
       <em>redirect-only</em> — it bounces to this site. Do not upload content back to that blob; it is no longer the host.</li>
+      <li>Design: pages use the <strong>Fluent 2 light</strong> theme (Segoe UI Variable, CommBlue #0f6cbd, shared
+      <code>fl-hub</code> nav). After regenerating any page, rerun
+      <code>python Q:\CodeGuru\scripts\fluent_restyle.py</code> before deploying.</li>
       <li>Full maintenance guide: <code>Q:\ensemble_privacy_pipeline\SHOWCASE_DEPLOY.md</code>.</li>
     </ul>
   </div>
 
   <h3>Add a new page</h3>
-  <p>Add the ready <code>.html</code> file into the local staging folder (<code>staging_web/</code>), add a card link in
-  this page's <code>Pages</code> list, then redeploy the whole folder as above. The new file is served behind the same
+  <p>Add the ready <code>.html</code> file into <code>showcase/</code> (this repo's version-controlled source),
+  add a card link in this page's <code>Pages</code> list, rerun <code>fluent_restyle.py</code>, then redeploy the whole
+  <code>showcase/</code> folder as above. The new file is served behind the same
   sign-in gate at <code>https://agreeable-bush-035f3c510.4.azurestaticapps.net/&lt;yourfile&gt;.html</code>.</p>
 </main>
 
 <footer><div class="shell">
-  Hosted on Azure Static Web Apps, gated by Microsoft sign-in. Updates deploy from the local staging folder via the SWA CLI.
+  Hosted on Azure Static Web Apps, gated by Microsoft sign-in. Source lives in the repo's <code>showcase/</code> folder and deploys via StaticSitesClient.
 </div></footer>
 </body>
 </html>

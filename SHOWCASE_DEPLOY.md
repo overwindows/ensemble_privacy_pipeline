@@ -21,27 +21,36 @@ internal-only ("only VPN and Microsoft internal"). Attempts to reach that were c
   Azure AD account (it can't be pinned to @microsoft.com only without a custom provider).
 
 ## The core workflow: build + deploy to ASWA
-ASWA serves whatever is deployed to it (no GitHub source control — we deploy manually with
-the SWA CLI + a deployment token).
+ASWA serves whatever is deployed to it (no GitHub source control — we deploy manually).
+
+> **CRITICAL — an SWA deploy REPLACES THE WHOLE SITE.** Stage ALL the files you want live
+> into one directory and deploy ONCE. Any file not in the staged folder is **dropped** from
+> the live site. Never deploy just a single edited page.
 
 ```bash
-# 1. Need the SWA CLI (once):
-npm install -g @azure/static-web-apps-cli
-
-# 2. Regenerate the build
+# 1. Regenerate the build (only for the chrona app pages in dist/)
 python build_static.py
 
-# 3. Get a deployment token (any contributor can fetch it, or use the one from the portal)
+# 2. Get a deployment token (any contributor can fetch it, or use the portal one)
 TOKEN=$(az staticwebapp secrets list -n chrona-showcase-internal -g CSE-Showcase-RG \
         --query "properties.apiKey" -o tsv)
 
-# 4. Deploy dist/ (includes the auth/routing config from staticwebapp.config.json)
-cp staticwebapp.config.json dist/
-swa deploy ./dist --deployment-token "$TOKEN" --env production
+# 3. Stage the whole site, then deploy ONCE.
+#    The site root = the `showcase/` folder (hub + catalog + dashboards + config).
+#    Copy dist/ pages in if they should also be live, then:
+swa deploy ./showcase --deployment-token "$TOKEN" --env production
 ```
 
-To add or edit content, edit `db.py` (a `Page` + `Section`s: `slug` = URL path,
-`nav_label` = nav bar), rerun `python build_static.py`, then `swa deploy`.
+Two deploy tools work (in order of preference):
+- **`swa` (global `@azure/static-web-apps-cli` 2.0.10)** — verified working:
+  `npm install -g @azure/static-web-apps-cli`, then `swa deploy ./showcase --deployment-token "$TOKEN" --env production`.
+- **`StaticSitesClient.exe`** (bundled with the SWA CLI; a plain `npx @azure/static-web-apps-cli`
+  invocation may fail/fetch a broken runner — if so, call the exe directly):
+  `cd /c/Users/wuc/.swa/deploy/134664351bac2104cb9ec773226e5b3fc265675d && ./StaticSitesClient.exe run --deploymentaction upload --workdir "<abs path to staged folder>" --apiToken "$TOKEN" --defaultHostname "agreeable-bush-035f3c510.4.azurestaticapps.net" --skipAppBuild --skipApiBuild --isStaticExport`
+
+To add or edit content, edit the file in `showcase/`, then deploy the whole `showcase/`
+folder (see the next section). The `dist/` build from `build_static.py` serves the chrona
+app pages; keep them in the same staged folder as `showcase/` so nothing is dropped.
 
 ## Auth / access control in `staticwebapp.config.json`
 - Route `/*` requires the `authenticated` role — anonymous users are blocked.
@@ -70,10 +79,14 @@ the blob; it is no longer the host. The storage account stays in `publicNetworkA
 ## The deployed showcase source is version-controlled
 The live site content (all pages, prompts, JSON schemas, agentic catalog) ships from this
 repo's **`showcase/`** folder — a copy of what's deployed to the ASWA. To add or edit a
-live page, edit the file in `showcase/`, then `swa deploy ./showcase --deployment-token
-"$TOKEN" --env production` (the folder already includes `staticwebapp.config.json`). The
-`dist/` build from `build_static.py` serves the chrona app pages; `showcase/` holds the hub
-+ catalog + dashboard pages that make up the public site.
+live page: edit the file in `showcase/`, commit, then deploy the whole `showcase/` folder
+(it already includes `staticwebapp.config.json`) using one of the commands above. Because
+the site is replaced wholesale, remember to deploy the complete folder, not a lone page.
+
+The canonical / best recoverable copy of every live page is
+`Q:\CodeGuru\scratch\site_index\staging_web\`; keep `showcase/` in sync with it.
+The `dist/` build from `build_static.py` serves the chrona app pages; `showcase/` holds the
+hub + catalog + dashboard pages that make up the rest of the site.
 
 ## Constraints / gotchas
 - **Later change:** `clientSecretCertificateSettingName` is NOT a valid field in
