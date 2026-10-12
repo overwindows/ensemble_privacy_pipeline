@@ -5,51 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
 <title>NewsRank Live — MIND Ranking-Model Training</title>
-<style>  :root {
+<style>
+  :root {
     --accent:#0f6cbd;
-    --accent2:#5b2ddb;
+    --accent-hover:#115ea3;
+    --accent-soft:#e3f0fa;
+    --accent2:#2760ae;
     --accent3:#0f6cbd;
     --amber:#9d5d00;
     --ax:#9d5d00;
     --bad:#c42b1c;
+    --banner:#f3f2f1;
     --bg:#faf9f8;
     --bg2:#f3f2f1;
     --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
     --card:#ffffff;
     --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
     --chip:#e3f0fa;
     --chipb:#0f6cbd;
     --code:#f3f2f1;
     --code-ink:#1b1a19;
+    --code2:#f3f2f1;
     --coral:#0f6cbd;
     --coral-soft:#e3f0fa;
     --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
     --error:#c42b1c;
-    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
     --gold:#9d5d00;
     --gold-soft:#fdf4dc;
     --green:#0f7b0f;
     --green-soft:#e3f0fa;
     --head:#f3f2f1;
     --highlight:#e3f0fa;
+    --info:#0f6cbd;
     --ink:#1b1a19;
     --line:#e1dfdd;
     --line2:#c8c6c4;
-    --mono:Cascadia Code,Consolas,monospace;
+    --mono:"Cascadia Code",Consolas,monospace;
     --mut:#605e5c;
     --mut2:#8a8886;
     --muted:#605e5c;
+    --nav-hover:#edebe9;
     --ok:#0f7b0f;
     --panel:#ffffff;
+    --panel2:#f7f6f5;
     --paper:#ffffff;
     --radius:8px;
     --red:#c42b1c;
+    --round:8px;
     --run:#0f6cbd;
     --sb:#0f6cbd;
     --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
     --success:#0f7b0f;
     --surface:#ffffff;
     --text:#1b1a19;
+    --thead:#f8f8f8;
     --tx:#1b1a19;
     --txt:#1b1a19;
     --warn:#9d5d00;
@@ -106,6 +123,30 @@
   .pulse{animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
   .footer{color:var(--mut);font-size:11px;margin-top:18px;text-align:center;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#d4e8fb}
+
+/* ---- Shared hub masthead + site nav ---- */
+.fl-hub{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.fl-hub-inner{max-width:1280px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:18px;height:18px;border-radius:4px;background:var(--accent);flex:0 0 auto;display:inline-block}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:var(--nav-hover,var(--bg2));color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+@media(max-width:760px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1280px;margin:0 auto;padding:20px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>

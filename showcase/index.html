@@ -4,51 +4,68 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chrona Showcase Hub</title>
-<style>  :root {
+<style>
+  :root {
     --accent:#0f6cbd;
-    --accent2:#5b2ddb;
+    --accent-hover:#115ea3;
+    --accent-soft:#e3f0fa;
+    --accent2:#2760ae;
     --accent3:#0f6cbd;
     --amber:#9d5d00;
     --ax:#9d5d00;
     --bad:#c42b1c;
+    --banner:#f3f2f1;
     --bg:#faf9f8;
     --bg2:#f3f2f1;
     --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
     --card:#ffffff;
     --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
     --chip:#e3f0fa;
     --chipb:#0f6cbd;
     --code:#f3f2f1;
     --code-ink:#1b1a19;
+    --code2:#f3f2f1;
     --coral:#0f6cbd;
     --coral-soft:#e3f0fa;
     --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
     --error:#c42b1c;
-    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
     --gold:#9d5d00;
     --gold-soft:#fdf4dc;
     --green:#0f7b0f;
     --green-soft:#e3f0fa;
     --head:#f3f2f1;
     --highlight:#e3f0fa;
+    --info:#0f6cbd;
     --ink:#1b1a19;
     --line:#e1dfdd;
     --line2:#c8c6c4;
-    --mono:Cascadia Code,Consolas,monospace;
+    --mono:"Cascadia Code",Consolas,monospace;
     --mut:#605e5c;
     --mut2:#8a8886;
     --muted:#605e5c;
+    --nav-hover:#edebe9;
     --ok:#0f7b0f;
     --panel:#ffffff;
+    --panel2:#f7f6f5;
     --paper:#ffffff;
     --radius:8px;
     --red:#c42b1c;
+    --round:8px;
     --run:#0f6cbd;
     --sb:#0f6cbd;
     --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
     --success:#0f7b0f;
     --surface:#ffffff;
     --text:#1b1a19;
+    --thead:#f8f8f8;
     --tx:#1b1a19;
     --txt:#1b1a19;
     --warn:#9d5d00;
@@ -99,6 +116,53 @@
   .note{padding:14px 16px;border-left:3px solid var(--gold);background:var(--gold-soft);border-radius:0 var(--radius) var(--radius) 0;line-height:1.55;border:1px solid var(--line);border-left-width:3px}
   footer{padding:24px 0 45px;color:var(--mut);border-top:1px solid var(--line);font-size:12px}
 
+
+
+  header{padding:64px 0 34px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#f0f7fd 0%,var(--bg) 100%)}
+  .eyebrow{color:var(--accent);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.14em}
+  h1{font-family:var(--font);font-size:clamp(32px,5vw,52px);font-weight:600;letter-spacing:-0.025em;line-height:1.05;margin:10px 0 14px}
+  .lede{max-width:820px;color:var(--mut);font-size:16.5px;line-height:1.6}
+  main{padding:34px 0 70px}
+  h2{font-family:var(--font);font-weight:600;font-size:22px;margin:42px 0 14px;letter-spacing:-0.01em}
+  h2:first-child{margin-top:24px}
+  h3{font-size:16px;margin:28px 0 10px}
+  ul.cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+  ul.cards li{border:1px solid var(--line);background:var(--surface);border-radius:10px;box-shadow:var(--shadow);transition:box-shadow .16s ease,transform .16s ease;overflow:hidden}
+  ul.cards li:hover{box-shadow:0 6px 18px rgba(0,0,0,.14);transform:translateY(-2px)}
+  ul.cards a{display:block;padding:20px 20px;text-decoration:none;color:var(--ink)}
+  ul.cards a:hover{background:var(--accent-soft);text-decoration:none}
+  ul.cards strong{display:block;font-size:15.5px;color:var(--accent);margin-bottom:6px;font-weight:600}
+  ul.cards span{color:var(--mut);font-size:13px;line-height:1.5}
+  ol.steps{padding-left:22px}
+  ol.steps li{margin:12px 0}
+  code{font-family:var(--mono);font-size:.92em;background:var(--bg2);padding:2px 6px;border-radius:5px;border:1px solid var(--line)}
+  pre{background:#201f1e;color:#f3f2f1;padding:18px;border-radius:8px;overflow:auto;font:13px/1.6 var(--mono);border:1px solid var(--line)}
+  .note{padding:15px 18px;border-left:3px solid var(--gold);background:var(--gold-soft);border-radius:0 8px 8px 0;line-height:1.55;border:1px solid var(--line);border-left-width:3px}
+  footer{padding:26px 0 48px;color:var(--mut);border-top:1px solid var(--line);font-size:12.5px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#d4e8fb}
+
+/* ---- Shared hub masthead + site nav ---- */
+.fl-hub{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.fl-hub-inner{max-width:1280px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:18px;height:18px;border-radius:4px;background:var(--accent);flex:0 0 auto;display:inline-block}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:var(--nav-hover,var(--bg2));color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+@media(max-width:760px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1280px;margin:0 auto;padding:20px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -162,12 +226,12 @@
 
   <h3>Deploying updates (agent / site owner)</h3>
   <p>This site is hosted on <strong>Azure Static Web Apps</strong>, not a blob. Updates are deployed with the SWA CLI
-  from this repo's <code>showcase/</code> folder (which contains all site content + the auth config):</p>
+  from the local staging folder (which contains all site content + the auth config):</p>
   <pre># get the deployment token (as the owner)
 az staticwebapp secrets list -n chrona-showcase-internal -g CSE-Showcase-RG
 
 # deploy the whole folder to the production environment
-swa deploy ./showcase --deployment-token "&lt;token&gt;" --env production</pre>
+swa deploy ./staging_web --deployment-token "&lt;token&gt;" --env production</pre>
 
   <div class="note">
     <strong>Note</strong>:

@@ -1,6 +1,6 @@
 {
   "title": "One Unified SLM · Training Progress",
-  "generated": "2026-10-11 20:07:16 UTC",
+  "generated": "2026-10-12 01:27:22 UTC",
   "motivation": [
     "Three separate SLM workloads (MAI Profile, Quality, GEM story-assembly) each carried their own small fine-tune. The initiative consolidates them into ONE joint model fine-tuned over a merged train set, so all workloads share one served model and one inference footprint.",
     "Start small (~4B Qwen3) to prove the orchestration end-to-end; the joint SFT can later be swapped to a larger MoE base if Quality/HPF capacity becomes the gating factor.",
@@ -94,29 +94,29 @@
   "live_training": {
     "single_gpu_baseline": {
       "available": true,
-      "global_step": 44000,
+      "global_step": 45400,
       "max_steps": 69648,
-      "epoch": 1.2634620492609423,
-      "last_loss": 0.1382,
+      "epoch": 1.3036633428811406,
+      "last_loss": 0.1126,
       "last_log": {
-        "epoch": 1.2634620492609423,
-        "step": 44000
+        "epoch": 1.3036633428811406,
+        "step": 45400
       },
-      "checkpoint": 44000
+      "checkpoint": 45400
     },
     "shard_k1_smoke": {
       "available": true,
-      "global_step": 36400,
+      "global_step": 39200,
       "max_steps": 69648,
-      "epoch": 1.045226455322723,
-      "last_loss": 0.148,
+      "epoch": 1.1256290425631197,
+      "last_loss": 0.1127,
       "last_log": {
-        "epoch": 1.045226455322723,
-        "learning_rate": 2.4383908809992822e-06,
-        "loss": 0.148,
-        "step": 36400
+        "epoch": 1.1256290425631197,
+        "learning_rate": 2.1144148771106463e-06,
+        "loss": 0.1127,
+        "step": 39200
       },
-      "checkpoint": 36400
+      "checkpoint": 39200
     }
   }
 }
