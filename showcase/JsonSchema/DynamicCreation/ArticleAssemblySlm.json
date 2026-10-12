@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArticleAssemblySlm",
+  "description": "Raw article assembly output produced by the dedicated Gem Assembly Writer SLM before title casing is normalized",
+  "type": "object",
+  "properties": {
+    "sections": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "section_heading": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "editorial_transition_no_facts": {
+            "type": "string"
+          }
+        },
+        "required": ["index", "section_heading", "editorial_transition_no_facts"],
+        "additionalProperties": false
+      }
+    },
+    "dedup": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "exact_sentence_to_remove": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["index", "exact_sentence_to_remove"],
+        "additionalProperties": false
+      }
+    },
+    "paraphrased_summary_bullets": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "extracted_anchor_sentence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subHeader": {
+            "type": "string",
+            "minLength": 1
+          },
+          "paraphrased_text_no_copying": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["extracted_anchor_sentence", "subHeader", "paraphrased_text_no_copying"],
+        "additionalProperties": false
+      }
+    },
+    "title_draft_sandbox": {
+      "type": "string",
+      "minLength": 0
+    },
+    "final_title_sentence_case": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 75
+    },
+    "preserveCasing": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "sectionTitles": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "spans": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": ["index", "spans"],
+            "additionalProperties": false
+          }
+        },
+        "title": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": ["summary", "sectionTitles", "title"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["sections", "dedup", "paraphrased_summary_bullets", "title_draft_sandbox", "final_title_sentence_case", "preserveCasing"],
+  "additionalProperties": false
+}

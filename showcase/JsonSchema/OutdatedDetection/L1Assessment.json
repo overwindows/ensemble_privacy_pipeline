@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L1Assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kb_related_fact_id",
+    "kb_related_fact",
+    "kb_related_fact_lifecycle",
+    "related",
+    "same_milestone",
+    "reporting_stance",
+    "need_grounding",
+    "matched",
+    "confidence",
+    "event_time",
+    "decision_pattern",
+    "outdated_decision",
+    "reason",
+    "title_time_signals",
+    "material_event_count",
+    "material_events"
+  ],
+  "properties": {
+    "kb_related_fact_id": {
+      "type": "string"
+    },
+    "kb_related_fact": {
+      "type": "string"
+    },
+    "kb_related_fact_lifecycle": {
+      "type": "string"
+    },
+    "related": {
+      "type": "boolean"
+    },
+    "same_milestone": {
+      "type": "boolean"
+    },
+    "reporting_stance": {
+      "type": "string",
+      "enum": [
+        "preview",
+        "scheduling",
+        "live",
+        "occurrence",
+        "result",
+        "reaction",
+        "analysis",
+        "review",
+        "recap",
+        "guidance",
+        "other"
+      ]
+    },
+    "need_grounding": {
+      "type": "boolean"
+    },
+    "matched": {
+      "type": "boolean"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "low"
+      ]
+    },
+    "event_time": {
+      "type": "string"
+    },
+    "decision_pattern": {
+      "type": "string",
+      "enum": [
+        "preview_after_occurrence",
+        "same_milestone_occurrence",
+        "timeline_implication",
+        "deferred"
+      ]
+    },
+    "outdated_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score",
+        "reason"
+      ],
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "reason": {
+      "type": "string"
+    },
+    "title_time_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "explicit_date",
+        "explicit_month",
+        "explicit_year"
+      ],
+      "properties": {
+        "explicit_date": {
+          "type": "string"
+        },
+        "explicit_month": {
+          "type": "string"
+        },
+        "explicit_year": {
+          "type": "string"
+        }
+      }
+    },
+    "material_event_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "material_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clause",
+          "kb_related_fact_id",
+          "relation_type",
+          "reporting_stance",
+          "event_time",
+          "confidence",
+          "matched",
+          "decision_pattern",
+          "outdated_score",
+          "reason",
+          "title_time_signals"
+        ],
+        "properties": {
+          "clause": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kb_related_fact_id": {
+            "type": "string"
+          },
+          "relation_type": {
+            "type": "string",
+            "enum": [
+              "same_milestone",
+              "timeline_implication",
+              "bounded_by_milestone",
+              "unknown"
+            ]
+          },
+          "reporting_stance": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "scheduling",
+              "live",
+              "occurrence",
+              "result",
+              "reaction",
+              "analysis",
+              "review",
+              "recap",
+              "guidance",
+              "other"
+            ]
+          },
+          "event_time": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "high",
+              "low"
+            ]
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "decision_pattern": {
+            "type": "string",
+            "enum": [
+              "preview_after_occurrence",
+              "same_milestone_occurrence",
+              "timeline_implication",
+              "deferred"
+            ]
+          },
+          "outdated_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title_time_signals": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "explicit_date",
+              "explicit_month",
+              "explicit_year"
+            ],
+            "properties": {
+              "explicit_date": {
+                "type": "string"
+              },
+              "explicit_month": {
+                "type": "string"
+              },
+              "explicit_year": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L2Assessment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["material_event_count", "material_events"],
+  "properties": {
+    "material_event_count": { "type": "integer", "minimum": 1 },
+    "material_events": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clause", "title_support", "milestone", "reporting_stance", "lifecycle",
+          "once_off_kind", "event_time", "event_time_basis", "event_time_quote",
+          "event_time_refs", "article_timestamp_fallback_used", "impact", "is_news",
+          "is_high_impact_short_lived", "is_quantitative_snapshot", "is_ongoing_stage",
+          "is_superseded", "superseding_event_time", "superseding_refs", "deadline_date",
+          "trend_start_date", "trend_end_date", "trend_span_days", "policy_class",
+          "confidence", "reason"
+        ],
+        "properties": {
+          "clause": { "type": "string", "minLength": 1 },
+          "title_support": { "type": "string", "minLength": 1 },
+          "milestone": { "type": "string", "minLength": 1 },
+          "reporting_stance": { "type": "string", "enum": ["preview", "live", "result", "announcement", "reaction", "analysis", "review", "work_summary", "recap", "flash", "scheduled", "once_off", "continuing", "evergreen"] },
+          "lifecycle": { "type": "string", "enum": ["flash", "scheduled", "once_off", "continuing", "evergreen", "standing", "discrete"] },
+          "once_off_kind": { "type": "string", "enum": ["discrete", "standing", ""] },
+          "event_time": { "type": "string" },
+          "event_time_basis": { "type": "string", "enum": ["body_explicit_date", "official_record_date", "work_release", "deadline", "reaction_report", "latest_title_stage", "article_timestamp_fallback", "lower_bound", "unknown"] },
+          "event_time_quote": { "type": "string" },
+          "event_time_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+          "article_timestamp_fallback_used": { "type": "boolean" },
+          "impact": { "type": "string", "enum": ["high", "medium", "low"] },
+          "is_news": { "type": "boolean" },
+          "is_high_impact_short_lived": { "type": "boolean" },
+          "is_quantitative_snapshot": { "type": "boolean" },
+          "is_ongoing_stage": { "type": "boolean" },
+          "is_superseded": { "type": "boolean" },
+          "superseding_event_time": { "type": "string" },
+          "superseding_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+          "deadline_date": { "type": "string" },
+          "trend_start_date": { "type": "string" },
+          "trend_end_date": { "type": "string" },
+          "trend_span_days": { "type": ["integer", "null"], "minimum": 0 },
+          "policy_class": { "type": "string", "enum": ["high_impact_short_news", "other_news", "deadline_bound", "high_short_trend", "high_long_trend", "non_news", "unknown"] },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+          "reason": { "type": "string" },
+          "references": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+        }
+      }
+    }
+  }
+}

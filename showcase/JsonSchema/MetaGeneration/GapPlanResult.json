@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GapPlanResult",
+  "description": "Article plan with reused existing sections and new section plans",
+  "type": "object",
+  "properties": {
+    "focus_question": {
+      "type": "string",
+      "description": "Single question ending with '?' that defines article scope without concrete facts or numbers"
+    },
+    "article_angle": {
+      "type": "string",
+      "description": "1-2 sentence editorial angle for the article"
+    },
+    "article_structure": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["reuse", "create"],
+            "description": "Whether to reuse an existing section or create a new one"
+          },
+          "id": {
+            "type": "string",
+            "description": "Existing section id (for reuse) or new section_id (for create)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Section title"
+          },
+          "role": {
+            "type": "string",
+            "description": "What role this section plays in the article"
+          }
+        },
+        "required": ["action", "id", "title", "role"],
+        "additionalProperties": false
+      },
+      "description": "Ordered list of sections forming the complete article"
+    },
+    "work_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "description": "Section identifier (section_N for new sections)"
+          },
+          "section_type": {
+            "type": "string",
+            "enum": ["factual", "context", "timeline", "analysis", "opinion", "impact", "outlook", "how_to", "comparison", "definition", "data"],
+            "description": "Section writing type"
+          },
+          "requires": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Question boundaries that OTHER sections will cover — this section must NOT write these. Empty array = no deduplication constraints"
+          },
+          "provides": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "description": "Specific, neutral, non-leading reader questions this section delivers. Every question must be self-contained and explicitly name the concrete storyline subject (person, product, company, event, or place). Avoid pronouns or generic references such as 'these hardware categories', suggestive trend wording, hype, or broad abstract tags"
+          },
+          "title": {
+            "type": "string",
+            "description": "Section title — summarizes the provides content"
+          },
+          "visual_elements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["quotes", "keyfigure", "table", "steps", "timeline", "tips", "bullets", "callout_tip", "callout_warning", "callout_info", "callout_success", "callout_definition"],
+                  "description": "Visual element type"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Why this visual type fits the section content"
+                },
+                "visual_query": {
+                  "type": "string",
+                  "description": "3-8 keyword query targeting the specific data this visual needs"
+                }
+              },
+              "required": ["type", "reason", "visual_query"],
+              "additionalProperties": false
+            },
+            "maxItems": 2
+          },
+          "enrichment_hints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["gallery", "video", "map"],
+                  "description": "Enrichment type"
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Why this enrichment benefits the section"
+                },
+                "enrichment_query": {
+                  "type": "string",
+                  "description": "2-4 keyword query for the enrichment"
+                }
+              },
+              "required": ["type", "reason", "enrichment_query"],
+              "additionalProperties": false
+            },
+            "maxItems": 2
+          }
+        },
+        "required": ["section_id", "section_type", "requires", "provides", "title", "visual_elements", "enrichment_hints"],
+        "additionalProperties": false
+      },
+      "description": "Full plans for new sections to create. Section contracts only — NO search queries here; queries are planned as a chain AFTER all sections are fixed (see article_queries and section_queries)."
+    },
+    "article_queries": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "maxItems": 3,
+      "description": "2-3 broad article-level keyword queries (3-8 keywords each) derived from focus_question + article_angle, planned AFTER all sections are fixed. These cover the shared subject grounding for the whole article. Each query must explicitly preserve the concrete storyline subject (person, product, company, event, or place); do not shorten it into a generic topic or rely on surrounding context to supply the subject. If the storyline is time-sensitive (recent release/event), at least one query MUST carry the current year or a recency term (latest/recent) to avoid stale results."
+    },
+    "section_queries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "description": "The section_id (from work_items) this query belongs to."
+          },
+          "query": {
+            "type": "string",
+            "description": "The ONE remaining specific keyword query that section needs that the article-level queries do NOT already cover."
+          }
+        },
+        "required": ["section_id", "query"],
+        "additionalProperties": false
+      },
+      "description": "Specific drill-down queries for sections whose data needs are NOT met by the broad article_queries, planned LAST (after article_queries). Add an entry for each section needing focused data the broad subject queries will not reliably retrieve (e.g. a comparison needing a named competitor, a data section needing a specific metric, an opinion/outlook section needing analyst commentary). Decide per section based on its data needs — do NOT default to empty. An empty array [] is valid only when every section is genuinely covered by article_queries. Each query must preserve the concrete storyline subject named in that section's provides."
+    }
+  },
+  "required": ["focus_question", "article_angle", "article_structure", "work_items", "article_queries", "section_queries"],
+  "additionalProperties": false
+}

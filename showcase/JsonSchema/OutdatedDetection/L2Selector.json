@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L2Selector",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["material_event_count", "material_events"],
+  "properties": {
+    "material_event_count": { "type": "integer", "minimum": 1 },
+    "material_events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["clause", "title_support", "milestone", "ref_roles", "excluded_background_refs", "confidence", "reason"],
+        "properties": {
+          "clause": { "type": "string", "minLength": 1 },
+          "title_support": { "type": "string", "minLength": 1 },
+          "milestone": { "type": "string", "minLength": 1 },
+          "ref_roles": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["exact_same_milestone_refs", "earliest_original_official_refs", "current_stage_refs", "superseding_contradicting_refs", "work_release_refs", "deadline_end_refs"],
+            "properties": {
+              "exact_same_milestone_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+              "earliest_original_official_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+              "current_stage_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+              "superseding_contradicting_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+              "work_release_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+              "deadline_end_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+            }
+          },
+          "excluded_background_refs": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "selection_note": { "type": "string" },
+    "selected_ref_count": { "type": "integer", "minimum": 0, "maximum": 12 }
+  }
+}

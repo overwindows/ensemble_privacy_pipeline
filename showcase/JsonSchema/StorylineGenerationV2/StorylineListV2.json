@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StorylineGeneratorOutputV2",
+  "description": "Output of StorylineGeneratorAgent for ONE query group: a single storylineList array (1-3 items). Each item carries the freshness hook (article id references grouped by interest), content fields, and inline scores. freshness score, ageDays, grounding, freshnessShelfLifeDays (assigned from genre), and rankScore are computed downstream in code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["storylineList"],
+  "properties": {
+    "storylineList": {
+      "type": "array",
+      "maxItems": 3,
+      "description": "1-3 editorial briefs for this group, one per genuinely distinct angle or event. No padding.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "storylineId",
+          "linkedInterestNames",
+          "freshnessHook",
+          "angle",
+          "reason",
+          "topic",
+          "title",
+          "description",
+          "toneGuidance",
+          "genre",
+          "genreGuidance",
+          "aiRelated",
+          "relevance",
+          "importance",
+          "authority"
+        ],
+        "properties": {
+          "storylineId": { "type": "string", "description": "Stable id, e.g. s1, s2." },
+          "freshnessHook": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["evidenceByInterest"],
+            "description": "Emit FIRST. Supporting article ids grouped BY interest; the merge step resolves them to url/title/date and computes per-interest ageDays.",
+            "properties": {
+              "evidenceByInterest": {
+                "type": "array",
+                "minItems": 1,
+                "description": "One entry per name in linkedInterestNames. Each entry names an interest and lists the article ids that support THAT interest: a non-empty evidenceIds = that interest is grounded; an empty evidenceIds (or a missing entry) = that interest has no supporting article (an ungrounded side of a cross). An article id may appear under several interests when it covers their intersection. Do NOT pad an interest's list with articles that aren't actually about it.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["interest", "evidenceIds"],
+                  "properties": {
+                    "interest": { "type": "string", "description": "An interest Name copied verbatim from linkedInterestNames." },
+                    "evidenceIds": {
+                      "type": "array",
+                      "minItems": 0,
+                      "maxItems": 3,
+                      "items": { "type": "string", "description": "A resultId copied verbatim from taggedResults (format <queryId>.r<idx>)." },
+                      "description": "0-3 article ids that genuinely support this interest."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "angle": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["primary"],
+            "properties": {
+              "primary": {
+                "type": "string",
+                "enum": [
+                  "Conflict / Critical Moment",
+                  "Cross-Interest",
+                  "Contrast / Unexpectedness"
+                ],
+                "description": "The high-value editorial angle that controls all downstream content fields."
+              },
+              "secondary": {
+                "type": "string",
+                "description": "An optional additional supported value dimension."
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this angle adds more user value than a conventional event summary, grounded in taggedResults."
+          },
+          "topic": { "type": "string", "description": "Evergreen 3-8 word recurring topic. No dates, source names, or 'latest'." },
+          "title": { "type": "string", "description": "Clickable English headline, specific about entities and the editorial cut." },
+          "description": { "type": "string", "description": "3-5 sentences, 50-120 words. Action-verb first; covers what the user wants, sub-topics, a user-angle reading, and the takeaway." },
+          "toneGuidance": { "type": "string", "description": "2-3 sentences, 30-60 words. Register / assumed depth / one do-don't." },
+          "genre": {
+            "type": "string",
+            "enum": [
+              "soft_news_update",
+              "hard_news_update",
+              "explainer_analysis",
+              "opinion_spectrum",
+              "narrative_feature",
+              "entertainment_review",
+              "fact_reference",
+              "timely_guide",
+              "how_to_learning",
+              "evergreen_explainer",
+              "evergreen_guide",
+              "fact_fun"
+            ],
+            "description": "Article genre matching the brief's core question."
+          },
+          "genreGuidance": { "type": "string", "description": "1-2 sentences (<=40 words). Concrete form within the genre (list / recap / step-by-step / Q&A)." },
+          "linkedInterestNames": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Interest Name(s) this storyline serves, copied verbatim and deduplicated."
+          },
+          "aiRelated": { "type": "boolean", "description": "True if this storyline is fundamentally about AI / machine learning / LLMs / generative-AI tools or the AI industry. This feed deprioritizes AI-related briefs — set it honestly." },
+          "relevance": { "type": "integer", "minimum": 1, "maximum": 6, "description": "Hit against userIntent. 5=direct, 3=adjacent, 1=off-interest. May reach 6 for cross-interest fusion." },
+          "importance": { "type": "integer", "minimum": 1, "maximum": 5, "description": "How big a deal within its interest. 5=headline-grade, 1=trivial." },
+          "authority": { "type": "integer", "minimum": 1, "maximum": 5, "description": "Best evidence-source authority. 5=official/tier-1, 1=personal blog/SEO farm." }
+        }
+      }
+    }
+  }
+}

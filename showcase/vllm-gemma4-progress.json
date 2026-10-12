@@ -1,0 +1,23 @@
+{
+  "generated": "2026-10-08 01:27 UTC",
+  "campaigns": [
+    {
+      "name": "int4 Quality A/B — FP8-Marlin control vs int4-Humming candidate",
+      "runs": [
+        {
+          "id": "good_box_l2h0msw2zs",
+          "name": "Control — S2 FP8-Marlin (GSM8K + BBH quality)",
+          "metric": "",
+          "status": "COMPLETED"
+        },
+        {
+          "id": "bold_island_xwcydw23sm",
+          "name": "Candidate — S2 int4 W4A16 Humming (GSM8K + BBH quality)",
+          "metric": "",
+          "status": "RUNNING"
+        }
+      ],
+      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM to push past the ~2403-2429 Marlin wall toward 2500 output TPS."
+    }
+  ]
+}

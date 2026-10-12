@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgenticGem Prompt &amp; Model Catalog</title>
+  <style>  :root {
+    --accent:#0f6cbd;
+    --accent2:#5b2ddb;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --error:#c42b1c;
+    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:Cascadia Code,Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgba(23, 32, 31, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 32, 31, .035) 1px, transparent 1px);
+      background-size: 28px 28px;
+      font-family: Bahnschrift, "Segoe UI Variable", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select { font: inherit; letter-spacing: 0; }
+    a { color: var(--green); }
+    .shell { width: min(1480px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 54px 0 28px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--coral); font-size: 12px; font-weight: 750; text-transform: uppercase; }
+    h1 {
+      max-width: 920px;
+      margin: 10px 0 12px;
+      font-family: "Segoe UI Variable","Segoe UI",sans-serif;
+      font-weight:600;
+      letter-spacing:-0.02em;
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 500;
+      line-height: .98;
+      letter-spacing: 0;
+    }
+    .lede { max-width: 900px; color: var(--muted); font-size: 17px; line-height: 1.65; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 34px; background: var(--line); border: 1px solid var(--line); }
+    .stat { min-height: 102px; padding: 18px; background: var(--surface); }
+    .stat strong { display: block; font-family: "Segoe UI Variable","Segoe UI",sans-serif; font-size: 32px; font-weight: 600; }
+    .stat span { color: var(--muted); font-size: 13px; }
+
+    .toolbar { position: sticky; top: 0; z-index: 10; padding: 12px 0; background: rgba(245, 244, 239, .94); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .toolbar-row { display: grid; grid-template-columns: minmax(240px, 1fr) 260px auto; gap: 10px; }
+    .control { width: 100%; min-height: 42px; padding: 9px 12px; color: var(--ink); background: var(--surface); border: 1px solid #c6ccc5; border-radius: 4px; }
+    .view-toggle { display: flex; border: 1px solid #c6ccc5; border-radius: 4px; overflow: hidden; }
+    .view-toggle button { min-width: 44px; padding: 8px 12px; border: 0; background: var(--surface); cursor: pointer; }
+    .view-toggle button + button { border-left: 1px solid #c6ccc5; }
+    .view-toggle button.active { color: white; background: var(--green); }
+
+    main { padding: 34px 0 80px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin: 44px 0 15px; }
+    .section-head h2 { margin: 0; font-family: "Segoe UI Variable","Segoe UI",sans-serif; font-size: 26px; font-weight: 600; }
+    .section-head p { max-width: 780px; margin: 0; color: var(--muted); line-height: 1.5; }
+    .note { padding: 14px 16px; border-left: 3px solid var(--gold); background: var(--gold-soft); line-height: 1.55; }
+
+    .model-table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); background: #eeeee8; font-size: 12px; text-transform: uppercase; }
+    td { font-size: 14px; line-height: 1.45; }
+    tr:last-child td { border-bottom: 0; }
+    code { font-family: "Cascadia Code", Consolas, monospace; font-size: .9em; }
+
+    .catalog { display: grid; gap: 12px; }
+    .catalog.cards { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    .entry { border: 1px solid var(--line); background: var(--surface); }
+    .entry.hidden { display: none; }
+    .entry-header { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start; padding: 18px; cursor: pointer; }
+    .index { display: grid; place-items: center; width: 34px; height: 34px; color: white; background: var(--green); border-radius: 50%; font-size: 12px; }
+    .entry h3 { margin: 0 0 4px; font-family: Georgia, serif; font-size: 21px; font-weight: 600; }
+    .path { color: var(--muted); font-family: "Cascadia Code", Consolas, monospace; font-size: 11px; overflow-wrap: anywhere; }
+    .chevron { border: 0; color: var(--green); background: transparent; font-size: 23px; cursor: pointer; transition: transform .18s ease; }
+    .entry.open .chevron { transform: rotate(45deg); }
+    .entry-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+    .field { min-height: 90px; padding: 13px 16px; border-right: 1px solid var(--line); }
+    .field:last-child { border-right: 0; }
+    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 11px; text-transform: uppercase; }
+    .field div { font-size: 13px; line-height: 1.45; }
+    .badge { display: inline-block; margin: 2px 4px 2px 0; padding: 4px 7px; border-radius: 3px; background: var(--green-soft); color: #084c3e; font-size: 11px; }
+    .badge.dlis { color: #873722; background: var(--coral-soft); }
+    .interaction-mode { display: inline-block; margin-bottom: 6px; color: var(--green); font-weight: 700; }
+    .entry-detail { display: none; padding: 18px; border-top: 1px solid var(--line); }
+    .entry.open .entry-detail { display: block; animation: reveal .18s ease both; }
+    @keyframes reveal { from { opacity: 0; transform: translateY(-4px); } }
+    .task { margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
+    .example-scope { margin: -6px 0 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .io-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .code-panel { min-width: 0; border: 1px solid #30433f; background: var(--code); }
+    .code-title { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; color: #c8d7d3; border-bottom: 1px solid #30433f; font-size: 11px; text-transform: uppercase; }
+    .copy { padding: 4px 7px; border: 1px solid #536762; border-radius: 3px; color: #dceae6; background: transparent; cursor: pointer; }
+    pre { min-height: 160px; max-height: 360px; margin: 0; padding: 14px; overflow: auto; color: #e6f0ed; white-space: pre-wrap; word-break: break-word; font: 12px/1.55 "Cascadia Code", Consolas, monospace; }
+    details.kql { margin-top: 10px; border: 1px solid var(--line); }
+    details.kql summary { padding: 11px 13px; cursor: pointer; font-size: 13px; font-weight: 650; }
+    .kql-meta { padding: 0 13px 10px; color: var(--muted); font-size: 12px; }
+    .kql-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #30433f; border-top: 1px solid #30433f; }
+    .empty { display: none; padding: 48px; text-align: center; color: var(--muted); border: 1px dashed #aeb6ad; }
+    .empty.show { display: block; }
+    footer { padding: 25px 0 45px; color: var(--muted); border-top: 1px solid var(--line); font-size: 12px; line-height: 1.6; }
+
+    @media (max-width: 960px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .catalog.cards { grid-template-columns: 1fr; }
+      .entry-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field:nth-child(2) { border-right: 0; }
+      .field:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .io-grid, .kql-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 1480px); }
+      header { padding-top: 34px; }
+      .toolbar-row { grid-template-columns: 1fr 1fr; }
+      .toolbar-row input { grid-column: 1 / -1; }
+      .view-toggle { display: none; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat { min-height: 88px; padding: 13px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 8px; }
+      .entry-header { grid-template-columns: auto 1fr auto; gap: 9px; padding: 14px; }
+      .entry-summary { grid-template-columns: 1fr; }
+      .field { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .field:last-child { border-bottom: 0; }
+      .model-table-wrap { overflow: visible; border: 0; background: transparent; }
+      .model-table-wrap table, .model-table-wrap tbody, .model-table-wrap tr, .model-table-wrap td { display: block; width: 100%; }
+      .model-table-wrap thead { display: none; }
+      .model-table-wrap tr { margin-bottom: 8px; border: 1px solid var(--line); background: var(--surface); }
+      .model-table-wrap td { padding: 9px 12px 9px 42%; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+      .model-table-wrap td::before { content: attr(data-label); float: left; width: 68%; margin-left: -68%; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+    }
+  </style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html" class="active">AgenticGem Catalog</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+  <header>
+    <div class="shell">
+      <div class="eyebrow">AgenticGem / Model inventory / 2026-09-16</div>
+      <h1>Prompt &amp; Model Catalog</h1>
+      <p class="lede">八条 AgenticGem pipeline 的 prompt、模型路由、数据格式与可观测性索引。所有模型与 prompt 均为 single-turn interaction。StorylineGeneration 仅收录 V2 pipeline（含 V2/V3 profile 分支）。示例由当前 YAML、prompt 和 JSON Schema 提炼，用于设计评审与日志排查，不代表真实用户数据。</p>
+      <div class="stats">
+        <div class="stat"><strong>8</strong><span>Pipeline</span></div>
+        <div class="stat"><strong>24</strong><span>直接引用的 unique prompt</span></div>
+        <div class="stat"><strong>5</strong><span>DLIS deployment</span></div>
+        <div class="stat"><strong>2</strong><span>无直接 prompt 的 pipeline</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="shell toolbar-row">
+      <input id="search" class="control" type="search" placeholder="搜索 prompt、任务、模型或 step…" aria-label="搜索目录">
+      <select id="scenario" class="control" aria-label="按 Pipeline 筛选"><option value="">所有 Pipeline</option></select>
+      <div class="view-toggle" aria-label="布局切换">
+        <button id="listView" class="active" type="button" title="单列布局">☷</button>
+        <button id="cardView" type="button" title="双列布局">▦</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell">
+    <div class="section-head">
+      <div><div class="eyebrow">Model routes</div><h2>模型与 DLIS 调用</h2></div>
+      <p>“Architecture”只记录仓库可验证的信息。部署名中的规模标记会注明来源，不把内部 route 名推断成公开模型规格。</p>
+    </div>
+    <div class="model-table-wrap">
+      <table>
+        <thead><tr><th>Model / deployment</th><th>Protocol</th><th>Architecture</th><th>Used by</th><th>Data contract</th></tr></thead>
+        <tbody id="models"></tbody>
+      </table>
+    </div>
+    <p class="note"><strong>InterestCluster</strong> 与 <strong>InterestSelection</strong> 没有 YAML <code>kind: agent</code> step。前者仍调用 DLIS interest reranker 与 BERT embedding；后者调用 BERT embedding。它们因此出现在模型清单，但不计入 24 个直接 prompt。</p>
+
+    <div class="section-head">
+      <div><div class="eyebrow">Prompt inventory</div><h2>Prompt 目录</h2></div>
+      <p id="resultCount">24 条记录</p>
+    </div>
+    <div id="catalog" class="catalog"></div>
+    <div id="empty" class="empty">没有符合当前筛选条件的条目。</div>
+  </main>
+
+  <footer><div class="shell">
+    KQL 默认查询 <code>udp.GSPEventJob</code>，请替换 <code>&lt;REQUEST_ID&gt;</code>。Storyline V2 的结构化查询有代码级日志契约；其他条目的 KQL 标为诊断模板，只保证定位相关执行日志，不保证日志中保存完整 prompt payload。生产数据查询需遵循隐私、访问控制与保留策略。
+  </div></footer>
+
+  <script>
+    const promptBase = "../Prompts/";
+    const schemaBase = "../JsonSchema/";
+    const apps = {
+      "Dynamic Creation": "Kunlun.EventHost.AgenticGemDynCreate",
+      "Meta Generation": "Kunlun.EventHost.AgenticGemMetaGeneration",
+      "Meta ID Generation": "Kunlun.EventHost.AgenticGemMetaIdGeneration",
+      "Outdated Detection L1": "Kunlun.WebHost.AgenticGemOutdated",
+      "Outdated Detection L2": "Kunlun.WebHost.AgenticGemOutdated",
+      "Storyline Generation V2": "Kunlun.EventHost.AgenticGemStorylineGenerationV2"
+    };
+
+    const models = [
+      ["Qwen3.5-35B-A3B", "OpenAI Chat Completion", "部署名标识 Qwen 3.5、35B-A3B；仓库无独立 model card", "DynamicCreation prefilter；MetaGeneration selection；MetaId；Storyline V2", "单轮 chat；多数为 JSON Schema structured output"],
+      ["gpt-5-chat-shortco-2025-08-07-batch / bing", "OpenAI Chat Completion", "GPT-5 deployment；参数规模未在仓库声明", "DynamicCreation fallback/review；MetaGeneration；Outdated L1/L2", "单轮 chat；JSON Schema 或受约束文本"],
+      ["gpt-5-mini-chat-shortco-2025-08-07-batch", "OpenAI Chat Completion", "GPT-5 mini deployment；参数规模未在仓库声明", "Outdated Detection L2 query generation", "标题到 queries[]"],
+      ["gem-assembly-writer-slm", "DLIS inference", "Qwen3-9B 专用 assembly SLM；训练方法：DPO", "DynamicCreation / article_assembly_slm", "section JSON → ArticleAssemblySlm JSON"],
+      ["dlis-coreranker.qwen306b-reranker/score_pairs", "DLIS model service", "Qwen3 0.6B reranker", "InterestCluster / ClusterInterest", "pairs + threshold + prompt_template → score/decision"],
+      ["coreranker.feeds_bert_prod", "DLIS HTTP", "BERT embedding；参数规模未知", "InterestCluster、InterestSelection、MetaId、MetaGeneration、Storyline V2", "{title} → {low_dim_emb}"],
+      ["coreranker.Reranker-8B", "DLIS model service", "Qwen3 reranker-8B", "MetaGeneration、Storyline V2 grounding", "query/chunk/system_prompt/instruction[] → score[]"],
+      ["ImportantNews.Reranker-8B", "DLIS model service", "Qwen3 reranker-8B", "MetaGeneration、Storyline V2 grounding（随机路由）", "query/chunk/system_prompt/instruction[] → score[]"]
+    ];
+
+    const entries = [
+      {
+        scenario: "Dynamic Creation", step: "section_prefilter", name: "SectionPreFilterPrompt.md",
+        path: "DynamicCreation/SectionPreFilterPrompt.md", schema: "DynamicCreation/SectionPreFilter.json",
+        task: "宽松筛除与用户请求明显无关或重复的候选 section，保留可能有叙事价值的内容。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn → Structured JSON",
+        input: {current_date:"2026-09-16",user_request:"可持续能源趋势",article_angle:"政策与技术变化",storyline:"太阳能补贴调整如何影响家庭储能选择",meta_sections:[{section_id:"s1",title:"太阳能政策",section_type:"factual",provides:["补贴规则发生了哪些变化？"]},{section_id:"s2",title:"家庭储能成本",section_type:"impact",provides:["补贴变化可能怎样影响家庭储能成本？"]},{section_id:"s3",title:"海上风电融资",section_type:"context",provides:["海上风电项目如何融资？"]}]},
+        output: {kept_section_ids:["s1","s2"]}
+      },
+      {
+        scenario: "Dynamic Creation", step: "article_assembly_slm", name: "ArticleAssemblySlmPrompt.md", dlis: true,
+        path: "DynamicCreation/ArticleAssemblySlmPrompt.md", schema: "DynamicCreation/ArticleAssemblySlm.json",
+        task: "选择、排序和去重候选 section，并生成标题、摘要要点与 casing 保留信息。",
+        model: "gem-assembly-writer-slm", architecture: "Qwen3-9B 专用 assembly SLM；训练方法：DPO", format: "Single-turn JSON → Structured JSON (DLIS)",
+        input: {user_request:"了解电动车市场",persona:"关注购车决策与长期使用成本",article_angle:"价格变化及其对购车选择的影响",storyline_title:"电动车价格变化",storyline_description:"比较近期价格调整、续航和充电成本",genre:"timely_guide",genre_guidance:"比较关键购车因素",sections:[{index:0,title:"近期价格变化",section_type:"factual",content:"两款车型在九月调整了建议售价。",sources:["c1"],provides:["哪些车型调整了价格？"]},{index:1,title:"续航与充电",section_type:"comparison",content:"车型 A 的续航为 520 公里，车型 B 为 480 公里。",sources:["c2"],provides:["续航和充电条件有何差异？"]},{index:2,title:"长期使用成本",section_type:"impact",content:"公开测算比较了三年能源和维护成本。",sources:["c3"],provides:["长期使用成本如何比较？"]}]},
+        output: {sections:[{index:0,section_heading:"近期价格变化",editorial_transition_no_facts:""},{index:1,section_heading:"续航与充电",editorial_transition_no_facts:"价格之外，使用条件也影响最终选择。"},{index:2,section_heading:"长期使用成本",editorial_transition_no_facts:"最后比较更长期的支出差异。"}],dedup:[],paraphrased_summary_bullets:[{extracted_anchor_sentence:"两款车型在九月调整了建议售价。",subHeader:"价格变化",paraphrased_text_no_copying:"近期价格调整改变了比较起点。"},{extracted_anchor_sentence:"车型 A 的续航为 520 公里，车型 B 为 480 公里。",subHeader:"续航差异",paraphrased_text_no_copying:"两款车型的标称续航并不相同。"},{extracted_anchor_sentence:"公开测算比较了三年能源和维护成本。",subHeader:"长期成本",paraphrased_text_no_copying:"三年维度的能源和维护支出也应纳入判断。"}],title_draft_sandbox:"Electric vehicle prices and ownership costs",final_title_sentence_case:"Electric vehicle prices and ownership costs",preserveCasing:{summary:[],sectionTitles:[{index:0,spans:[]},{index:1,spans:[]},{index:2,spans:[]}],title:[]}}
+      },
+      {
+        scenario: "Dynamic Creation", step: "article_assembly", name: "ArticleAssemblyPrompt.md",
+        path: "DynamicCreation/ArticleAssemblyPrompt.md", schema: "DynamicCreation/ArticleAssembly.json",
+        task: "在 SLM 失败时制定有证据约束的完整文章组装计划，建立 section、摘要与标题的事实关系。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Context + Single-turn JSON → Structured JSON",
+        input: {user_request:"了解电动车市场",persona:"关注购车决策与长期使用成本",storyline_title:"电动车价格变化",storyline_description:"解释价格调整及其对购车者的影响",genre:"soft_news_update",genre_guidance:"先说明变化，再解释影响",title_schema:"specific update with practical implication",sections:[{section_id:"s1",title:"近期价格调整",section_type:"factual",content:"车型 A 的建议售价在九月下调 2,000 元。",sources:["c1"],provides:["车型 A 的价格发生了什么变化？"]},{section_id:"s2",title:"续航与充电",section_type:"comparison",content:"车型 A 续航 520 公里，车型 B 续航 480 公里。",sources:["c2"],provides:["两款车型的续航如何比较？"]},{section_id:"s3",title:"购车影响",section_type:"impact",content:"价格和续航共同影响预算与使用便利性。",sources:["c3"],provides:["这些差异对购车者意味着什么？"]}]},
+        output: {focus_sentence:"解释近期电动车价格变化及其对购车比较的影响。",narrative_structure:"general-to-specific",selected_section_ids:["s1","s2","s3"],ordered_sections:[{section_id:"s1",role:"opening_thesis"},{section_id:"s2",role:"supporting_evidence"},{section_id:"s3",role:"closing"}],section_edits:[{section_id:"s1",connection_from_previous:"",remove_sentences:[],delete_visual:false},{section_id:"s2",connection_from_previous:"价格变化只是比较的一部分。",remove_sentences:[],delete_visual:false},{section_id:"s3",connection_from_previous:"这些指标共同构成购车判断。",remove_sentences:[],delete_visual:false}],summary:[{keyEvidence:"车型 A 的建议售价在九月下调 2,000 元。",subHeader:"价格调整",text:"车型 A 的建议售价近期下调。"},{keyEvidence:"车型 A 续航 520 公里，车型 B 续航 480 公里。",subHeader:"续航比较",text:"两款车型的标称续航存在差异。"},{keyEvidence:"价格和续航共同影响预算与使用便利性。",subHeader:"购车影响",text:"购车比较需要同时考虑预算和使用便利性。"}],title_reasoning:"标题保留价格变化这一核心焦点，并用摘要中的购车影响限定范围。",title:"电动车价格变化如何影响购车比较",section_titles:[{section_id:"s1",title:"近期价格调整"},{section_id:"s2",title:"续航与充电"},{section_id:"s3",title:"购车影响"}]}
+      },
+      {
+        scenario: "Dynamic Creation", step: "review_assembly", name: "AssemblyReviewerPrompt.md",
+        path: "DynamicCreation/AssemblyReviewerPrompt.md", schema: "DynamicCreation/AssemblyReviewResult.json",
+        task: "逐项审查标题、摘要和 section 的事实支持与内容质量，并输出可应用的修补指令。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn JSON → Structured JSON",
+        input: {generated_content:{title:"电动车价格变化",summary:[{subHeader:"价格调整",text:"车型 A 的建议售价下调。"}],sections:[{section_id:"s1",title:"近期价格调整",content:"车型 A 的建议售价在九月下调 3,000 元。",source_ids:["c1"]}]},required_claim_audit:[{claim_id:"C1",field_paths:["title"]},{claim_id:"C2",field_paths:["sections[0].content"]}],ground_sources:[{content_id:"c1",full_text:"车型 A 的建议售价在九月下调 2,000 元。"}]},
+        output: {verdict:"REJECT",cover:{status:"pass",patches:[]},claim_checks:[{claim_id:"C1",result:"PASS",source_ids:["c1"],audit_basis:"标题中的车型 A 与价格变化由来源支持。"},{claim_id:"C2",result:"FLAGGED",source_ids:["c1"],audit_basis:"正文写成 3,000 元，来源明确为 2,000 元。"}],sections:[{section_id:"s1",status:"fail",patches:[{claim_id:"C2",field_path:"sections[0].content",error_type:"WRONG_NUMBER",original:"车型 A 的建议售价在九月下调 3,000 元。",replacement:"车型 A 的建议售价在九月下调 2,000 元。",supporting_sources:[{content_id:"c1",quote:"车型 A 的建议售价在九月下调 2,000 元。"}],reason:"来源中的降价金额为 2,000 元。",confidence:"high"}]}]}
+      },
+      {
+        scenario: "Meta Generation", step: "section_selection", name: "SectionSelectionPrompt.md",
+        path: "MetaGeneration/SectionSelectionPrompt.md", schema: "MetaGeneration/SectionSelectionResult.json",
+        task: "从已有 section 中挑选真正覆盖当前事件与请求角度的内容。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",user_query:"能源政策最新变化",existing_sections:[{id:"s1",title:"能源政策",summary:"近期补贴和并网规则变化",section_type:"factual",provides:["政策改变了什么？"],requires:[],last_updated:"2026-09-15"},{id:"s2",title:"家庭储能成本",summary:"政策变化对家庭储能预算的影响",section_type:"impact",provides:["家庭储能成本如何变化？"],requires:["政策改变了什么？"],last_updated:"2026-09-14"},{id:"s3",title:"海上风电融资",summary:"项目融资方式",section_type:"context",provides:["海上风电项目如何融资？"],requires:[],last_updated:"2026-08-10"}]},
+        output: {selected_sections:[{id:"s1",reason:"直接覆盖能源政策的近期变化。"},{id:"s2",reason:"说明政策变化对家庭储能的实际影响。"}],reasoning:"保留直接回答政策变化及其影响的 section，排除仅共享能源关键词的融资内容。"}
+      },
+      {
+        scenario: "Meta Generation", step: "gap_plan", name: "GapPlanPrompt.md",
+        path: "MetaGeneration/GapPlanPrompt.md", schema: "MetaGeneration/GapPlanResult.json",
+        task: "确定文章焦点、复用/新建 section、视觉元素，以及文章级与 section 级搜索 query。",
+        model: "gpt-5-chat-shortco-2025-08-07-bing", architecture: "GPT-5 deployment；规模未知", format: "Context + Grounded single-turn → Structured JSON",
+        input: {storyline_title:"能源政策变化",storyline_description:"解释补贴调整及其对家庭储能的影响",tone:"neutral and practical",genre:"explainer_analysis",genreGuidance:"先解释变化，再分析影响",selectedSections:[{id:"s1",title:"现行补贴规则",summary:"政策背景",section_type:"context",provides:["能源政策此前如何规定？"],requires:[]}],available_states:["能源政策此前如何规定？"]},
+        output: {focus_question:"能源政策的规则变化如何影响家庭储能选择？",article_angle:"先核对政策调整的具体内容，再区分其对家庭储能成本和决策的影响。",article_structure:[{action:"reuse",id:"s1",title:"现行补贴规则",role:"context"},{action:"create",id:"section_2",title:"近期政策变化",role:"factual"},{action:"create",id:"section_3",title:"家庭储能影响",role:"impact"}],work_items:[{section_id:"section_2",section_type:"factual",requires:[],provides:["能源政策最近改变了哪些规则？"],title:"近期政策变化",visual_elements:[],enrichment_hints:[]},{section_id:"section_3",section_type:"impact",requires:["能源政策最近改变了哪些规则？"],provides:["政策变化如何影响家庭储能成本？"],title:"家庭储能影响",visual_elements:[{type:"table",reason:"比较调整前后的关键条件。",visual_query:"家庭储能补贴政策前后"}],enrichment_hints:[]}],article_queries:["家庭储能 能源政策 2026 最新","家庭储能 补贴 规则 影响"],section_queries:[{section_id:"section_3",query:"家庭储能 成本 补贴 变化"}]}
+      },
+      {
+        scenario: "Meta Generation", step: "filter_sources", name: "SourceFilterPrompt.md",
+        path: "MetaGeneration/SourceFilterPrompt.md", schema: "MetaGeneration/SourceFilterResult.json",
+        task: "判断每个研究片段是否直接回答 section 的 provides 问题且实体范围一致。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn JSON → Structured JSON",
+        input: {section_plan:{section_id:"s1",title:"能源政策更新",provides:["能源政策改变了什么？"]},research_notes:{fragments:[{content_id:"c1",title:"补贴规则调整",publisher:"能源监管机构",full_text:"政策调整了家庭储能补贴规则。"},{content_id:"c2",title:"海上风电融资",publisher:"行业期刊",full_text:"项目融资成本受到利率影响。"}]}},
+        output: {results:[{content_id:"c1",verdict:"relevant",reason:"直接说明家庭储能补贴规则变化。"},{content_id:"c2",verdict:"off_topic",reason:"讨论海上风电融资，未回答家庭储能政策变化。"}]}
+      },
+      {
+        scenario: "Meta Generation", step: "write_section / rewrite_section", name: "SectionWriterPrompt_v1.md",
+        path: "MetaGeneration/SectionWriterPrompt_v1.md", schema: "无 JSON Schema（文本契约）",
+        task: "从筛选后的研究资料写出带证据映射、source footer 和可选视觉元素的独立 section；同一 prompt 也用于一次重写。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Context + Single-turn JSON → Constrained text",
+        input: {article_metadata:{title:"能源政策变化如何影响家庭储能选择"},section_plan:{section_id:"s1",title:"政策更新",section_type:"factual",suggested_visual_element:"table",provides:["能源政策改变了哪些补贴规则？","这些规则从何时开始适用？"],requires:["家庭储能成本如何变化？"]},research_notes:[{content_id:"c1",full_text:"能源监管机构在 2026 年 9 月调整了家庭储能补贴规则。"},{content_id:"c2",full_text:"新规则自 2026 年 10 月 1 日起适用。"}],enrichment_hints:[]},
+        output: {completion:"<evidence>\nQ: 能源政策改变了哪些补贴规则？\n- c1 \"能源监管机构在 2026 年 9 月调整了家庭储能补贴规则。\" -> RELEVANT\nQ: 这些规则从何时开始适用？\n- c2 \"新规则自 2026 年 10 月 1 日起适用。\" -> RELEVANT\n</evidence>\n\n<visual_reasoning>\nSelected Visual: None\nRationale: Two directly supported facts fit in prose.\nVisual Scope: none\nProse Scope: rule change and effective date\n</visual_reasoning>\n\n# 政策更新\n能源监管机构在 2026 年 9 月调整了家庭储能补贴规则。新规则自 2026 年 10 月 1 日起适用。\n\n<!-- section_id: s1 -->\n<!-- provides: 能源政策改变了哪些补贴规则？；这些规则从何时开始适用？ -->\n<!-- sources: c1, c2 -->"}
+      },
+      {
+        scenario: "Meta Generation", step: "review_section", name: "SectionReviewerPrompt_v1.md",
+        path: "MetaGeneration/SectionReviewerPrompt_v1.md", schema: "MetaGeneration/SectionReviewResult.json",
+        task: "独立核对 section 标题、正文与视觉内容中的每个 claim 是否被声明来源支持。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn JSON → Structured JSON",
+        input: {title:"能源政策更新",body:"能源监管机构调整了家庭储能补贴规则，政策自 2026 年 10 月 1 日起适用。",required_claim_audit:[{claim_id:"C1",claim:"补贴规则发生调整。"},{claim_id:"C2",claim:"政策自 2026 年 10 月 1 日起适用。"}],declared_sources:["c1","c2"],ground_sources:[{content_id:"c1",full_text:"能源监管机构调整了家庭储能补贴规则。"},{content_id:"c2",full_text:"新规则自 2026 年 11 月 1 日起适用。"}]},
+        output: {review_status:"Yes",claim_checks:[{claim_id:"C1",result:"PASS",source_ids:["c1"],audit_basis:"正文准确复述了补贴规则发生调整。"},{claim_id:"C2",result:"FLAGGED",source_ids:["c2"],audit_basis:"正文写为 10 月 1 日，来源写为 11 月 1 日。"}],findings:[{claim_id:"C2",sentence:"政策自 2026 年 10 月 1 日起适用。",error_type:"WRONG_NUMBER",reason:"来源中的生效日期为 2026 年 11 月 1 日。",source_evidence:"新规则自 2026 年 11 月 1 日起适用。",corrected_statement:"政策自 2026 年 11 月 1 日起适用。",confidence:"high"}]}
+      },
+      {
+        scenario: "Meta ID Generation", step: "topic_judge", name: "TopicJudgePrompt.md",
+        path: "MetaIdGeneration/TopicJudgePrompt.md", schema: "MetaIdGeneration/TopicJudgement.json",
+        task: "判断新主题是否与 ANN 召回的候选主题属于同一语义主题簇。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Single-turn JSON → Structured JSON",
+        input: {topic:"电动车价格趋势",candidates:[{topicId:"t1",similarity:0.91,topic:"电动车价格变化"},{topicId:"t2",similarity:0.63,topic:"电动车充电基础设施"}]},
+        output: {matched_topic_id:"t1",reason:"两者都聚焦电动车价格变化这一具体主题，而不是泛泛的电动车领域。"}
+      },
+      {
+        scenario: "Meta ID Generation", step: "category_judge", name: "CategoryJudgePrompt.md",
+        path: "MetaIdGeneration/CategoryJudgePrompt.md", schema: "MetaIdGeneration/CategoryJudgement.json",
+        task: "按读者场景和 framing 判断 query intent 应归入已有类别还是创建新类别。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Single-turn JSON → Structured JSON",
+        input: {topic:"电动车",intent:"比较家庭用车型的价格、续航和充电条件",categoryDict:{"购车比较":["比较通勤车型","比较家庭用车的续航和价格"],"汽车新闻":["追踪新车型发布"]}},
+        output: {matched_category:"购车比较",inferred_category:"",reason:"该 query 的核心是比较家庭用车型的决策因素，而不是追踪发布新闻。"}
+      },
+      {
+        scenario: "Outdated Detection L1", step: "strict_match", name: "L1StrictKnowledgeMatcherPrompt.md",
+        path: "OutdatedDetection/L1StrictKnowledgeMatcherPrompt.md", schema: "OutdatedDetection/L1StrictMatcherResult.json",
+        task: "从版本化知识候选中寻找严格同一 milestone 或明确时间关系，并主动反驳潜在误匹配。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn JSON → Structured JSON",
+        input: {gem_title:"某队赢得决赛",candidates:[{candidate_id:1,primary_entity:"某队",title:"某队赢得决赛",date:"2026-09-10",milestones:[{stage_desc:"决赛胜利",event_instance_markers:"2026 年决赛",C:"2026-09-10"}]},{candidate_id:2,primary_entity:"某队",title:"某队进入半决赛",date:"2026-08-20",milestones:[{stage_desc:"半决赛晋级",event_instance_markers:"2026 年半决赛",C:"2026-08-20"}]}]},
+        output: {matches:[{candidate_id:1,relation_type:"same_milestone",target_clause:"某队赢得决赛",primary_entity:"某队",aliases:["该队"],related_entities:[],fact_type:"比赛结果",milestone:"决赛胜利",event_instance_markers:"2026 年决赛",confidence:"high",match_evidence:"候选明确记录该队赢得 2026 年决赛。",refutation_attempt:"候选 2 只描述半决赛晋级，不是决赛结果。",survives_refutation:true,survival_reason:"候选 1 的实体、阶段和比赛实例均与标题一致。"}]}
+      },
+      {
+        scenario: "Outdated Detection L1", step: "judge_l1", name: "L1JudgePrompt.md",
+        path: "OutdatedDetection/L1JudgePrompt.md", schema: "OutdatedDetection/L1Assessment.json",
+        task: "仅依据已物化知识判断事件时效；证据不足时将 need_grounding 交给 L2。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn JSON → Structured JSON",
+        input: {TITLE:"某队赢得决赛并创下赛季得分纪录",A:"2026-09-16",KB:[{fact_id:"f1",primary_entity:"某队",aliases:["该队"],related_entities:[],milestones:[{stage_desc:"决赛胜利",event_instance_markers:"2026 年决赛",C:"2026-09-10"},{stage_desc:"赛季得分纪录",event_instance_markers:"2026 赛季",C:"2026-09-10"}]}]},
+        output: {kb_related_fact_id:"f1",kb_related_fact:"某队赢得 2026 年决赛并创下赛季得分纪录",kb_related_fact_lifecycle:"once_off",related:true,same_milestone:true,reporting_stance:"result",need_grounding:false,matched:true,confidence:"high",event_time:"2026-09-10",decision_pattern:"same_milestone_occurrence",outdated_decision:{score:100,reason:"知识库确认决赛结果已发生。"},reason:"标题包含两个已由知识库匹配的物质事件。",title_time_signals:{explicit_date:"unknown",explicit_month:"unknown",explicit_year:"unknown"},material_event_count:2,material_events:[{clause:"某队赢得决赛",kb_related_fact_id:"f1",relation_type:"same_milestone",reporting_stance:"result",event_time:"2026-09-10",confidence:"high",matched:true,decision_pattern:"same_milestone_occurrence",outdated_score:100,reason:"知识库确认决赛日期。",title_time_signals:{explicit_date:"unknown",explicit_month:"unknown",explicit_year:"unknown"}},{clause:"创下赛季得分纪录",kb_related_fact_id:"f1",relation_type:"same_milestone",reporting_stance:"result",event_time:"2026-09-10",confidence:"high",matched:true,decision_pattern:"same_milestone_occurrence",outdated_score:100,reason:"知识库确认该赛季纪录。",title_time_signals:{explicit_date:"unknown",explicit_month:"unknown",explicit_year:"unknown"}}]}
+      },
+      {
+        scenario: "Outdated Detection L2", step: "generate_queries", name: "L2QueryGenerationPrompt.md",
+        path: "OutdatedDetection/L2QueryGenerationPrompt.md", schema: "OutdatedDetection/L2QueryGenerationResult.json",
+        task: "围绕新闻标题生成三个互补的时间状态检索 query。",
+        model: "gpt-5-mini-chat-shortco-2025-08-07-batch", architecture: "GPT-5 mini deployment；规模未知", format: "Context + Single-turn text → Structured JSON",
+        input: {current_date:"2026-09-16",market:"en-us",title:"某队赢得决赛并创下赛季得分纪录",article_timestamp:"2026-09-15"},
+        output: {queries:["某队 2026 决赛 官方结果","某队 赛季得分纪录 最新确认","某队 决赛纪录 是否被打破"]}
+      },
+      {
+        scenario: "Outdated Detection L2", step: "select_l2_events", name: "L2SelectorPrompt.md",
+        path: "OutdatedDetection/L2SelectorPrompt.md", schema: "OutdatedDetection/L2Selector.json",
+        task: "拆分标题中的 material events，并为每个事件选择同一、当前、替代或截止日期证据。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn evidence JSON → Structured JSON",
+        input: {TITLE:"某队赢得决赛并创下赛季得分纪录",REFERENCES:[{id:1,title:"某队赢得决赛",snippet:"官方公布决赛结果。"},{id:2,title:"某队创下赛季得分纪录",snippet:"比赛报道记录得分纪录。"},{id:3,title:"某队的新纪录后来被打破",snippet:"后续比赛刷新纪录。"}]},
+        output: {material_event_count:2,material_events:[{clause:"某队赢得决赛",title_support:"某队赢得决赛",milestone:"决赛胜利",ref_roles:{exact_same_milestone_refs:[1],earliest_original_official_refs:[1],current_stage_refs:[1],superseding_contradicting_refs:[],work_release_refs:[],deadline_end_refs:[]},excluded_background_refs:[],confidence:"high",reason:"参考文档直接报道决赛结果。"},{clause:"创下赛季得分纪录",title_support:"创下赛季得分纪录",milestone:"赛季得分纪录",ref_roles:{exact_same_milestone_refs:[2],earliest_original_official_refs:[2],current_stage_refs:[],superseding_contradicting_refs:[3],work_release_refs:[],deadline_end_refs:[]},excluded_background_refs:[],confidence:"high",reason:"参考文档分别支持纪录及其后续被打破的状态。"}],selection_note:"为两个标题事件保留直接证据，并为纪录事件保留后续冲突证据。",selected_ref_count:3}
+      },
+      {
+        scenario: "Outdated Detection L2", step: "extract_l2_event", name: "L2JudgePrompt.md",
+        path: "OutdatedDetection/L2JudgePrompt.md", schema: "OutdatedDetection/L2Assessment.json",
+        task: "从选定文章正文提取真实事件日期、报道状态、替代关系与时效 policy class。",
+        model: "gpt-5-chat-shortco-2025-08-07-batch", architecture: "GPT-5 deployment；规模未知", format: "Single-turn evidence JSON → Structured JSON",
+        input: {current_date:"2026-09-16",TITLE:"某队赢得决赛并创下赛季得分纪录",SELECTED_REFERENCES:[{ref:1,ARTICLE_TIMESTAMP:"2026-09-10",content:"决赛于 2026 年 9 月 10 日举行，某队获胜。"},{ref:2,ARTICLE_TIMESTAMP:"2026-09-12",content:"某队在决赛中创下赛季得分纪录。"},{ref:3,ARTICLE_TIMESTAMP:"2026-09-15",content:"该赛季纪录后来被另一支球队刷新。"}]},
+        output: {material_event_count:2,material_events:[{clause:"某队赢得决赛",title_support:"某队赢得决赛",milestone:"决赛胜利",reporting_stance:"result",lifecycle:"once_off",once_off_kind:"discrete",event_time:"2026-09-10",event_time_basis:"body_explicit_date",event_time_quote:"决赛于 2026 年 9 月 10 日举行",event_time_refs:[1],article_timestamp_fallback_used:false,impact:"medium",is_news:true,is_high_impact_short_lived:false,is_quantitative_snapshot:false,is_ongoing_stage:false,is_superseded:false,superseding_event_time:"unknown",superseding_refs:[],deadline_date:"unknown",trend_start_date:"unknown",trend_end_date:"unknown",trend_span_days:null,policy_class:"other_news",confidence:"high",reason:"正文明确给出决赛日期。",references:[1]},{clause:"创下赛季得分纪录",title_support:"创下赛季得分纪录",milestone:"赛季得分纪录",reporting_stance:"result",lifecycle:"once_off",once_off_kind:"discrete",event_time:"2026-09-12",event_time_basis:"article_timestamp_fallback",event_time_quote:"",event_time_refs:[],article_timestamp_fallback_used:true,impact:"medium",is_news:true,is_high_impact_short_lived:true,is_quantitative_snapshot:true,is_ongoing_stage:false,is_superseded:true,superseding_event_time:"2026-09-15",superseding_refs:[3],deadline_date:"unknown",trend_start_date:"unknown",trend_end_date:"unknown",trend_span_days:null,policy_class:"other_news",confidence:"medium",reason:"后续报道明确说明纪录已被刷新。",references:[2,3]}]}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "v3_user_understanding", logStep: "user_understanding_assembled_v3", name: "UserUnderstandingV3Prompt.md",
+        path: "StorylineGenerationV3/UserUnderstandingV3Prompt.md", schema: "StorylineGenerationV3/UserUnderstandingV3.json",
+        task: "标记 V3 画像兴趣的 AI 相关性，并从最接近的兴趣派生目标兴趣标签。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",target_interest_names:["相机"],UserId:"u1",Biography:"经常比较摄影器材并关注户外拍摄。",Interests:[{Name:"摄影",Persona:"喜欢风景摄影",ActualActivity:"浏览相机评测",InferredIntent:"选择器材",ConfidenceScore:0.92,FirstDetectDate:"2026-01-10",LastDetectDate:"2026-09-12",State:"Stable",Topics:[{Topic:"风景摄影",ConfidenceScore:0.88,FirstDetectDate:"2026-01-10",LastDetectDate:"2026-09-12"}]},{Name:"户外旅行",Persona:"规划短途户外活动",ActualActivity:"查看徒步路线",InferredIntent:"选择便携装备",ConfidenceScore:0.76,FirstDetectDate:"2026-03-01",LastDetectDate:"2026-09-05",State:"Stable",Topics:[{Topic:"徒步路线"}]}]},
+        output: {Interests:[{Name:"摄影",aiRelated:false,SensitiveCategory:""},{Name:"户外旅行",aiRelated:false,SensitiveCategory:""}],targetTag:{Name:"相机",closestInterestName:"摄影",Persona:"关注风景摄影并经常研究相机选择。",ActualActivity:"比较相机评测和适合风景拍摄的器材。",InferredIntent:"选择适合风景摄影的相机。",State:"Stable",Topics:["风景摄影","相机评测"],angleScope:"personal_life",aiRelated:false}}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "v3_query_gen", logStep: "query_gen_v3", name: "QueryGeneratorV3Prompt.md",
+        path: "StorylineGenerationV3/QueryGeneratorV3Prompt.md", schema: "StorylineGenerationV2/QueryListV2.json",
+        task: "先生成目标专属检索组，再生成受 V3 用户画像意图约束的交叉检索组。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",market:"en-us",target_understanding:{Name:"相机",Persona:"关注风景摄影器材",ActualActivity:"比较相机评测",InferredIntent:"选择适合户外拍摄的相机",State:"Stable",Topics:["风景摄影","相机评测"],angleScope:"personal_life",aiRelated:false},UserId:"u1",Biography:"经常比较摄影器材。",Interests:[{Name:"摄影",persona:"喜欢风景摄影并研究器材",actualActivity:"浏览相机评测",inferredIntent:"选择器材",Keywords:["风景摄影","相机"],confidenceScore:0.92,lastDetectDate:"2026-09-12",state:"Stable",aiRelated:false}]},
+        output: {queryGroups:[{groupId:"g1",linkedInterestNames:["相机"],userIntent:"了解适合风景摄影的相机，并比较评测中的关键选择因素。",searchKeywords:["相机 风景摄影","相机 评测","相机 户外拍摄"],freshnessPriority:"medium",aiRelated:false,crossNovelty:0.2}]}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "user_understanding", logStep: "user_understanding_assembled", name: "UserUnderstandingPrompt.md",
+        path: "StorylineGenerationV2/UserUnderstandingPrompt.md", schema: "StorylineGenerationV2/UserUnderstanding.json",
+        task: "为 V2 兴趣判断专业程度、理解状态、内容意图、AI 相关性，并派生目标兴趣。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",target_interest_names:["相机"],UserId:"u1",Interests:[{Interest:"摄影",Keywords:["风景","相机","构图"],Weight:0.8},{Interest:"户外旅行",Keywords:["徒步","路线"],Weight:0.6}]},
+        output: {UserId:"u1",Interests:[{Name:"摄影",Expertise:"enthusiast",UnderstandingState:"informed",Intent:["track_latest","decision_research"],Description:"关注风景摄影，也会比较相机和构图方法。",aiRelated:false,SensitiveCategory:""},{Name:"户外旅行",Expertise:"enthusiast",UnderstandingState:"novice_overview",Intent:["inspiration"],Description:"关注适合徒步的路线和户外活动。",aiRelated:false,SensitiveCategory:""}],targetTag:{Name:"相机",closestInterestName:"摄影",Expertise:"enthusiast",UnderstandingState:"informed",Intent:["decision_research"],angleScope:"personal_life",Description:"以日常风景摄影参与者的角度比较相机，重点关注实际选择因素。",aiRelated:false}}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "query_gen", logStep: "query_gen", name: "QueryGeneratorPrompt.md",
+        path: "StorylineGenerationV2/QueryGeneratorPrompt.md", schema: "StorylineGenerationV2/QueryListV2.json",
+        task: "按目标兴趣主题生成专属检索组，并按共同用户意图生成交叉检索组。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",market:"en-us",target_understanding:{Name:"相机",Intent:["decision_research","inspiration"],angleScope:"personal_life"},Interests:[{Name:"摄影",Keywords:["风景","相机","构图"],Expertise:"enthusiast",UnderstandingState:"informed",Intent:["decision_research","inspiration"],Description:"比较适合风景摄影的器材。"}]},
+        output: {queryGroups:[{groupId:"g1",linkedInterestNames:["相机"],userIntent:"比较适合风景摄影的相机，并了解实际拍摄体验。",searchKeywords:["相机 风景摄影","相机 评测","相机 构图 拍摄体验"],freshnessPriority:"low",aiRelated:false,crossNovelty:0.2}]}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "tag_group", logStep: "tag_group", name: "GroundingTaggerPrompt.md",
+        path: "StorylineGenerationV2/GroundingTaggerPrompt.md", schema: "StorylineGenerationV2/GroundingTags.json",
+        task: "标记搜索结果的文章类型、真实事件日期、相关性、语言和不可用页面风险。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {groupId:"g1",userIntent:"比较适合风景摄影的相机",searchKeywords:["相机 风景摄影","相机 评测","相机 户外拍摄"],results:[{resultId:"g1.r1",title:"厂商发布新相机",url:"https://news.example.com/camera-launch",source:"news",publishDate:"2026-09-15",snippet:"厂商发布面向风景摄影的新相机。"},{resultId:"g1.r2",title:"相机品牌首页",url:"https://brand.example.com",source:"web",publishDate:"2026-09-01",snippet:"产品和服务入口。"}]},
+        output: {groupId:"g1",taggedResults:[{resultId:"g1.r1",articleType:"event_report",inferredEventDate:"2026-09-15",relevanceToQuery:5,language:"zh-hans",isGenericPage:false,isAggregatorUnresolved:false,isRoundupOrphan:false},{resultId:"g1.r2",articleType:"standalone_resource",inferredEventDate:"unknown",relevanceToQuery:1,language:"zh-hans",isGenericPage:true,isAggregatorUnresolved:false,isRoundupOrphan:false}]}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "storyline_group", logStep: "storyline_group", name: "StorylineGeneratorPrompt.md",
+        path: "StorylineGenerationV2/StorylineGeneratorPrompt.md", schema: "StorylineGenerationV2/StorylineListV2.json",
+        task: "基于一个 query group 的已标记结果，生成 1–3 个具有明确用户价值的 storyline brief。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Context + Single-turn JSON → Structured JSON",
+        input: {current_date:"2026-09-16",target_understanding:{Name:"相机",Intent:["decision_research"],angleScope:"personal_life"},groupId:"g1",userIntent:"比较适合风景摄影的相机",linkedInterestNames:["相机"],searchKeywords:["相机 风景摄影","相机 评测","相机 户外拍摄"],profileInterests:[{Name:"摄影",Keywords:["风景","相机"],Expertise:"enthusiast",Description:"比较适合风景摄影的器材。"}],taggedResults:[{resultId:"g1.r1",title:"相机新品发布",url:"https://news.example.com/camera-launch",articleType:"event_report",inferredEventDate:"2026-09-15",relevanceToQuery:5},{resultId:"g1.r2",title:"新相机风景摄影评测",url:"https://review.example.com/camera-review",articleType:"derivative",inferredEventDate:"2026-09-14",relevanceToQuery:5}]},
+        output: {storylineList:[{storylineId:"s1",linkedInterestNames:["相机"],freshnessHook:{evidenceByInterest:[{interest:"相机",evidenceIds:["g1.r1","g1.r2"]}]},angle:{primary:"Contrast / Unexpectedness",secondary:"Implication for User Experience"},reason:"普通报道只会说明新品发布；现有评测还支持比较它在风景摄影中的实际取舍，能帮助读者判断是否值得关注。",topic:"Camera choices for landscape photography",title:"What the new camera changes for landscape photographers",description:"Compare the new camera with the practical needs of landscape photographers. Focus on evidence-backed differences in shooting and selection rather than repeating the launch announcement.",toneGuidance:"Use an informed but practical register for an enthusiast audience. Explain concrete trade-offs.",genre:"timely_guide",genreGuidance:"Use a comparison-led structure centered on supported landscape-photography trade-offs.",aiRelated:false,relevance:5,importance:4,authority:4}]}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "storyline_value_reevaluation", name: "StorylineValueReevaluationPrompt.md",
+        path: "StorylineGenerationV2/StorylineValueReevaluationPrompt.md", schema: "StorylineGenerationV2/StorylineValueReevaluation.json",
+        task: "独立复评已过滤 storyline 的用户收益与编辑价值，给出 1–5 分。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Single-turn JSON → Structured JSON",
+        input: {storylineId:"s1",linkedInterestNames:["相机"],freshnessHook:{evidenceByInterest:[{interest:"相机",evidenceIds:["g1.r1","g1.r2"]}]},angle:{primary:"Contrast / Unexpectedness",secondary:"Implication for User Experience"},title:"What the new camera changes for landscape photographers",topic:"Camera choices for landscape photography",description:"Compare the new camera's practical trade-offs for landscape photographers.",genre:"timely_guide",relevance:5,importance:4,authority:4},
+        output: {storylineId:"s1",valueScore:4,reasoning:"It turns a routine launch into a concrete choice guide grounded in two distinct articles."}
+      },
+      {
+        scenario: "Storyline Generation V2", step: "low_value_review", name: "LowValueReviewerPrompt.md",
+        path: "StorylineGenerationV2/LowValueReviewerPrompt.md", schema: "StorylineGenerationV2/LowValueReview.json",
+        task: "按敏感内容、交叉 grounding、主题包装和低 ROI 规则拦截不应进入 feed 的 storyline。",
+        model: "Qwen3.5-35B-A3B", architecture: "Qwen 3.5；35B-A3B（部署名）", format: "Single-turn JSON array → Structured JSON",
+        input: [{storylineId:"s1",linkedInterestNames:["相机"],freshnessHook:{evidenceByInterest:[{interest:"相机",evidenceIds:["g1.r1","g1.r2"]}]},angle:{primary:"Contrast / Unexpectedness",secondary:"Implication for User Experience"},topic:"Camera choices for landscape photography",title:"What the new camera changes for landscape photographers",description:"Compare the new camera's practical trade-offs for landscape photographers.",genre:"timely_guide",relevance:5,importance:4,authority:4,crossGrounding:{supported:true,evidenceIds:["g1.r1","g1.r2"]}},{storylineId:"s2",linkedInterestNames:["相机"],topic:"Generic camera news",title:"A camera brand releases another model",description:"A routine announcement with no concrete decision value.",genre:"soft_news_update",relevance:3,importance:2,authority:3}],
+        output: {results:[{isLowValue:false,reasoning:"The first storyline has two distinct sources and a concrete purchase decision angle."},{isLowValue:true,reasoning:"The second storyline is a routine announcement without a specific user takeaway."}]}
+      }
+    ];
+
+    const dlisEntries = [
+      {
+        scenario:"Interest Cluster", step:"ClusterInterest / InterestReranker", name:"Embedded InterestReranker PromptTemplate", dlis:true,
+        path:"Services/InterestReranker.cs", schema:"C# record contract",
+        task:"判断两个 taxonomy interest 是否是应合并到同一 cluster 的严格近重复项。",
+        model:"dlis-coreranker.qwen306b-reranker/score_pairs",architecture:"Qwen3 0.6B reranker",format:"Batch pairs + prompt_template → score/decision",
+        input:{pairs:[{interest1:"SpaceX corporate news > monitoring valuation",interest2:"SpaceX > tracking corporate and investor news"},{interest1:"SpaceX corporate news > monitoring valuation",interest2:"Blue Origin launch news > following missions"}],threshold:0.5,prompt_template:"<Instruct>: judge whether the two interest nodes are strict near-duplicates; output only yes or no."},
+        output:{results:[{score:0.91,decision:true},{score:0.08,decision:false}]}, modelOnly:true
+      },
+      {
+        scenario:"Interest Selection", step:"LoadTopicEmbeddingsAsync", name:"BERT Embedding (no prompt)", dlis:true,
+        path:"../../../Kunlun.Function/BertEmbeddingServices/BertEmbeddingService.cs", schema:"HTTP JSON contract",
+        task:"把 level-1 topic 名和 topic path 编码成低维向量，用于 interest selection scoring。",
+        model:"coreranker.feeds_bert_prod",architecture:"BERT embedding；规模未知",format:"Single JSON request → embedding vector",
+        input:{title:"Technology > Artificial Intelligence > Generative AI tools"},output:{low_dim_emb:[0.0124,-0.0831,0.0417,0.2268,-0.1175,0.0642,0.0098,-0.0314,0.1456,-0.0722,0.0189,0.0941]},modelOnly:true
+      },
+      {
+        scenario:"Meta Generation / Storyline Generation V2", step:"GemGroundingService.RerankAsync", name:"Refer-document reranker embedded prompts", dlis:true,
+        path:"../../../../../Clients/GemGrounding/GemReferDocRerankUtils.cs", schema:"C# JSON contract",
+        task:"根据 query 复排候选文档，同时考虑相关性、publisher 质量与领域匹配。",
+        model:"coreranker.Reranker-8B / ImportantNews.Reranker-8B",architecture:"Qwen3 reranker-8B",format:"Batch JSON array → score array",
+        input:[{query:"latest EV battery policy",chunk:"The regulator announced a new battery-recycling rule for electric vehicles on September 12, 2026.",system_prompt:"<|im_start|>system\nJudge whether the Document meets the requirements based on the Query.\nRequirements: relevance, source quality, and domain fit. Answer only yes or no.<|im_end|>\n<|im_start|>user",instruction:"Given a web search query, retrieve relevant passages that answer the query. Besides relevance, also prefer passages from good publishers."},{query:"latest EV battery policy",chunk:"The regulator's official bulletin explains the effective date and affected vehicle categories.",system_prompt:"<|im_start|>system\nJudge whether the Document meets the requirements based on the Query.\nRequirements: relevance, source quality, and domain fit. Answer only yes or no.<|im_end|>\n<|im_start|>user",instruction:"Given a web search query, retrieve relevant passages that answer the query. Besides relevance, also prefer passages from good publishers."}],output:[0.87,0.94],modelOnly:true
+      }
+    ];
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
+    }
+
+    function json(value) { return JSON.stringify(value, null, 2); }
+
+    function genericKql(entry, direction) {
+      const keyword = direction === "input" ? "request|input|prompt" : "response|output|completion";
+      return `let request_id = "<REQUEST_ID>";\nGSPEventJob\n| where Timestamp > ago(7d)\n| where ApplicationName == "${apps[entry.scenario] || "<APPLICATION_NAME>"}"\n| where isempty(request_id) or RequestId == request_id\n| where Message has "${entry.step.split(" / ")[0]}" or tostring(Properties) has "${entry.step.split(" / ")[0]}"\n| where Message matches regex @"(?i)${keyword}" or tostring(Properties) matches regex @"(?i)${keyword}"\n| project Timestamp, RequestId, TraceId, Message, Properties\n| order by Timestamp asc`;
+    }
+
+    function storylineV2Kql(entry, direction) {
+      return `let request_id = "<REQUEST_ID>";\nGSPEventJob\n| where Timestamp > ago(7d)\n| where ApplicationName == "${apps[entry.scenario]}"\n| where isempty(request_id) or RequestId == request_id\n| extend p = todynamic(Properties)\n| where tostring(p.Step) == "${entry.logStep}"\n| project Timestamp, RequestId, ${direction === "input" ? "Input=tostring(p.Input)" : "Output=tostring(p.Output)"}\n| order by Timestamp asc`;
+    }
+
+    function modelKql(entry, direction) {
+      const term = entry.model.includes("bert") ? "BertEmbedding" : entry.model.includes("Reranker-8B") ? "refer-doc rerank" : "reranker";
+      return `GSPEventJob\n| where Timestamp > ago(7d)\n| where ApplicationName in ("Kunlun.EventHost.AgenticGemInterestClust", "Kunlun.EventHost.AgenticGemInterestSel", "Kunlun.EventHost.AgenticGemMetaGeneration", "Kunlun.EventHost.AgenticGemStorylineGenerationV2")\n| where Message has "${term}"\n| where Message has "${direction === "input" ? "request" : "response"}" or Message has "${direction === "input" ? "Endpoint" : "succeeded"}"\n| project Timestamp, ApplicationName, RequestId, Message, Properties\n| order by Timestamp desc`;
+    }
+
+    function kqlFor(entry, direction) {
+      if (entry.modelOnly) return modelKql(entry, direction);
+      if (entry.scenario === "Storyline Generation V2" && entry.logStep) return storylineV2Kql(entry, direction);
+      return genericKql(entry, direction);
+    }
+
+    function telemetryNote(entry) {
+      if (entry.modelOnly) return "DLIS 调用日志查询；部分服务只记录 endpoint、延迟和分数，不记录完整 payload。";
+      if (entry.scenario === "Storyline Generation V2" && entry.logStep) return "结构化 StorylineLog 查询。部分 log step 的 output 已经过后处理。";
+      return "通用诊断模板：可定位 step 执行日志，但当前代码未定义该 prompt 的专用 input/output Kusto 契约。";
+    }
+
+    function codePanel(title, content, language) {
+      return `<div class="code-panel"><div class="code-title"><span>${title} · ${language}</span><button class="copy" type="button">复制</button></div><pre>${escapeHtml(content)}</pre></div>`;
+    }
+
+    function renderEntry(entry, index, isModelOnly = false) {
+      const promptHref = entry.path.endsWith(".cs") ? "../" + entry.path : promptBase + entry.path;
+      const schemaText = entry.schema.startsWith("无") || entry.schema.includes("contract") ? escapeHtml(entry.schema) : `<a href="${schemaBase + entry.schema}">${escapeHtml(entry.schema)}</a>`;
+      const badges = `<span class="badge">${escapeHtml(entry.scenario)}</span>${entry.dlis ? '<span class="badge dlis">DLIS</span>' : ""}${isModelOnly ? '<span class="badge dlis">Model call</span>' : ""}`;
+      return `<article class="entry" data-search="${escapeHtml([entry.scenario,entry.step,entry.name,entry.model,entry.task].join(" ").toLowerCase())}" data-scenario="${escapeHtml(entry.scenario)}">
+        <div class="entry-header" role="button" tabindex="0" aria-expanded="false">
+          <div class="index">${isModelOnly ? "M" : index + 1}</div>
+          <div>${badges}<h3>${escapeHtml(entry.name)}</h3><div class="path"><a href="${promptHref}">${escapeHtml(entry.path)}</a> · step: ${escapeHtml(entry.step)}</div></div>
+          <button class="chevron" type="button" aria-label="展开详情">+</button>
+        </div>
+        <div class="entry-summary">
+          <div class="field"><label>Scenario</label><div>${escapeHtml(entry.scenario)}</div></div>
+          <div class="field"><label>Task</label><div>${escapeHtml(entry.task)}</div></div>
+          <div class="field"><label>Model Architecture</label><div><strong>${escapeHtml(entry.model)}</strong><br>${escapeHtml(entry.architecture)}</div></div>
+          <div class="field"><label>Data Format</label><div><span class="interaction-mode">Single-turn interaction</span><br>${escapeHtml(entry.format)}<br>Schema: ${schemaText}</div></div>
+        </div>
+        <div class="entry-detail">
+          <p class="task"><strong>用途：</strong>${escapeHtml(entry.task)}</p>
+          <p class="example-scope">以下为代表性结构示例，保留关键嵌套对象、证据关系与决策字段；为便于阅读仅展示少量数组元素，生产 payload 的数组长度与文本体量通常更大。</p>
+          <div class="io-grid">${codePanel("Input example", json(entry.input), "JSON")}${codePanel("Output example", json(entry.output), "JSON")}</div>
+          <details class="kql"><summary>Input / Output KQL</summary><div class="kql-meta">${escapeHtml(telemetryNote(entry))}</div><div class="kql-grid">${codePanel("Input query", kqlFor(entry,"input"), "KQL")}${codePanel("Output query", kqlFor(entry,"output"), "KQL")}</div></details>
+        </div>
+      </article>`;
+    }
+
+    const modelLabels = ["Model", "Protocol", "Architecture", "Used by", "Data contract"];
+    document.getElementById("models").innerHTML = models.map(row => `<tr>${row.map((cell,i) => `<td data-label="${modelLabels[i]}">${i === 0 ? `<code>${escapeHtml(cell)}</code>` : i === 4 ? `<span class="interaction-mode">Single-turn interaction</span><br>${escapeHtml(cell)}` : escapeHtml(cell)}</td>`).join("")}</tr>`).join("");
+    const allEntries = [...entries, ...dlisEntries];
+    const catalog = document.getElementById("catalog");
+    catalog.innerHTML = entries.map((entry,index) => renderEntry(entry,index)).join("") + dlisEntries.map(entry => renderEntry(entry,0,true)).join("");
+
+    const scenario = document.getElementById("scenario");
+    [...new Set(allEntries.map(x => x.scenario))].sort().forEach(value => scenario.insertAdjacentHTML("beforeend", `<option>${escapeHtml(value)}</option>`));
+    const search = document.getElementById("search");
+    function filter() {
+      const term = search.value.trim().toLowerCase();
+      let visible = 0;
+      let visibleModelCalls = 0;
+      document.querySelectorAll(".entry").forEach(element => {
+        const show = (!term || element.dataset.search.includes(term)) && (!scenario.value || element.dataset.scenario === scenario.value);
+        element.classList.toggle("hidden", !show);
+        if (show) {
+          visible++;
+          if (element.querySelector(".badge.dlis:last-of-type")?.textContent === "Model call") visibleModelCalls++;
+        }
+      });
+      document.getElementById("resultCount").textContent = `${visible} 条记录（其中 ${visibleModelCalls} 条为补充 DLIS model call）`;
+      document.getElementById("empty").classList.toggle("show", visible === 0);
+    }
+    search.addEventListener("input", filter);
+    scenario.addEventListener("change", filter);
+    filter();
+
+    catalog.addEventListener("click", event => {
+      const copy = event.target.closest(".copy");
+      if (copy) {
+        navigator.clipboard.writeText(copy.closest(".code-panel").querySelector("pre").textContent);
+        copy.textContent = "已复制";
+        setTimeout(() => copy.textContent = "复制", 900);
+        return;
+      }
+      const header = event.target.closest(".entry-header");
+      if (header) {
+        const entry = header.closest(".entry");
+        entry.classList.toggle("open");
+        header.setAttribute("aria-expanded", entry.classList.contains("open"));
+      }
+    });
+    catalog.addEventListener("keydown", event => {
+      if ((event.key === "Enter" || event.key === " ") && event.target.classList.contains("entry-header")) event.target.click();
+    });
+    document.getElementById("listView").addEventListener("click", () => {
+      catalog.classList.remove("cards");
+      document.getElementById("listView").classList.add("active");
+      document.getElementById("cardView").classList.remove("active");
+    });
+    document.getElementById("cardView").addEventListener("click", () => {
+      catalog.classList.add("cards");
+      document.getElementById("cardView").classList.add("active");
+      document.getElementById("listView").classList.remove("active");
+    });
+  </script>
+</body>
+</html>

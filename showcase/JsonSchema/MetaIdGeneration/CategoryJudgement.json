@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CategoryJudgement",
+  "description": "Verdict from CategoryJudgeAgent for the second-layer category clustering step",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "matched_category": {
+      "type": "string",
+      "description": "Existing category name from categoryDict, or the literal string \"NEW\""
+    },
+    "inferred_category": {
+      "type": "string",
+      "description": "Proposed new category name when matched_category is \"NEW\"; otherwise empty string"
+    },
+    "reason": {
+      "type": "string",
+      "description": "One short sentence explaining the decision"
+    }
+  },
+  "required": ["matched_category", "inferred_category", "reason"]
+}

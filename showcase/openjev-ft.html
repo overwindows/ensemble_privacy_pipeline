@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenJev Clickbait Fine-Tune — Live Progress</title>
+<style>  :root {
+    --accent:#0f6cbd;
+    --accent2:#5b2ddb;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --error:#c42b1c;
+    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:Cascadia Code,Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:22px 32px;position:sticky;top:0;z-index:5}
+  header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.3px}
+  header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:22px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .stat .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:24px;font-weight:700;margin-top:4px}
+  .stat .s{font-size:12px;color:var(--muted);margin-top:4px}
+  h2{font-size:16px;margin:30px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--txt)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--card2);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .b-run{background:rgba(79,157,255,.15);color:var(--blue);border:1px solid rgba(79,157,255,.4)}
+  .b-ok{background:rgba(61,214,140,.15);color:var(--green);border:1px solid rgba(61,214,140,.4)}
+  .b-fail{background:rgba(255,93,115,.15);color:var(--red);border:1px solid rgba(255,93,115,.4)}
+  .b-queued{background:rgba(245,185,66,.15);color:var(--amber);border:1px solid rgba(245,185,66,.4)}
+  .b-mute{background:rgba(154,167,189,.12);color:var(--muted);border:1px solid var(--line)}
+  code{background:var(--card2);padding:1px 6px;border-radius:5px;font-size:12px;font-family:Consolas,monospace}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:12px 0}
+  .fix{border-left:3px solid var(--cyan);padding:10px 14px;background:var(--card);border-radius:0 8px 8px 0;margin:10px 0}
+  .fix b{color:var(--cyan)}
+  .muted{color:var(--muted);font-size:13px}
+  .timeline{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  footer{color:var(--muted);font-size:12px;margin-top:40px;padding-top:16px;border-top:1px solid var(--line)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="openjev-ft.html" class="active">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+<header>
+  <h1>OpenJev Clickbait — Fine-Tune Campaign</h1>
+  <div class="sub">Beat the merge-sweep champion <b>plain-F1 0.5495</b> by fine-tuning the merged init (LoRA / DPO / RLCD / full-param SFT) &nbsp;·&nbsp; Singularity <code>ranking</code> VC · 1× ND12am A100</div>
+</header>
+<div class="wrap">
+
+  <div class="grid">
+    <div class="stat"><div class="k">Champion (merge)</div><div class="v" style="color:var(--amber)">0.5495</div><div class="s">block-e120-l000-c16 · best to beat</div></div>
+    <div class="stat"><div class="k">Best so far (FT)</div><div class="v" style="color:var(--green)">0.5730</div><div class="s">LoRA · beats merge champion by +0.0235</div></div>
+    <div class="stat"><div class="k">Data (track-B)</div><div class="v">11,914</div><div class="s">golden_set.tsv · en 2715 train / 302 eval · NOT v12</div></div>
+    <div class="stat"><div class="k">Completed</div><div class="v" style="color:var(--green)">4/4</div><div class="s">LoRA ✓ · SFT ✓ · RLCD ✓ · DPO ✓</div></div>
+  </div>
+
+  <h2>Method results</h2>
+  <table>
+    <thead>
+      <tr><th>Method</th><th>Job</th><th>Status</th><th>plain-F1 @ thr</th><th>Prec / Rec</th><th>vs 0.5495</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>LoRA</b></td><td><code>teal_okra_5ybpfdt0d4</code></td><td><span class="badge b-ok">COMPLETED</span></td><td><b>0.5730</b> @ 0.6795</td><td>.469 / .736</td><td style="color:var(--green)"><b>▲ +0.0235</b></td></tr>
+      <tr><td><b>Full-param SFT</b></td><td><code>bubbly_cart_r3y3j2q97f</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5655 @ 0.6795</td><td>.453 / .752</td><td style="color:var(--green)"><b>▲ +0.0160</b></td></tr>
+      <tr><td><b>RLCD</b></td><td><code>elated_planet_tb80swwb25</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5410 @ 0.6795</td><td>.437 / .709</td><td style="color:var(--red)">▼ −0.0085</td></tr>
+      <tr><td><b>DPO</b></td><td><code>lime_cat_dhgz3g92ms</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5066 @ 0.6795</td><td>.369 / .811</td><td style="color:var(--red)">▼ −0.0429</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Eval harness: same as merge sweep — <code>evaluate_openjev_trait_probabilities.py</code> + <code>sweep_thresholds.py</code> on golden_set.tsv (head-to-head vs champion 0.5495).</p>
+
+  <h2>Dataset</h2>
+  <div class="card" style="font-size:14px">
+    <p style="margin:0"><b>Track-B fallback: <code>golden_set.tsv</code></b> — these are <b>exploratory</b> numbers, NOT the real v12 evaluation.</p>
+    <ul style="margin:8px 0 0;padding-left:20px">
+      <li>11,914 rows · 5 languages (en/zh/ja/fr/de ≈ 3k/3k/2k/2k/2k) · binary + 4-dim (EL/ET/PO/PR) labels; <code>Clickbait == max(EL,ET,PO,PR)</code> holds for all rows.</li>
+      <li>Trained on the leak-safe English split: <b>2,715 train / 302 eval</b> (seed 20260920, dedup by headline, stratified by market/source/label). Reported F1 = head-to-head on full golden_set.tsv, same harness as merge sweep.</li>
+      <li>Positive rate 11.5% (1372 rows); content: article 8978 / slideshow 843 / video 2093.</li>
+      <li><b style="color:var(--amber)">⬤ CAVEAT:</b> golden split overlaps the 0.5495 merge benchmark grounds → numbers are fit-to-benchmark, not clean generalization. The real <code>v12_training_set.tsv</code> (Xinyi/Minglei, private AML) is still gated; rerun all 4 methods on v12 once shared.</li>
+    </ul>
+  </div>
+
+  <h2>Progress timeline</h2>
+  <div class="card">
+    <div class="timeline">
+      <span class="dot" style="background:var(--green)"></span> data prep OK
+      <span class="dot" style="background:var(--green)"></span> LoRA/DPO/RLCD train+eval OK
+      <span class="dot" style="background:var(--green)"></span> adapter merge fixed
+      <span class="dot" style="background:var(--red)"></span> SFT optimizer fixed
+      <span class="dot" style="background:var(--blue)"></span> all 4 resubmitted &amp; running
+      <span class="dot" style="background:var(--green)"></span> <b>all 4 COMPLETED — LoRA new champion 0.5730</b>
+    </div>
+  </div>
+
+  <h2>Bugs found &amp; fixed (2026-10-07/08)</h2>
+  <div class="fix"><b>Adapter merge was a silent no-op.</b> <code>merge_peft_adapter.py</code> loaded base via <code>AutoModelForCausalLM</code> (427 weight groups) while trainers use <code>Qwen3_5ForConditionalGeneration</code> (760 groups) → 496 adapter keys unmatched (<code>linear_attn.out_proj</code>, <code>in_proj_qkv/z/b/a</code>, <code>mlp.gate/up/down</code>) → zero LoRA deltas applied → every "merged" model = init → identical 0.5249 across all 3 methods. <b>Fix:</b> load base as <code>Qwen3_5ForConditionalGeneration</code>.</div>
+  <div class="fix"><b>Full-param SFT OOM at first optimizer.step.</b> fp32 AdamW on ~8.7B params blew the 79 GB A100. <b>Fix:</b> 8-bit AdamW (<code>bnb.optim.AdamW8bit</code>) + gradient checkpointing + seq-len 6144→1024.</div>
+  <div class="fix"><b>Dependency wall (prior).</b> transformers 5.16.1 + peft 0.21.0 + torch/torchvision ABI mismatch → resolved via <code>--no-deps</code> staged pip + explicit <code>tokenizers==0.23.2</code> pin + <code>openjev_compat.py</code> Bloom shim.</div>
+
+  <h2>Campaign notes</h2>
+  <div class="grid2">
+    <div class="card">
+      <b class="muted">Approach</b>
+      <p style="margin:8px 0 0;font-size:14px;color:var(--txt)">
+        Take the best merged checkpoint (<code>qwen-clickbait-openjev-task-vector-50-0</code>)
+        as init and fine-tune with 4 methods to push F1 past the merge champion 0.5495.
+        Data = golden_set.tsv track-B split (leak-safe, seed 20260920). Final numbers are
+        exploratory until Xinyi/Minglei share the real v12 set.
+      </p>
+    </div>
+    <div class="card">
+      <b class="muted">Validation on completion</b>
+      <p style="margin:8px 0 0;font-size:14px;color:var(--txt)">
+        Before trusting eval, diff a merged shard vs the init to prove the adapter took.
+        Then report plain-F1 @ best threshold, P/R, latency per method — the real proof the
+        merge fix worked.
+      </p>
+    </div>
+  </div>
+
+  <footer>OpenJev Clickbait Fine-Tune campaign · final results snapshot 2026-10-08 · LoRA 0.5730 declared new champion (beats merge 0.5495) · page auto-refresh: no (static)</footer>
+</div>
+</body>
+</html>

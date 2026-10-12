@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SectionReviewResult",
+  "description": "Accuracy and content-quality review result for one generated section",
+  "type": "object",
+  "properties": {
+    "review_status": {
+      "type": "string",
+      "enum": ["Yes", "Somewhat", "No"],
+      "description": "Yes for a high-confidence defect, Somewhat for a medium-confidence defect, otherwise No"
+    },
+    "claim_checks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Exactly one compact check for every supplied claim ID",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Claim ID copied from REQUIRED CLAIM AUDIT"
+          },
+          "result": {
+            "type": "string",
+            "enum": ["PASS", "FLAGGED"],
+            "description": "PASS when no defect was found; FLAGGED when one or more findings refer to this claim"
+          },
+          "source_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Supporting or conflicting IDs copied from declared or ground sources; empty only when no source applies"
+          },
+          "audit_basis": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Concise independent comparison of the generated binding with source context; for numeric claims include generated and source value/unit/boundary"
+          }
+        },
+        "required": ["claim_id", "result", "source_ids", "audit_basis"],
+        "additionalProperties": false
+      }
+    },
+    "findings": {
+      "type": "array",
+      "description": "Factual or content-quality defects found in the section",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the flagged claim"
+          },
+          "sentence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Exact title, body sentence, or augmentation row/item from the generated section"
+          },
+          "error_type": {
+            "type": "string",
+            "enum": ["UNSUPPORTED", "CONTRADICTED", "WRONG_NUMBER", "WRONG_ENTITY", "CONTENT_QUALITY"]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Concise explanation of the defect"
+          },
+          "source_evidence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Source evidence for the mismatch, or the prompt-defined fallback text"
+          },
+          "corrected_statement": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Complete source-grounded replacement, or DELETE when none exists"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          }
+        },
+        "required": [
+          "claim_id",
+          "sentence",
+          "error_type",
+          "reason",
+          "source_evidence",
+          "corrected_statement",
+          "confidence"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["review_status", "claim_checks", "findings"],
+  "additionalProperties": false
+}

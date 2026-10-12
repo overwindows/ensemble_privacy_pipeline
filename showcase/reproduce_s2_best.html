@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Reproduce S2 — Gemma4 vLLM Best Throughput</title>
+<style>  :root {
+    --accent:#0f6cbd;
+    --accent2:#5b2ddb;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --error:#c42b1c;
+    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:Cascadia Code,Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:"Segoe UI",system-ui,sans-serif;
+         margin:0; padding:32px 16px; line-height:1.6; }
+  .wrap { max-width:820px; margin:0 auto; }
+  .paper { background:var(--paper); border-radius:14px; padding:40px 44px;
+           box-shadow:0 20px 50px rgba(2,6,23,.55); }
+  .kicker { text-transform:uppercase; letter-spacing:.12em; font-size:11px;
+            color:var(--accent); font-weight:700; margin-bottom:8px; }
+  h1 { font-size:26px; margin:0 0 6px; line-height:1.25; }
+  h2 { font-size:18px; margin:28px 0 12px; border-bottom:1px solid var(--line);
+       padding-bottom:6px; }
+  h3 { font-size:15px; margin:20px 0 8px; }
+  code { background:var(--code); border:1px solid var(--line); border-radius:4px;
+         padding:1px 5px; font-size:12.5px; font-family:Consolas,monospace; }
+  pre { background:#0f172a; color:#e2e8f0; border-radius:8px; padding:14px 16px;
+        overflow-x:auto; font-size:12.5px; line-height:1.5; }
+  pre code { background:none; border:none; color:inherit; padding:0; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  blockquote { border-left:3px solid var(--accent); background:#f8fafc; margin:12px 0;
+               padding:8px 14px; border-radius:0 8px 8px 0; color:#334155; font-size:14px; }
+  a { color:var(--accent); }
+  .foot { color:var(--mut); font-size:11px; margin-top:24px; text-align:center; }
+  @media(max-width:640px){ .paper{padding:24px;} }
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html" class="active">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap"><div class="paper"><div class="kicker">Reproduction Recipe · vLLM on NVIDIA A100 (sm_80)</div>
+<h1>Reproducing the Best Gemma-4-26B-A4B Throughput Result (S2, ~2403 output TPS)</h1>
+<p>Standalone recipe for anyone outside the campaign to reproduce the current throughput
+champion on a single <strong>NVIDIA A100 80GB (sm_80)</strong>:</p>
+<blockquote>
+<p><strong>2403.18 output tokens/s</strong> (QPS 1.80, 556.66s per 1000 prompts at fixed output_len 8192)
+— the <code>feat/gemma4-decode2d-geom</code> "S2" geometry, <strong>reproducibly re-confirmed at 2402.49</strong>.</p>
+</blockquote>
+<p>This is the <strong>throughput</strong> result only. It is <strong>not</strong> the quality-gated int4 target (that
+lever to ~2500 is still mid quality-check; see the live page).</p>
+<hr />
+<h2>1. The implementation — a dedicated fork branch</h2>
+<ul>
+<li><strong>Fork repo:</strong> <code>https://github.com/wuc_microsoft/vllm-msn</code> (private fork of <code>MS-Feeds/vllm-msn</code>)</li>
+<li><strong>Branch:</strong> <code>feat/gemma4-decode2d-geom</code></li>
+</ul>
+<p>Use the <strong>baked</strong> commit (the one the champion run actually executed, and the current
+branch head):</p>
+<table>
+<thead>
+<tr>
+<th>SHA</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>a3d159271</code></strong></td>
+<td><strong>Reproduce this.</strong> "Bake S2 decode-2D geometry (D2G_TILE=32, D2G_STAGES=2) as fork default". Changes <code>vllm/envs.py</code>. Because S2 is baked, a plain branch clone runs S2 with <strong>no env plumbing</strong>.</td>
+</tr>
+<tr>
+<td><code>605c39c7a</code></td>
+<td>ROUND-25 S2 winner (pre-bake; env-override form of the same geometry).</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">git clone https://github.com/wuc_microsoft/vllm-msn.git
+git checkout feat/gemma4-decode2d-geom    # head = a3d159271 (S2 baked as default)
+</code></pre>
+<p>The bake is a single, small change to <code>vllm/envs.py</code> — very portable to cherry-pick:</p>
+<pre><code># vllm/envs.py — S2 defaults: tile=32, stages=2, warps=0
+# D2G_* = 0 reverts to stock prefill-tuned behavior
+D2G_TILE=32, D2G_STAGES=2, D2G_WARPS=0  (baked defaults)
+</code></pre>
+<hr />
+<h2>2. The run harness</h2>
+<p>Reproduce with the ROUND-27b unified A/B config (this gives the <strong>apples-to-apples</strong>
+TPS + QPS + latency numbers; earlier rounds only had comparable output TPS):</p>
+<ul>
+<li><strong>Config:</strong> <code>experiments/gemma4-s2-ctrl-unified-ab-a100.yaml</code> in the <strong>harness repo</strong>
+  <a href="https://github.com/xinyizou_microsoft/agentic_vllm">xinyizou_microsoft/agentic_vllm</a> @ branch
+  <code>gemma4-optimization</code> (commit <code>f9b77b3</code>). Raw:
+  <code>https://raw.githubusercontent.com/xinyizou_microsoft/agentic_vllm/gemma4-optimization/experiments/gemma4-s2-ctrl-unified-ab-a100.yaml</code></li>
+<li><strong>Install mode:</strong> <code>vllm_install_mode: source</code> (so the fork change is actually compiled in)</li>
+<li><strong>Dataset:</strong> <code>sc1_delta_v2.jsonl</code>, <strong>1000 prompts</strong>, <strong>output_len 8192</strong>, greedy
+  (<code>temperature: 0.0</code>, <code>top_p: 1.0</code>).</li>
+</ul>
+<h3>The S2 (champion) arm</h3>
+<pre><code class="language-yaml">s2:
+  vllm_repo: https://github.com/wuc_microsoft/vllm-msn.git
+  vllm_branch: feat/gemma4-decode2d-geom     # @ a3d159271
+  env_vars:
+    VLLM_TEST_FORCE_FP8_MARLIN: &quot;1&quot;
+    D2G_TILE: &quot;32&quot;
+    D2G_STAGES: &quot;2&quot;
+    D2G_WARPS: &quot;0&quot;
+  config:
+    quantization: fp8
+    kv_cache_dtype: auto
+    gpu_memory_utilization: 0.95
+    moe_backend: marlin
+    speculative_method: mtp
+    spec_tokens: 5
+    draft_model_subdir: assistant
+    max_tokens: 8192
+    enforce_eager: false
+    max_num_seqs: 128
+    max_num_batched_tokens: 16384
+    max_model_len: 24576
+    enable_chunked_prefill: true
+    enable_prefix_caching: true
+</code></pre>
+<h3>The control arm (for a clean A/B)</h3>
+<p>The <strong>control MUST explicitly pin <code>D2G_*=0</code></strong> — because S2 is now baked as the fork
+default, a bare clone runs S2 unless you disable it:</p>
+<pre><code class="language-yaml">ctrl:
+  env_vars:
+    VLLM_TEST_FORCE_FP8_MARLIN: &quot;1&quot;
+    D2G_TILE: &quot;0&quot;
+    D2G_STAGES: &quot;0&quot;
+    D2G_WARPS: &quot;0&quot;
+</code></pre>
+<hr />
+<h2>3. Hardware / environment</h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GPU</td>
+<td><strong>NVIDIA A100 80GB</strong>, compute capability <code>sm_80</code> (Ampere)</td>
+</tr>
+<tr>
+<td>Instance</td>
+<td><code>Singularity.ND12am_A100_v4</code></td>
+</tr>
+<tr>
+<td>Quantization</td>
+<td><code>fp8</code> + <strong>Marlin</strong> MoE backend (this is the weight-HBM ceiling)</td>
+</tr>
+<tr>
+<td>MTP draft</td>
+<td>self-spec, 5 spec tokens, draft weights in <code>assistant/</code> subdir</td>
+</tr>
+<tr>
+<td>gpu_memory_utilization</td>
+<td>0.95</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4. Reference results (same unified harness, ROUND-27b)</h2>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th>Job</th>
+<th>Output TPS</th>
+<th>QPS</th>
+<th>1000-pr elapsed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CTRL (D2G=0)</td>
+<td><code>icy_carnival_yxtffhqy10</code></td>
+<td>2058.05</td>
+<td>1.56</td>
+<td>641.09s</td>
+</tr>
+<tr>
+<td><strong>S2 (tile32/stg2)</strong></td>
+<td><code>teal_evening_xjzxx6yb99</code></td>
+<td><strong>2403.18</strong></td>
+<td><strong>1.80</strong></td>
+<td><strong>556.66s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Repro re-run confirmed <strong>2402.49</strong> — rock-solid.</p>
+<hr />
+<h2>5. Caveats for anyone reproducing</h2>
+<ul>
+<li><strong>Comparability.</strong> Output TPS is comparable across all rounds; <strong>QPS / elapsed are only
+  apples-to-apples within this unified 1000×8192 script row</strong> (same dataset / output_len /
+  commit).</li>
+<li><strong>~2403–2429 is the weight-HBM ceiling.</strong> S2's decode-2D geometry cut the attention
+  share; the remaining ~53% of step time is Marlin GEMM weight fetches, which this recipe
+  does not touch. The <strong>int4 W4A16 Humming</strong> arm (halving weight bytes) is the lever past
+  this — and is gated behind a quality A/B before it is recommended over S2.</li>
+<li><strong>Token-length caveat (ROUND-27b addendum).</strong> Output-length means across arms were
+  1305.4 (2055 record) / 1319.4 (CTRL) / 1337.8 (S2). On the fixed-8192 basis S2 generates
+  slightly more tokens/prompt than the 2055 record, so part of the TPS gap is a higher
+  token-generating basis, not pure speedup. Treat cross-basis (non-unified-harness)
+  comparisons accordingly.</li>
+</ul>
+<hr />
+<p><em>Campaign log: <code>experiments/EXPERIMENT_LOG.md</code> in the same harness repo
+(<a href="https://github.com/xinyizou_microsoft/agentic_vllm/blob/gemma4-optimization/experiments/EXPERIMENT_LOG.md">raw</a>)
+(ROUND-25/26/27b/28).
+Live status: https://privacypshowcase12114.z19.web.core.windows.net/vllm-gemma4.html</em></p>
+</div>
+<p class="foot">Source: <code>experiments/EXPERIMENT_LOG.md</code> + <code>experiments/gemma4-s2-ctrl-unified-ab-a100.yaml</code> in
+<a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/experiments">xinyizou_microsoft/agentic_vllm @ gemma4-optimization</a> · Live campaign: <a href="./vllm-gemma4.html">vllm-gemma4.html</a></p>
+</div></div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryListV2",
+  "description": "Output of QueryGeneratorAgent: query groups derived from the user understanding. Each group is one retrieval direction with concrete search-keyword strings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["queryGroups"],
+  "properties": {
+    "queryGroups": {
+      "type": "array",
+      "maxItems": 8,
+      "description": "One entry per retrieval direction. At most 8 groups: emit all target-only category groups first, followed by cross groups ordered by editorial value.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["groupId", "linkedInterestNames", "userIntent", "searchKeywords", "freshnessPriority", "aiRelated", "crossNovelty"],
+        "properties": {
+          "groupId": {
+            "type": "string",
+            "description": "Stable id, e.g. g1, g2, in emission order."
+          },
+          "linkedInterestNames": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Interest Name(s) this group serves, copied verbatim. 1 entry = single-interest group, 2+ = blended."
+          },
+          "userIntent": {
+            "type": "string",
+            "description": "1-2 sentences describing the user's understanding of THIS group's domain — their expertise, how deep they follow it, and what they want from it. For a cross group, fuse the linked interests' Descriptions into the user's angle on the intersection; for a deep group, carry the target interest's Description. This replaces the old intent enum: it is the natural-language statement of intent the downstream steps read."
+          },
+          "searchKeywords": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "description": "One search-engine query string (3-10 tokens, no date operators, no year, no quotes, no boolean operators)."
+            },
+            "description": "Concrete search query strings. Length min(8, 2 + n), n = total Keywords count of the linked interests; floor 3, ceiling 8. Each hits a different angle."
+          },
+          "freshnessPriority": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "How recent the group's content needs to be. The recency window is applied in code. Shared by all keywords in the group."
+          },
+          "aiRelated": {
+            "type": "boolean",
+            "description": "True if this query group is fundamentally about AI / machine learning / LLMs / generative-AI tools or the AI industry. This feed deprioritizes AI groups (at most one is kept, ranked last)."
+          },
+          "crossNovelty": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "How novel / unexpected / 'fancy' this group's cross is. 1.0 = a surprising, delightful intersection of the target with a distinctive profile interest; 0.3 = an obvious/plain angle on the target; 0.0 = generic. Used to diversify the group set so it is not dominated by AI/Tech angles."
+          }
+        }
+      }
+    }
+  }
+}

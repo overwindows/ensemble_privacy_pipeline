@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LowValueStorylineReview",
+  "description": "Low-value and ROI-risk verdicts for ranked storylines.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "isLowValue",
+          "reasoning"
+        ],
+        "properties": {
+          "isLowValue": { "type": "boolean" },
+          "reasoning": { "type": "string" }
+        }
+      }
+    }
+  }
+}

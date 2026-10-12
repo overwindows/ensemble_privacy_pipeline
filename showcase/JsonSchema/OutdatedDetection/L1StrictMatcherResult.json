@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L1StrictMatcherResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["matches"],
+  "properties": {
+    "matches": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "relation_type",
+          "target_clause",
+          "primary_entity",
+          "aliases",
+          "related_entities",
+          "fact_type",
+          "milestone",
+          "event_instance_markers",
+          "confidence",
+          "match_evidence",
+          "refutation_attempt",
+          "survives_refutation",
+          "survival_reason"
+        ],
+        "properties": {
+          "candidate_id": { "type": "integer" },
+          "relation_type": {
+            "type": "string",
+            "enum": ["same_milestone", "timeline_implication", "bounded_by_milestone"]
+          },
+          "target_clause": { "type": "string", "minLength": 1 },
+          "primary_entity": { "type": "string", "minLength": 1 },
+          "aliases": { "type": "array", "items": { "type": "string" }, "maxItems": 12 },
+          "related_entities": { "type": "array", "items": { "type": "string" }, "maxItems": 12 },
+          "fact_type": { "type": "string", "minLength": 1 },
+          "milestone": { "type": "string", "minLength": 1 },
+          "event_instance_markers": { "type": "string", "minLength": 1 },
+          "confidence": { "type": "string", "const": "high" },
+          "match_evidence": { "type": "string", "minLength": 1 },
+          "refutation_attempt": { "type": "string", "minLength": 1 },
+          "survives_refutation": { "type": "boolean", "const": true },
+          "survival_reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ArticleAssembly",
+  "description": "Dependency-ordered article assembly output: selection, ordering, section edits, summary, and titles",
+  "type": "object",
+  "properties": {
+    "focus_sentence": {
+      "type": "string",
+      "description": "One-sentence article focus extracted from storyline_title + genre and grounded by selected section evidence; all selected sections and summary bullets must be direct branches of this focus."
+    },
+    "narrative_structure": {
+      "type": "string",
+      "enum": ["chronological", "general-to-specific", "problem-solution", "progressive", "comparative", "curated-list", "narrative-arc", "causal-chain"],
+      "description": "The overall logical framework chosen for the article"
+    },
+    "selected_section_ids": {
+      "type": "array",
+      "description": "Step 3 selection result: 3-6 unique section IDs that pass the focus, genre, cohesion, and section-level overlap gates. Order is not meaningful yet.",
+      "minItems": 3,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "ordered_sections": {
+      "type": "array",
+      "description": "Step 4 result: every selected section exactly once in final publication order, with its narrative role. Must contain the same IDs as selected_section_ids.",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "description": "section_id from the input sections"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["opening_thesis", "supporting_evidence", "counterpoint", "deep_dive", "closing"],
+            "description": "Narrative role this section plays"
+          }
+        },
+        "required": ["section_id", "role"],
+        "additionalProperties": false
+      }
+    },
+    "section_edits": {
+      "type": "array",
+      "description": "Steps 5-6 result, emitted only after the complete order is known. Include exactly one entry for each ordered section, in the same order.",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "description": "section_id from ordered_sections"
+          },
+          "connection_from_previous": {
+            "type": "string",
+            "description": "One transitional sentence bridging from the previous section. Empty only for the first ordered section; every later section must be non-empty and at most 20 words. Must not use first-person narration."
+          },
+          "remove_sentences": {
+            "type": "array",
+            "description": "Exact sentence strings to remove because they repeat a material fact or proposition elsewhere in the ordered article, including semantic rewordings with the same entities, numbers, dates, statuses, events, or list items",
+            "items": {
+              "type": "string"
+            }
+          },
+          "delete_visual": {
+            "type": "boolean",
+            "const": false,
+            "description": "Compatibility field. Assembly does not inspect augmentation blocks; always false so downstream moderation owns augmentation removal."
+          }
+        },
+        "required": ["section_id", "connection_from_previous", "remove_sentences", "delete_visual"],
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": "array",
+      "description": "Exactly 3 bullet points summarizing the article",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "keyEvidence": {
+            "type": "string",
+            "description": "Verbatim sentence copied from the selected sections that grounds this bullet point"
+          },
+          "subHeader": {
+            "type": "string",
+            "description": "2-4 word subheading"
+          },
+          "text": {
+            "type": "string",
+            "description": "1-2 sentence Gem-summary description derived solely from keyEvidence, paraphrased so no complete sentence exactly duplicates selected-section content published as facet summaries"
+          }
+        },
+        "required": ["keyEvidence", "subHeader", "text"],
+        "additionalProperties": false
+      }
+    },
+    "title_reasoning": {
+      "type": "string",
+      "description": "Step 9a reasoning BEFORE writing title (1-3 sentences). Allowed inputs are ONLY summary + genre + title_schema + focus_sentence (solely for consistency check). Must run a focus-summary consistency check: if summary does not explicitly support the core focus claim, reasoning must include token focus_claim_unsupported and pivot to summary-only logic. Must include: how title_schema encodes genre expression mode/scope/intent direction and how title preserves them; which summary bullet best answers the genre core question; subject number and verb agreement based strictly on summary; proper nouns/compound terms whose spelling must be copied from summary; independent events that must remain non-causal in title wording; and, when inconsistent, a statement that title is grounded strictly in verified summary and does not use unsupported focus claims."
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 75,
+      "description": "Final title from Step 9b. Must follow title_schema style guidance, preserve genre expression mode/scope/intent direction, be derivable from summary bullets, pass umbrella/encompassment check over all 3 bullets, follow title_reasoning, and use sentence case (capitalize only the first word and proper nouns/acronyms). If focus_claim_unsupported applies, title must ignore unsupported focus claims and be derived strictly from summary. Trend/change wording (for example: surge, rise, increase, decline, record, peak, latest) is allowed only when explicitly supported by summary evidence."
+    },
+    "section_titles": {
+      "type": "array",
+      "description": "Rewritten titles emitted last because they depend on the finalized article title and summary. Include exactly one entry for every selected section.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string",
+            "description": "section_id from ordered_sections"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Rewritten title for this selected section. Must be consistent with the article title and summary, use sentence case, and highlight this section's unique angle."
+          }
+        },
+        "required": ["section_id", "title"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["focus_sentence", "narrative_structure", "selected_section_ids", "ordered_sections", "section_edits", "summary", "title_reasoning", "title", "section_titles"],
+  "additionalProperties": false
+}

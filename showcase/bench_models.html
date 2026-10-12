@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>RecoNF DLIS Model Benchmark — deepseek-v4-flash · qwen3.8-flash-next · qwen3.8-27b</title>
+<style>  :root {
+    --accent:#0f6cbd;
+    --accent2:#5b2ddb;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --error:#c42b1c;
+    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:Cascadia Code,Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:"Segoe UI",system-ui,sans-serif;
+         margin:0; padding:32px 16px; }
+  .wrap { max-width:900px; margin:0 auto; }
+  .paper { background:var(--paper); border-radius:14px; padding:40px 44px;
+           box-shadow:0 20px 50px rgba(2,6,23,.55); }
+  .paperhead { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:26px; }
+  .kicker { text-transform:uppercase; letter-spacing:.12em; font-size:11px;
+            color:var(--accent); font-weight:700; margin-bottom:8px; }
+  h1 { font-size:25px; margin:0 0 10px; line-height:1.25; }
+  .authors { font-size:13px; color:var(--mut); }
+  .abstract { font-size:14.5px; line-height:1.6; color:#334155;
+              background:#f8fafc; border-left:3px solid var(--accent);
+              padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:8px; }
+  h2 { font-size:18px; margin:30px 0 12px; color:var(--ink);
+       border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .tag { font-size:11px; font-weight:700; color:var(--chipb); background:var(--chip);
+         border:1px solid #dbeafe; padding:2px 8px; border-radius:20px; margin-right:6px; }
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0; }
+  .m { background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .m .v { font-size:22px; font-weight:800; color:var(--accent); }
+  .m .l { font-size:11px; color:var(--mut); margin-top:3px; }
+  .m .d { font-size:11px; color:var(--ok); font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .best { color:var(--ok); font-weight:800; }
+  .worst { color:var(--bad); font-weight:700; }
+  code { background:#f1f5f9; border:1px solid var(--line); border-radius:4px;
+         padding:1px 5px; font-size:12px; font-family:Consolas,monospace; }
+  .foot { color:var(--mut); font-size:11px; margin-top:24px; text-align:center; }
+  .updated { font-size:12px; color:var(--mut); margin-bottom:20px; }
+  ul { margin:8px 0; padding-left:20px; } li { line-height:1.6; font-size:13.5px; }
+  .note { font-size:12px; color:var(--warn); font-weight:600; }
+  @media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:24px;} }
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html" class="active">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="paper">
+  <div class="paperhead">
+    <div class="kicker">Technical Report · Session model-bench-2026-10</div>
+    <h1>RecoNF DLIS Inference Models — General, Agentic &amp; Extended Benchmark</h1>
+    <div class="authors">Chen Wu · RecoNF EfficientLLM · bench_2026_10 · <span id="updated">2026-10-11</span></div>
+  </div>
+
+  <div class="abstract">
+    <b>Abstract.</b> We benchmark the three RecoNF DLIS inference models —
+    <code>deepseek-v4-flash</code>, <code>qwen3.8-flash-next</code> (FP8 reasoning), and
+    <code>qwen3.8-27b</code> (non-FP8, H100) — over their OpenAI-compat chat endpoints
+    (auth <code>X-Api-Key</code>). <b>General</b> (MMLU 57-subj, GSM8K, MATH, HumanEval),
+    <b>agentic</b> (BFCL single-turn), and an <b>extended</b> set (MMLU-Pro, ARC-Challenge,
+    BBH, TruthfulQA-mc2). No local GPU/docker: all evaluation is API-driven. GAIA /
+    TAU-bench / SWE-bench were not runnable here (HF-gated GAIA data + docker sandbox required).
+  </div>
+
+  <h2>Headline Results</h2>
+  <div class="metrics">
+    <div class="m"><div class="v">0.893</div><div class="l">Best MMLU · qwen3.8-flash-next</div><div class="d">57-subj, 5-shot</div></div>
+    <div class="m"><div class="v">0.738</div><div class="l">Best BFCL · qwen3.8-27b</div><div class="d">n=42</div></div>
+    <div class="m"><div class="v">0.800</div><div class="l">Best MMLU-Pro · deepseek-v4-flash</div><div class="d">official protocol</div></div>
+  </div>
+
+  <h2>General Benchmarks</h2>
+  <table>
+    <thead><tr><th>Benchmark</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>MMLU (proper, 57-subj 5-shot)</td><td>0.849</td><td class="best">0.893</td><td>0.884</td></tr>
+      <tr><td>GSM8K (n=30)</td><td class="worst">0.700</td><td class="best">0.933</td><td>0.867</td></tr>
+      <tr><td>MATH (n=30)</td><td class="best">0.433</td><td>0.300</td><td class="worst">0.267</td></tr>
+      <tr><td>HumanEval (n=30)</td><td class="best">1.000</td><td>0.967</td><td>0.900</td></tr>
+    </tbody>
+  </table>
+  <p class="note">MMLU is the corrected run: all 57 subjects, 5-shot, 10 questions/subject (570 total), macro-averaged. The original n=30 "MMLU" numbers were invalid — the HF <code>all</code> config returns rows one subject at a time (alphabetical), so each 30-row sample was <i>abstract_algebra only</i>.</p>
+  <ul>
+    <li><b>qwen3.8-flash-next</b> leads corrected MMLU (0.893) and GSM8K (0.933) — strongest general knowledge.</li>
+    <li><b>deepseek-v4-flash</b> is best on coding (HumanEval 1.000, MBPP 0.900) and MATH (0.433), weaker on knowledge (MMLU 0.849).</li>
+    <li><b>MATH</b> is the shared weakness (0.267–0.433). <b>virology + business_ethics</b> are the weakest MMLU subjects for all three (0.4–0.6).</li>
+    <li><b>GSM8K 0.700 was a grading artifact.</b> The original grader (run_general.py) fell back to the <i>first</i> number when no <code>####</code> marker was present, so deepseek's plain-text answers grabbed intermediate numbers. Re-graded with a robust extractor (<code>####</code> → <i>last</i> number, 3-shot <code>####</code>-instructed): <b>deepseek 0.70 → 0.90</b> (all three now 0.90, see Extended table).</li>
+  </ul>
+
+  <h2>Groundedly-Commonsense Multiple Choice <span class="tag">2026-10-11 · n=100 each</span></h2>
+  <p class="abstract" style="border-left-color:var(--accent2)">Per Chen's ask to keep adding benchmarks, three more grounded-commonsense MC sets fill the gap between the general (MMLU/GSM8K/MATH) and agentic (BFCL) tiers: <b>HellaSwag</b> (scenario-plausibility continuation), <b>WinoGrande</b> (pronoun-coreference commonsense), <b>CommonsenseQA</b> (everyday common-sense). All scored in-process via inspect_evals multiple_choice — no docker, open datasets (no HF token needed).</p>
+  <table>
+    <thead><tr><th>Benchmark</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>HellaSwag</td><td class="worst">0.79</td><td class="best">0.91</td><td>0.85</td></tr>
+      <tr><td>WinoGrande</td><td class="worst">0.84</td><td class="best">0.99</td><td>0.96</td></tr>
+      <tr><td>CommonsenseQA</td><td>0.87</td><td class="best">0.90</td><td>0.87</td></tr>
+      <tr><td><b>mean</b></td><td class="worst">0.833</td><td class="best">0.933</td><td>0.893</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><b>qwen3.8-flash-next leads all three</b> commonsense benches (0.90-0.99, mean 0.933); qwen3.8-27b close behind (0.893); deepseek trails on commonsense grounding (0.833), matching its lower knowledge/MMLU.</li>
+    <li><b class="note">WinoGrande required a harness fix</b> (no purity warning dropped). The inspect_evals winogrande task hard-codes <code>GenerateConfig(max_tokens=64)</code> at <code>winogrande.py:102</code>, which silently overrode the model-level max_tokens in our adapter (<code>config.max_tokens or self._max_tokens</code>). The two reasoning models (flash-next, 27b) burned all 64 output tokens on <code>reasoning</code> and emitted an empty <code>ANSWER:</code> — 27b scored a bogus <b>0.02</b> (98/100 empty), flash-next <b>0.03</b> (90/100 empty). Direct DLIS probes answered correctly at any budget, exposing it as a harness interaction, not model weakness. Fix: override <code>task.config = GenerateConfig(max_tokens=16000)</code> and eval the task object → <b>27b 0.96, flash-next 0.99</b> (+96-97 pts recovered), deepseek unchanged (0.84, non-reasoning). This is the 4th harness-artifact-casing-as-weakness (after MMLU-Pro first-letter, GSM8K first-number, BBH terse prompt) — reasoning models need their eval tasks' hard-coded token caps lifted.</li>
+  </ul>
+
+  <h2>MMLU Cross-check vs. Public/HF <span class="tag">base-model refs</span></h2>
+  <table>
+    <thead><tr><th>Our model</th><th>Measured (57-subj, 5-shot)</th><th>Public match</th><th>Public MMLU (5-shot)</th></tr></thead>
+    <tbody>
+      <tr><td>deepseek-v4-flash (0731)</td><td>0.849</td><td>DeepSeek-V4-Flash-0731 (284B MoE / 13B act)</td><td>88.7 (card; base, EM)</td></tr>
+      <tr><td>qwen3.8-flash-next (8B)</td><td class="best">0.893</td><td>Qwen3-8B (8.1B)</td><td>76.89 (base only; instruct runs higher)</td></tr>
+      <tr><td>qwen3.8-27b</td><td>0.884</td><td>Qwen3-32B (closest; no public 27B)</td><td>83.61 (base)</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Caveats: our endpoints are internal deployments whose exact params differ from the public cards (e.g. deepseek is likely a distilled/smaller variant than the 304B MoE card model; the two Qwen codenames are not public "Qwen3.8" models — closest is Qwen3-8B / Qwen3-32B). Public figures shown are base-model; instruct models typically score higher, which matches our readings. 10 Q/subject adds sampling noise (±~0.1 per subject).</p>
+
+  <h2>Official / Public Released Metrics <span class="tag">base-model refs</span></h2>
+  <p>Cross-check against the <b>publicly released</b> (vendor card / HF / arXiv) figures for the closest public model to each endpoint. All published figures below are the vendor-reported numbers, which for instruct deployments we expect to sit at or a little above the base values shown in the table above. Fields marked <code>—</code> are not published by the vendor.</p>
+  <table>
+    <thead><tr><th>Metric</th><th>deepseek-v4-flash → DeepSeek-V4-Flash-0731</th><th>qwen3.8-flash-next → Qwen3-8B</th><th>qwen3.8-27b → Qwen3-32B</th></tr></thead>
+    <tbody>
+      <tr><td>MMLU (base, 5-shot)</td><td>88.7</td><td>76.89</td><td>83.61</td></tr>
+      <tr><td>MMLU-Pro (base)</td><td>68.3 <span class="note">(83.0 instruct)</span></td><td>56.73</td><td>65.54</td></tr>
+      <tr><td>BBH</td><td>86.9</td><td>78.40</td><td>87.38</td></tr>
+      <tr><td>MATH</td><td>57.4</td><td>60.80</td><td>61.62</td></tr>
+      <tr><td>GSM8K</td><td>90.8</td><td>89.84</td><td>93.40</td></tr>
+      <tr><td>HumanEval</td><td>69.5 <span class="note">(card)</span></td><td>67.65 <span class="note">(EvalPlus)</span></td><td>72.05 <span class="note">(EvalPlus)</span></td></tr>
+      <tr><td>ARC-Challenge</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>TruthfulQA</td><td>—</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Sources: <code>https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash</code> (DeepSeek-V4-Flash **-0731** dated checkpoint, 304B params / 284B MoE with 13B activated — DeepSeek names dated releases like this, e.g. V3-0324 / R1-0528; the HF card shows only the latest revision without the suffix; "1m" on our endpoint = 1M context; MMLU 88.7, MMLU-Pro 68.3 base / 83.0 non-think instruct, BBH 86.9, MATH 57.4, HumanEval 69.5, GSM8K 90.8 — ARC/TruthfulQA not published) and <code>https://arxiv.org/abs/2505.09388</code> (Qwen3-8B / Qwen3-32B). Our codenames are internal (no public "Qwen3.8"), closest public match is Qwen3-8B / Qwen3-32B. Using the official MMLU-Pro protocol, deepseek measured 0.80 — sensible between the official base 68.3 and instruct 83–86 (instruct deployments score above base), so no small-variant inference is warranted from MMLU-Pro alone; the earlier 0.493 was a harness artifact.</p>
+
+  <h2>Agentic — BFCL Single-Turn Function Calling <span class="tag">n=42 each · 6×7 cats</span></h2>
+  <table>
+    <thead><tr><th>Category</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>irrelevance</td><td class="worst">0.333</td><td class="best">0.833</td><td>0.833</td></tr>
+      <tr><td>multiple</td><td>0.833</td><td>0.833</td><td>0.833</td></tr>
+      <tr><td>parallel</td><td class="best">1.000</td><td>0.667</td><td>0.667</td></tr>
+      <tr><td>parallel_multiple</td><td>1.000</td><td>1.000</td><td>1.000</td></tr>
+      <tr><td>simple_java</td><td>0.667</td><td>0.667</td><td>0.667</td></tr>
+      <tr><td>simple_javascript</td><td>0.167</td><td class="worst">0.000</td><td>0.167</td></tr>
+      <tr><td>simple_python</td><td>1.000</td><td>1.000</td><td>1.000</td></tr>
+      <tr><td><b>overall</b></td><td>0.714</td><td>0.714</td><td class="best">0.738</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><b>qwen3.8-27b</b> edges out the overall BFCL leaderboard (0.738); the other two tie at 0.714.</li>
+    <li>All three are near-perfect on <b>parallel_multiple</b> and <b>simple_python</b>; all struggle with <b>simple_javascript</b> (≤0.167).</li>
+    <li>Single-turn function-calling is scored in-process via inspect_evals (AST/relevance), no API execution.</li>
+  </ul>
+
+  <h2>Agentic — BFCL Multi-Turn Function Calling <span class="tag">2026-10-10 · n=25 each · 5 V3 cats</span></h2>
+  <p class="abstract" style="border-left-color:var(--accent2)">The true <b>agentic</b> add-on: BFCL <b>V3 multi-turn</b> categories that require the model to <i>keep calling tools across a multi-step conversation</i> — not just emit one function call in a turn but decide which tool to call next from the tool results, and adapt when the needed function/parameter is only revealed partway through. Scored in-process (python backend, no docker) via inspect_evals <code>multi_turn_match</code>, which checks the full tool-call <i>sequence</i> against the ground-truth call chain. New this session per Chen's ask to keep expanding the agentic benchmarks.</p>
+  <table>
+    <thead><tr><th>Category</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>multi_turn_base</td><td class="best">0.800</td><td class="best">0.800</td><td>0.400</td></tr>
+      <tr><td>multi_turn_long_context</td><td class="best">0.800</td><td>0.600</td><td>0.600</td></tr>
+      <tr><td>multi_turn_miss_param</td><td class="best">0.800</td><td class="best">0.800</td><td>0.400</td></tr>
+      <tr><td>multi_turn_miss_func</td><td>0.400</td><td>0.600</td><td class="best">0.600</td></tr>
+      <tr><td>multi_turn_composite</td><td class="best">0.200</td><td class="best">0.200</td><td class="worst">0.000</td></tr>
+      <tr><td><b>overall</b></td><td class="best">0.600</td><td class="best">0.600</td><td class="worst">0.400</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><b>deepseek-v4-flash and qwen3.8-flash-next tie for the multi-turn lead (0.600); qwen3.8-27b falls behind (0.400).</b></li>
+    <li><b>multi_turn_composite is the shared killer</b> (fusing multiple tools into one step): ≤0.200 for all, 27b at 0.000. The harder the call-sequencing, the worse everyone does.</li>
+    <li>deepseek is strongest on <b>long_context</b> and <b>miss_param</b> (0.8) — it reasons its way through longer/mid-revealed tool chains; it drops on <b>miss_func</b> (0.4) and composite (0.2).</li>
+    <li>27b leads the earlier single-turn leaderboard but <b>flops on multi-turn</b> — it can emit one call but struggles to chain tool calls reactively across turns.</li>
+  </ul>
+
+  <h2>Extended Benchmarks <span class="tag">2026-10-09</span></h2>
+  <table>
+    <thead><tr><th>Benchmark</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>MMLU-Pro (14 cats, 5-shot, official protocol)</td><td class="best">0.800</td><td>0.764</td><td>0.671</td></tr>
+      <tr><td>ARC-Challenge (n=10)</td><td>0.900</td><td>0.900</td><td>0.900</td></tr>
+      <tr><td>BBH (27 tasks, CoT-permitting)</td><td>0.944</td><td class="best">0.996</td><td>0.985</td></tr>
+      <tr><td><i>BBH (27 tasks, terse "no explanation" prompt)</i></td><td class="worst">0.707</td><td>0.985</td><td>0.993</td></tr>
+      <tr><td>TruthfulQA-mc2 (F1, n=10)</td><td class="best">0.907</td><td>0.655</td><td>0.679</td></tr>
+      <tr><td>GSM8K (re-graded, n=10)</td><td>0.900</td><td>0.900</td><td>0.900</td></tr>
+      <tr><td>MBPP (n=10, code-exec)</td><td class="best">0.900</td><td>0.600</td><td>0.600</td></tr>
+      <tr><td>GPQA / CRUXEval / DROP</td><td colspan="3">— not run (HF-gated datasets, 401 — no token on this box)</td></tr>
+    </tbody>
+  </table>
+  <p class="note"><b>MMLU-Pro is now scored with the official TIGER-AI-Lab/MMLU-Pro protocol</b> (category-tagged prompt + per-category CoT few-shots + <code>"The answer is (X)"</code> extraction), n=140/model (10/cat), from the full parquet (datasets-server first-rows caps at 100 rows = business-only — the very first "MMLU-Pro" was invalid). An earlier custom-runner read (deepseek 0.493, qwen 0.786/0.686) was a harness artifact — see analysis below. BBH: deepseek n=10/task (270), Qwen n=3/task (81). TruthfulQA is a logprob-free mc2 proxy (mark-all-True, graded recall/precision), n=10.</p>
+  <ul>
+    <li><b>MMLU-Pro flips the leaderboard under the official protocol — deepseek is best (0.800).</b> Its apparent "weakness" (0.493) was a harness/config artifact in my custom runner: it omitted the category tag, used bare letter-only few-shots, and extracted the first single letter anywhere in the response (<code>re.search(r"\b([A-J])\b")</code>). DeepSeek is verbose/explanation-first and cites option letters mid-reasoning, so the regex caught stray cited letters and marked correct answers wrong; the terse Qwens didn't trip it. With official framing+extraction, deepseek's hardest cats went 0.1/0.1/0.3 → <b>0.8/1.0/0.9</b> (cs/math/engineering), landing 0.80 between the official base 68.3 and instruct 83–86. The Qwen numbers also moved under the official protocol (0.786→0.764, 0.686→0.671), so the original comparison was invalid for all three.</li>
+    <li><b>BBH 0.707 for deepseek was a PROMPTING artifact, not a genuine weakness (2026-10-10, corrected).</b> The harness forces <code>"Answer the last line only, no explanation"</code> — tuned for terse Qwen — which strangles DeepSeek's chain-of-thought and makes it collapse to a default <code>(F)</code> (confirmed NOT a cache artifact). Full CoT-permitting 3-model re-run (same grader, only the prompt changed) corrects BBH to <b>deepseek 0.944, flash-next 0.996, 27b 0.985</b> — deepseek jumps +24pts and is now statistically tied with both Qwens (27b even dipped 0.993→0.985, its terse score was prompt-boosted). Same artifact family as the MMLU-Pro first-letter extractor and GSM8K first-number grader: this benchmark needs CoT-permitting prompts for explanation-first models.</li>
+    <li><b>TruthfulQA splits the field (the real signal):</b> both Qwens low recall (0.49–0.51, F1 0.65–0.68, precision 1.0 — they only answer high-confidence); deepseek highest TruthfulQA (recall 0.92, F1 0.91) — says "NONE", more calibrated/honest. ARC is a wash (all 0.9).</li>
+  </ul>
+
+  <h2>Feasibility Notes</h2>
+  <ul>
+    <li>Agentic ran in two tiers: <b>single-turn BFCL</b> (V1 AST, n=42) and the new <b>multi-turn BFCL</b> (V3 agentic, n=25), both scored in-process via inspect_evals — no docker, no API execution.</li>
+    <li><b>GAIA</b>: data is HF-gated (no token → 401 GatedRepoError) — not run.</li>
+    <li><b>TAU-bench / SWE-bench-Lite</b>: require a docker sandbox; no docker on wuc's box — not run.</li>
+    <li>Harness: inspect_ai 0.3.263 + inspect_evals 0.19.0, custom <code>recon_model.py</code> adapter (<code>@modelapi("recon")</code>) hitting DLIS endpoints with <code>X-Api-Key</code>, all in <code>Q:\benchmarks\efficientllm-evals\.venv</code>. New multi-turn runner: <code>run_multi_turn.py</code>, results <code>multi_turn_{model}.json</code>.</li>
+  </ul>
+
+  <div class="foot">Session <code>model-bench-2026-10</code> · Infra: chrona-showcase-internal Azure Static Web App (see CodeGuru KB 16_SHOWCASE_WEBAPP_RECIPE).
+     Raw results in <code>RecoNF\EfficientLLM\benchmarks\bench_2026_10\</code> ({general,agentic,extended,multi_turn}_{model}.json).</div>
+</div>
+</div>
+</body>
+</html>

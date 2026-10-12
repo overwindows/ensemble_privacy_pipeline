@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StorylineValueReevaluation",
+  "description": "Independent editorial value score for one prefiltered storyline.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "storylineId",
+    "valueScore",
+    "reasoning"
+  ],
+  "properties": {
+    "storylineId": {
+      "type": "string",
+      "description": "Storyline identifier copied exactly from the input."
+    },
+    "valueScore": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Independent editorial and user value score."
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "One concise sentence identifying the main value driver or limitation."
+    }
+  }
+}

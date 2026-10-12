@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Gemma4 vLLM on A100 — From Marlin Wall to int4 Quality A/B</title>
+<style>  :root {
+    --accent:#0f6cbd;
+    --accent2:#5b2ddb;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --error:#c42b1c;
+    --font:Segoe UI Variable,Segoe UI,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:Cascadia Code,Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:"Segoe UI",system-ui,sans-serif;
+         margin:0; padding:32px 16px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  .paper { background:var(--paper); border-radius:14px; padding:40px 44px;
+           box-shadow:0 20px 50px rgba(2,6,23,.55); }
+  .paperhead { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:26px; }
+  .kicker { text-transform:uppercase; letter-spacing:.12em; font-size:11px;
+            color:var(--accent); font-weight:700; margin-bottom:8px; }
+  h1 { font-size:26px; margin:0 0 10px; line-height:1.25; }
+  .authors { font-size:13px; color:var(--mut); }
+  .abstract { font-size:14.5px; line-height:1.6; color:#334155;
+              background:#f8fafc; border-left:3px solid var(--accent);
+              padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:8px; }
+  h2 { font-size:18px; margin:30px 0 12px; color:var(--ink);
+       border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .tag { font-size:11px; font-weight:700; color:var(--chipb); background:var(--chip);
+         border:1px solid #dbeafe; padding:2px 8px; border-radius:20px; margin-right:6px; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0; }
+  .m { background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .m .v { font-size:22px; font-weight:800; color:var(--accent); }
+  .m .l { font-size:11px; color:var(--mut); margin-top:3px; }
+  .m .d { font-size:11px; color:var(--ok); font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .up { color:var(--ok); font-weight:700; }
+  code { background:#f1f5f9; border:1px solid var(--line); border-radius:4px;
+         padding:1px 5px; font-size:12px; font-family:Consolas,monospace; }
+  .run { display:flex; align-items:center; gap:10px; padding:9px 0;
+         border-bottom:1px dashed var(--line); font-size:13.5px; }
+  .run:last-child { border-bottom:none; }
+  .dot { width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .s-Completed,.s-Succeeded { background:var(--ok); }
+  .s-Running,.s-Queued,.s-Provisioning,.s-Starting{ background:var(--run); animation:pulse 1.6s infinite; }
+  .s-Failed { background:var(--bad); }
+  .s-Canceled,.s-CancelRequested,.s-Preparing { background:var(--warn); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+  .st-Completed{color:var(--ok);} .st-Failed{color:var(--bad);} .st-Running{color:var(--run);}
+  .run-id { color:var(--mut); font-size:11px; }
+  .run-name { flex:1; } .run-status { font-weight:600; }
+  .verdict { border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+             margin-top:12px; font-size:13.5px; background:#f8fafc; }
+  .v-pass { border-left:4px solid var(--ok); }
+  .v-fail { border-left:4px solid var(--bad); }
+  .v-pending { border-left:4px solid var(--warn); }
+  .foot { color:var(--mut); font-size:11px; margin-top:24px; text-align:center; }
+  .updated { font-size:12px; color:var(--mut); margin-bottom:20px; }
+  ul { margin:8px 0; padding-left:20px; } li { line-height:1.6; font-size:13.5px; }
+  @media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:24px;} }
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html" class="active">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="paper">
+  <div class="paperhead">
+    <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
+    <h1>Gemma 4 26B-A4B: Closing the MoE Weight-Bandwidth Wall<br>with int4 W4A16 — at Controlled Quality</h1>
+    <div class="authors">Chen Wu · Q:\agentic_vllm + vllm-msn-s2 fork · <span id="updated">loading…</span></div>
+  </div>
+
+  <div class="abstract">
+    <b>Abstract.</b> On a single A100 80GB (sm_80) we push offline <code>gemma-4-26B-A4B</code> MoE
+    serving from the previous best <b>2045.7 output tokens/s</b> to <b>2403.18</b>
+    (<b>+17.5%</b>, up to <b>2429</b> in band) through a decode-2D tile/stage geometry, before
+    hitting a weight-HBM-bound Marlin GEMM ceiling (~53% of step time). We then convert the MoE
+    to <b>int4 W4A16</b> (Humming force-requant — halving weight bytes/HBM) as the last lever
+    toward the 2500 TPS target. Because int4 is a <b>precision/quality change</b>, we gate it
+    behind a general GSM8K + BBH quality A/B: acceptance requires the int4 model to stay
+    <b>within noise of the FP8 control</b> (&lt;1–2% absolute per benchmark). This page is the
+    live results post of that campaign.
+  </div>
+
+  <h2>Headline Results</h2>
+  <div class="metrics">
+    <div class="m"><div class="v">2045.7 → 2403</div><div class="l">Prev best → S2 output TPS</div><div class="d">+17.5%</div></div>
+    <div class="m"><div class="v">1.56 → 1.80</div><div class="l">QPS (CTRL → S2, unified script)</div><div class="d">+15.4%</div></div>
+    <div class="m"><div class="v">641 → 557</div><div class="l">1000-prompt elapsed (s)</div><div class="d">−13%</div></div>
+    <div class="m"><div class="v">2500</div><div class="l">Target (int4 W4A16 lever)</div><div class="d">pending quality gate</div></div>
+  </div>
+
+  <h2>Throughput Journey <span class="tag">achieved</span></h2>
+  <p style="font-size:12px;color:var(--mut)">QPS &amp; elapsed are apples-to-apples only within the
+  ROUND-27b unified 1000-prompt script row (same dataset/output_len/commit); other rows predate that
+  harness, so only their Output TPS is comparable.</p>
+  <table>
+    <thead><tr><th>Round</th><th>Change</th><th>Output TPS</th><th>QPS</th><th>1000-pr elapsed</th><th>Delta</th></tr></thead>
+    <tbody>
+      <tr><td>floor</td><td>stock (B7-1)</td><td>1997.0</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>old best</td><td>mnpp=1 · lptt=1024 (B10-6)</td><td><b>2045.7</b></td><td>—</td><td>—</td><td class="up">+4.9%</td></tr>
+      <tr><td>old all-time</td><td>+ lptt=512 (B23) — pre parity-gate</td><td>2055.0</td><td>—</td><td>—</td><td class="up">(not accepted)</td></tr>
+      <tr><td>ROUND-25 S2</td><td>decode-2D geom (tile=32, stages=2)</td><td>2392.2 ± 8.3</td><td>—</td><td>—</td><td class="up">+13.6%</td></tr>
+      <tr><td>CTRL (D2G=0)</td><td>stock core, unified script</td><td>2058.05</td><td>1.56</td><td>641.09s</td><td>—</td></tr>
+      <tr><td>ROUND-27b S2</td><td>S2 geom, same script</td><td><b>2403.18</b></td><td><b>1.80</b></td><td><b>556.66s</b></td><td class="up">+16.8% vs CTRL</td></tr>
+      <tr><td>now</td><td>S2 tuning band</td><td>2403–2429</td><td>—</td><td>—</td><td class="up">ceiling</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>Weight-bound Marlin GEMM is <b>~53%</b> of step time — the bottleneck we now target.</li>
+    <li><b>int4 W4A16 halves weight bytes/HBM</b> (0.5 vs 1.0 bytes/weight) → the remaining lever to ~2500.</li>
+    <li>Quality A/B output lengths matched (CTRL 1319 / S2 1338 mean tokens — not a length artifact).</li>
+  </ul>
+
+  <h2>Quality A/B — Methods</h2>
+  <ul>
+    <li>Reusable <code>run_quality.py</code> scores <em>any</em> branch/config via reserved <code>_agentic_eval_*</code> config keys (opt-in; no-eval path stays byte-identical).</li>
+    <li>Greedy (temperature=0) deterministic decode; general tasks <b>GSM8K</b> (+ BBH).</li>
+    <li>Acceptance = int4 within noise of FP8 control (<b>&lt;1–2% absolute / 1–2 σ</b> per benchmark).</li>
+    <li>Both arms share the same fork, tokenizer, truncate + scoring path.</li>
+  </ul>
+
+  <h2>Live A/B Status <span class="tag">running</span></h2>
+  <div id="app">loading…</div>
+
+  <div class="foot">Auto-refreshes every 90s. Status pulled live from AML; throughput rows are logged campaign history.
+     Infra: privacypshowcase12114 blob static site (see KB 16_SHOWCASE_WEBAPP_RECIPE).</div>
+</div>
+</div>
+
+<script>
+const ST={Completed:'Completed',Succeeded:'Succeeded',Running:'Running',Queued:'Queued',Failed:'Failed',
+  Canceled:'Canceled',CancelRequested:'CancelRequested',Starting:'Starting',Provisioning:'Provisioning',Preparing:'Preparing'};
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+async function refresh(){
+  try{
+    const r = await fetch('./vllm-gemma4-progress.json?t='+Date.now());
+    const d = await r.json();
+    const up = document.getElementById('updated');
+    up.textContent = 'last updated ' + (d.generated||'?');
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+    for(const c of (d.campaigns||[])){
+      let html = `<div style="font-weight:700;margin:6px 0 4px;font-size:14px">${esc(c.name)}</div>`;
+      for(const run of (c.runs||[])){
+        const st=run.status, dot=ST[st]?'s-'+st:'', stc=ST[st]?'st-'+st:'';
+        const metric = run.metric ? ` <span style="font-size:12px;color:var(--ok)" title="score">${esc(run.metric)}</span>` : '';
+        html += `<div class="run"><span class="dot ${dot}"></span>
+          <span class="run-name">${esc(run.name)}${metric}</span>
+          <span class="run-status ${stc}">${esc(st||'')}</span>
+          <span class="run-id">${esc(run.id||'')}</span></div>`;
+      }
+      if(c.verdict) html += `<div class="verdict ${c.verdict.cls||''}"><b>Verdict:</b> ${esc(c.verdict.text)}</div>`;
+      if(c.notes) html += `<div style="font-size:12px;color:var(--mut);margin-top:8px">${esc(c.notes)}</div>`;
+      const box=document.createElement('div'); box.innerHTML=html; app.appendChild(box);
+    }
+  }catch(e){ document.getElementById('app').textContent='load error: '+e.message; }
+}
+setInterval(refresh, 90000);
+refresh();
+</script>
+</body>
+</html>

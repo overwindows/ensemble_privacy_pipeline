@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SectionPreFilter",
+  "description": "Pre-filter result: section IDs to keep for downstream assembly",
+  "type": "object",
+  "properties": {
+    "kept_section_ids": {
+      "type": "array",
+      "description": "Section IDs that are potentially relevant to the article topic",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["kept_section_ids"],
+  "additionalProperties": false
+}

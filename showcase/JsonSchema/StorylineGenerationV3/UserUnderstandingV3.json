@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserUnderstandingV3",
+  "description": "Output of the V3 UserUnderstandingAgent. The MAI profile V3 already carries persona / activity / intent / confidence / dates / state per interest, so this agent does NOT re-derive them. It only (a) flags whether each profile interest is fundamentally about AI, and (b) derives the caller's target tag by copying from the closest profile interest. Code carries the rich V3 fields through verbatim and overlays only these tags.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["Interests", "targetTag"],
+  "properties": {
+    "Interests": {
+      "type": "array",
+      "description": "One entry per profile interest — flag AI-relatedness only. Tag every interest, drop none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["Name", "aiRelated", "SensitiveCategory"],
+        "properties": {
+          "Name":              { "type": "string", "description": "The profile interest's name, copied verbatim so code can re-attach the tag." },
+          "aiRelated":         { "type": "boolean", "description": "True if the interest is fundamentally about AI / machine learning / LLMs / generative-AI tools or the AI industry." },
+          "SensitiveCategory": { "type": "string", "description": "Empty unless the interest falls in a blocked sensitive category." }
+        }
+      }
+    },
+    "targetTag": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Tag for the caller's target interest, produced AFTER all profile interests. The target is not one of the user's profile interests, so its V3-style fields are derived from the closest profile interest; closestInterestName, angleScope and aiRelated are additional judgements about the target.",
+      "required": ["Name", "closestInterestName", "Persona", "ActualActivity", "InferredIntent", "State", "Topics", "angleScope", "aiRelated"],
+      "properties": {
+        "Name":               { "type": "string", "description": "The target interest name, copied verbatim from target_interest_names." },
+        "closestInterestName":{ "type": "string", "description": "Name of the profile interest most semantically related to the target, whose V3 fields the below are derived from. Empty string if none is reasonably related." },
+        "Persona":            { "type": "string", "description": "A 1-2 sentence persona for the user on THIS target, derived from the closest interest's Persona. Empty if no interest is related." },
+        "ActualActivity":     { "type": "string", "description": "What the user is likely doing with the target, derived from the closest interest's ActualActivity." },
+        "InferredIntent":     { "type": "string", "description": "Why the user engages the target, derived from the closest interest's InferredIntent." },
+        "State":              { "type": "string", "enum": ["Emerging", "Stable", "Declining", "Dormant", "Ephemeral", "Unknown"], "description": "Lifecycle state carried from the closest interest, or Unknown if none related." },
+        "Topics":             { "type": "array", "items": { "type": "string" }, "description": "Keyword-like topics for the target, drawn from the closest interest's Topics (topic strings). Empty if none related." },
+        "angleScope":         { "type": "string", "enum": ["personal_life", "macro_observer"], "description": "The angle to approach the target from. personal_life = the user as a hands-on participant/enthusiast in everyday life. macro_observer = a detached industry/market/investment/policy/analysis angle. Prefer personal_life whenever the target plausibly admits a personal-life angle." },
+        "aiRelated":          { "type": "boolean", "description": "True if the target interest is fundamentally about AI. Same test as per-interest aiRelated." }
+      }
+    }
+  }
+}

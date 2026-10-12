@@ -4,11 +4,15 @@
   },
   "routes": [
     {
-      "route": "/",
-      "rewrite": "/index.html"
+      "route": "/*",
+      "allowedRoles": ["authenticated"]
     }
   ],
   "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad"
+    },
     "404": {
       "rewrite": "/index.html"
     }

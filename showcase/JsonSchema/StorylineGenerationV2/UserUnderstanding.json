@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserUnderstanding",
+  "description": "Output of UserUnderstandingAgent: per-interest TAGS (expertise, understanding state, intent, cross potential, sensitive category). The agent does not echo the profile's own fields (Interest/Keywords/Weight) — code re-attaches the tags to the verbatim profile interests afterwards. Each tag entry's Name must match the profile interest it tags.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["UserId", "Interests", "targetTag"],
+  "properties": {
+    "UserId": { "type": "string" },
+    "Interests": {
+      "type": "array",
+      "description": "One tag entry per profile interest. Tag every interest — drop none.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "Name", "Expertise", "UnderstandingState", "Intent", "Description", "aiRelated", "SensitiveCategory"
+        ],
+        "properties": {
+          "Name":              { "type": "string", "description": "The profile interest's name, copied verbatim so code can re-attach the tags." },
+          "Expertise":         { "type": "string", "enum": ["novice", "enthusiast", "professional"] },
+          "UnderstandingState":{ "type": "string", "enum": ["novice_overview", "informed", "deep_dive"] },
+          "Intent":            { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "enum": ["track_latest", "deepen_skill", "local_options", "decision_research", "inspiration"] }, "description": "One or more intents the user has for THIS interest — a user can want several things at once (e.g. track the latest AND deepen skill). List every intent that genuinely applies; do not pad. At least one." },
+          "Description":       { "type": "string", "description": "A grounded 1-2 sentence description of what the user is focused on in THIS interest and why — the natural-language expansion of this interest's Expertise + UnderstandingState + Intent. Written so a downstream reader understands the user's real angle on this interest without needing the enum definitions." },
+          "aiRelated":         { "type": "boolean", "description": "True if the interest is fundamentally about AI / machine learning / LLMs / generative-AI tools or the AI industry." },
+          "SensitiveCategory": { "type": "string", "description": "Empty unless the interest falls in a blocked sensitive category." }
+        }
+      }
+    },
+    "targetTag": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Tags for the caller's target interest, produced AFTER all profile interests are tagged. The target is not one of the user's profile interests; its tag is derived by copying from the closest profile interest and judging its civic scope.",
+      "required": ["Name", "closestInterestName", "Expertise", "UnderstandingState", "Intent", "angleScope", "Description", "aiRelated"],
+      "properties": {
+        "Name":               { "type": "string", "description": "The target interest name, copied verbatim from target_interest_names." },
+        "closestInterestName":{ "type": "string", "description": "Name of the profile interest most semantically related to the target, whose tags were copied. Empty string if no profile interest is reasonably related." },
+        "Expertise":          { "type": "string", "enum": ["novice", "enthusiast", "professional"] },
+        "UnderstandingState": { "type": "string", "enum": ["novice_overview", "informed", "deep_dive"] },
+        "Intent":             { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "enum": ["track_latest", "deepen_skill", "local_options", "decision_research", "inspiration"] }, "description": "Intents for the target, copied from the closest profile interest (or a conservative default if none is related)." },
+        "angleScope":         { "type": "string", "enum": ["personal_life", "macro_observer"], "description": "The angle to approach the target from. personal_life = the user as a hands-on participant/enthusiast in their own everyday life (owning/doing/enjoying/choosing it). macro_observer = a detached, big-picture spectator angle (industry/market/investment/policy/business-strategy/academic analysis). Prefer personal_life whenever the target plausibly admits a personal-life angle — only pick macro_observer when the user's interest is genuinely in the macro/analytical view itself." },
+        "Description":        { "type": "string", "description": "A grounded 1-2 sentence description of what the user wants from the target and at what depth — the natural-language expansion of Expertise + UnderstandingState + Intent. MUST also state the angleScope stance in words (personal everyday participant angle vs macro/observer angle)." },
+        "aiRelated":          { "type": "boolean", "description": "True if the target interest is fundamentally about AI / machine learning / LLMs / generative-AI tools or the AI industry. Same test as per-interest aiRelated." }
+      }
+    }
+  }
+}
+

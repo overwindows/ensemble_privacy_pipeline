@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SectionSelectionResult",
+  "description": "Existing sections relevant to the request angle",
+  "type": "object",
+  "properties": {
+    "selected_sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Existing section identifier"
+          },
+          "reason": {
+            "type": "string",
+            "description": "One sentence explaining why this section is relevant"
+          }
+        },
+        "required": ["id", "reason"],
+        "additionalProperties": false
+      },
+      "description": "Existing sections selected as relevant"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Brief explanation of overall selection logic"
+    }
+  },
+  "required": ["selected_sections", "reasoning"],
+  "additionalProperties": false
+}

@@ -1,0 +1,122 @@
+{
+  "title": "One Unified SLM · Training Progress",
+  "generated": "2026-10-11 20:07:16 UTC",
+  "motivation": [
+    "Three separate SLM workloads (MAI Profile, Quality, GEM story-assembly) each carried their own small fine-tune. The initiative consolidates them into ONE joint model fine-tuned over a merged train set, so all workloads share one served model and one inference footprint.",
+    "Start small (~4B Qwen3) to prove the orchestration end-to-end; the joint SFT can later be swapped to a larger MoE base if Quality/HPF capacity becomes the gating factor.",
+    "The AML A100 pool hands every job exactly ONE GPU (confirmed via gpu_diag). To use the fleet's GPUs at once, the train set is split into K disjoint shards, each trained on one node, then recombined by weight-delta averaging (model soup):  final = base + mean_k(shard_k − base)."
+  ],
+  "settings": {
+    "run_name": "one_unified_v1",
+    "base_model": "Qwen3-4B-Thinking-2507 (~4B)",
+    "tasks": "mai_profile, quality, gem",
+    "max_seq_len": "8192",
+    "per_device_train_batch_size": "1 (×4 grad-accum)",
+    "learning_rate": "5e-6 · cosine · warmup 3%",
+    "num_train_epochs": "2",
+    "optimizer strategy": "DeepSpeed ZeRO-3 + bf16, gradient checkpointing",
+    "shard merge": "weight-delta averaging (model soup)",
+    "n_shards": "K=1 smoke → K=4/8 fleet",
+    "seed": "42"
+  },
+  "dataset": [
+    [
+      "Scope",
+      "Train = MAI Profile (L1 70,952 + L2 74,327 rows) merged with Quality clickbait (10,646 rows) and GEM story-assembly (~150k rows recovered from Kusto GSPEventJob StorylineLog, 2026-09-19→10-11) → one joint SFT set."
+    ],
+    [
+      "Joint train",
+      "data_prepare merges each task's train.jsonl under one_unified_slm/<run>/data/train.jsonl (per-shard slice ≈ 35.9k rows at K=4)."
+    ],
+    [
+      "Segments",
+      "Each example keeps its natural chat structure (role/turn threads); layer_format generic; max_seq_len 8192 truncates the tail."
+    ],
+    [
+      "Shards",
+      "joint train split deterministically by seed 42 into K disjoint shards; each shard job slices its own lines on-node, no data re-upload."
+    ]
+  ],
+  "pipeline": [
+    "data_synth",
+    "data_prepare",
+    "sft",
+    "eval"
+  ],
+  "campaigns": [
+    {
+      "name": "Single-GPU baseline (r9-n1)",
+      "notes": "Old slow path — every job gets exactly 1 A100; multi-GPU fails.",
+      "runs": [
+        {
+          "id": "epic_button_twgf93swwj",
+          "display_name": "one-unified-slm-r9-n1",
+          "status": "Running",
+          "created": ""
+        }
+      ]
+    },
+    {
+      "name": "Shard SFT — K=1 smoke",
+      "notes": "Validates on-node shard slice + single-GPU render before scaling.",
+      "runs": [
+        {
+          "id": "wheat_clock_jh8rx9zvdq",
+          "display_name": "unified-shard-000",
+          "status": "Failed",
+          "created": ""
+        },
+        {
+          "id": "placid_coconut_vmwr9jywqv",
+          "display_name": "unified-shard-000",
+          "status": "Running",
+          "created": ""
+        }
+      ]
+    },
+    {
+      "name": "Shard SFT — fleet (K=4/8)",
+      "notes": "Parallel single-GPU shards, merged by weight-delta averaging.",
+      "runs": []
+    },
+    {
+      "name": "Eval (merged model → vLLM)",
+      "notes": "Serve sft/final, sample per task, run objective eval.",
+      "runs": []
+    },
+    {
+      "name": "data_prepare / data (joint train)",
+      "notes": "35,882 rows on shard-000 of the joint train, from the RW cosmos mount.",
+      "runs": []
+    }
+  ],
+  "summary": "Pipeline: data_synth → data_prepare → sft → eval · Sharded single-GPU SFT over a 1-GPU-per-job A100 pool, merged by weight-delta averaging. Root cause of r1–r8 failures: multi-GPU --num_processes 8 on a 1-GPU pool (invalid device ordinal). K=1 smoke proved the on-node slice + single-GPU render; fixed an eval-time CUDA OOM by disabling eval during shard training.",
+  "live_training": {
+    "single_gpu_baseline": {
+      "available": true,
+      "global_step": 44000,
+      "max_steps": 69648,
+      "epoch": 1.2634620492609423,
+      "last_loss": 0.1382,
+      "last_log": {
+        "epoch": 1.2634620492609423,
+        "step": 44000
+      },
+      "checkpoint": 44000
+    },
+    "shard_k1_smoke": {
+      "available": true,
+      "global_step": 36400,
+      "max_steps": 69648,
+      "epoch": 1.045226455322723,
+      "last_loss": 0.148,
+      "last_log": {
+        "epoch": 1.045226455322723,
+        "learning_rate": 2.4383908809992822e-06,
+        "loss": 0.148,
+        "step": 36400
+      },
+      "checkpoint": 36400
+    }
+  }
+}

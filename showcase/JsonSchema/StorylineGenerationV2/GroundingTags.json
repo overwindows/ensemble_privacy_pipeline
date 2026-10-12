@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GroundingTags",
+  "description": "Output of GroundingTaggerAgent: per-article tags for one query group's search results, including a quality judgement (shouldFilter) used to drop unusable evidence before storyline generation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["groupId", "taggedResults"],
+  "properties": {
+    "groupId": { "type": "string", "description": "The query group id these results belong to." },
+    "taggedResults": {
+      "type": "array",
+      "description": "One entry per input search result, same resultId.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["resultId", "articleType", "inferredEventDate", "relevanceToQuery", "language", "isGenericPage", "isAggregatorUnresolved", "isRoundupOrphan"],
+        "properties": {
+          "resultId": { "type": "string", "description": "Copied verbatim from the input result." },
+          "articleType": {
+            "type": "string",
+            "enum": ["event_report", "derivative", "repackage", "standalone_resource"],
+            "description": "event_report = reports something happened; derivative = interprets a known event; repackage = restates old facts; standalone_resource = tutorial/guide/list."
+          },
+          "inferredEventDate": { "type": "string", "description": "The date the reported event actually happened (YYYY-MM-DD), or 'unknown'. NOT publishDate. Push older when unsure." },
+          "relevanceToQuery": { "type": "integer", "minimum": 1, "maximum": 5, "description": "Relevance to the group's userIntent. 5=direct hit, 1=off-topic." },
+          "language": { "type": "string", "description": "Primary language code the article is written in, from title+snippet. Allowed: en, zh-hans, zh-hant, ja, ko, de, fr, es, pt, it, ru, ar, nl, pl, tr, th, vi, id, hi, bn, ur. Unknown/unclear → \"en\". Downstream matches against the market to drop language-mismatched articles." },
+          "isGenericPage": { "type": "boolean", "description": "True if the url is a generic tool/landing page (domain root, section index, portal, dashboard, product listing, category/tag page) rather than an article. A result with any of the three quality flags true is dropped before storyline generation." },
+          "isAggregatorUnresolved": { "type": "boolean", "description": "True only when the url is a platform aggregator AND the original publisher cannot be identified from title/slug. An aggregator with a recognizable original outlet is false (usable)." },
+          "isRoundupOrphan": { "type": "boolean", "description": "True only when the evidence is a roundup/digest bundling many items AND the storyline would pull one bullet with no standalone article backing it. A genre-matched roundup or a depth piece with a number in the title is false." }
+        }
+      }
+    }
+  }
+}
