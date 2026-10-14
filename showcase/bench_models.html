@@ -27,7 +27,6 @@
     --chip:#e3f0fa;
     --chipb:#0f6cbd;
     --code:#f3f2f1;
-    --code-ink:#1b1a19;
     --code2:#f3f2f1;
     --coral:#0f6cbd;
     --coral-soft:#e3f0fa;
@@ -106,6 +105,18 @@
   ul { margin:8px 0; padding-left:20px; } li { line-height:1.6; font-size:13.5px; }
   .note { font-size:12px; color:var(--warn); font-weight:600; }
   @media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:24px;} }
+  html{scroll-behavior:smooth}
+  /* Shared hub masthead + site nav */
+  .fl-hub{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .fl-hub-inner{max-width:1280px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .fl-hub-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;color:var(--ink);white-space:nowrap}
+  .fl-hub-logo{width:18px;height:18px;border-radius:4px;background:var(--accent);flex:0 0 auto;display:inline-block}
+  .fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+  .fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:500}
+  .fl-hub-nav a:hover{background:var(--nav-hover,var(--bg2));color:var(--ink);text-decoration:none}
+  .fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+  @media(max-width:760px){.fl-hub-nav{margin-left:0;width:100%}}
+  .fl-foot{max-width:1280px;margin:0 auto;padding:20px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -139,6 +150,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <nav class="fl-hub-nav">
       <a href="index.html">Home</a>
       <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="ask-chen.html">Ask-Chen</a>
       <a href="openjev-ft.html">OpenJev</a>
       <a href="one_unified.html">One Unified</a>
       <a href="vllm-gemma4.html">vLLM Gemma4</a>
@@ -155,7 +167,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <div class="paperhead">
     <div class="kicker">Technical Report · Session model-bench-2026-10</div>
     <h1>RecoNF DLIS Inference Models — General, Agentic &amp; Extended Benchmark</h1>
-    <div class="authors">Chen Wu · RecoNF EfficientLLM · bench_2026_10 · <span id="updated">2026-10-11</span></div>
+    <div class="authors">Chen Wu · RecoNF EfficientLLM · bench_2026_10 · <span id="updated">2026-10-12</span></div>
   </div>
 
   <div class="abstract">
@@ -164,8 +176,9 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <code>qwen3.8-27b</code> (non-FP8, H100) — over their OpenAI-compat chat endpoints
     (auth <code>X-Api-Key</code>). <b>General</b> (MMLU 57-subj, GSM8K, MATH, HumanEval),
     <b>agentic</b> (BFCL single-turn), and an <b>extended</b> set (MMLU-Pro, ARC-Challenge,
-    BBH, TruthfulQA-mc2). No local GPU/docker: all evaluation is API-driven. GAIA /
-    TAU-bench / SWE-bench were not runnable here (HF-gated GAIA data + docker sandbox required).
+    BBH, TruthfulQA-mc2, TAU2 conversational agentic). No local GPU/docker: all
+    evaluation is API-driven. GAIA / SWE-bench were not runnable here (HF-gated GAIA data +
+    docker sandbox required); TAU2 runs in-process via its bundled simulated-user + tools.
   </div>
 
   <h2>Headline Results</h2>
@@ -277,6 +290,26 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <li>27b leads the earlier single-turn leaderboard but <b>flops on multi-turn</b> — it can emit one call but struggles to chain tool calls reactively across turns.</li>
   </ul>
 
+  <h2>Agentic — TAU2 Conversational Tool-Using Agent <span class="tag">2026-10-12 · 27b n=15/dom · others n=3/dom</span></h2>
+  <p class="abstract" style="border-left-color:var(--accent2)">The deepest agentic tier: <b>TAU-bench</b> (dual-control) drives the model as a support assistant <i>behind a live customer-service tool environment</i>, while a simulated user holds a back-and-forth conversation. Unlike BFCL (which only checks that a function-call <i>sequence</i> matches), TAU2 checks whether the model actually <i>does the right thing with the tools</i> across turns — reading tool results, deciding to search/grep a knowledge base, pulling account records, and following through to resolve the simulated user's request. Four domains: airline (flight changes/cancellations/fees), banking (account/loan/card over a KB), retail (order/return/refund), telecom (plan/billing/device). Runs fully in-process (bundled data + simulated user + tools, no docker, no gated data).</p>
+  <table>
+    <thead><tr><th>TAU2 domain</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
+    <tbody>
+      <tr><td>airline</td><td>0.667</td><td class="worst">0.333</td><td class="best">0.533</td></tr>
+      <tr><td>banking</td><td>0.000</td><td>0.000</td><td>0.000</td></tr>
+      <tr><td>retail</td><td>0.667</td><td class="best">1.000</td><td>0.867</td></tr>
+      <tr><td>telecom</td><td class="best">1.000</td><td class="best">1.000</td><td>0.800</td></tr>
+      <tr><td><b>overall</b></td><td class="best">0.583</td><td class="best">0.583</td><td>0.550</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><b>deepseek-v4-flash and qwen3.8-flash-next tie for the overall TAU2 lead (0.583); qwen3.8-27b trails (0.550)</b> — a much closer race than the single-turn BFCL gap, and consistent with the multi-turn BFCL finding that the smaller/adaptive models hold their own on reactive tool-use.</li>
+    <li><b>banking is the universal failure (0.000 for all three)</b> — the banking KB-grounded retrieval with <code>grep</code> config stumps every model. This is the hardest domain here.</li>
+    <li><b>qwen3.8-flash-next is perfect on retail and telecom (1.0)</b> but collapses on airline (0.333; it burned turns on the reasoning pass); deepseek is perfect on telecom (1.0) and 0.667 on airline/retail.</li>
+    <li>27b is the <b>most balanced</b> (0.533/0.0/0.867/0.8) but never peaks — it grinds to solid 0.53–0.87 everywhere except banking. Its 27b airline run hit a transient log-commit <code>PermissionError</code>, so airline was recovered from <code>log.results</code> at status=error; the domain accuracy is real.</li>
+    <li><b>Sample sizes differ</b> (27b n=15/domain vs. others n=3/domain); the smaller-n columns are noisier. Banking at 0.000 is robust across all n, though.</li>
+  </ul>
+
   <h2>Extended Benchmarks <span class="tag">2026-10-09</span></h2>
   <table>
     <thead><tr><th>Benchmark</th><th>deepseek-v4-flash</th><th>qwen3.8-flash-next</th><th>qwen3.8-27b</th></tr></thead>
@@ -300,15 +333,16 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <h2>Feasibility Notes</h2>
   <ul>
-    <li>Agentic ran in two tiers: <b>single-turn BFCL</b> (V1 AST, n=42) and the new <b>multi-turn BFCL</b> (V3 agentic, n=25), both scored in-process via inspect_evals — no docker, no API execution.</li>
+    <li>Agentic ran in three tiers: <b>single-turn BFCL</b> (V1 AST, n=42), <b>multi-turn BFCL</b> (V3 agentic, n=25), and the new <b>TAU2 conversational agent</b> (in-process simulated user + tools, bundled data), all scored in-process via inspect_evals — no docker, no API execution.</li>
     <li><b>GAIA</b>: data is HF-gated (no token → 401 GatedRepoError) — not run.</li>
-    <li><b>TAU-bench / SWE-bench-Lite</b>: require a docker sandbox; no docker on wuc's box — not run.</li>
-    <li>Harness: inspect_ai 0.3.263 + inspect_evals 0.19.0, custom <code>recon_model.py</code> adapter (<code>@modelapi("recon")</code>) hitting DLIS endpoints with <code>X-Api-Key</code>, all in <code>Q:\benchmarks\efficientllm-evals\.venv</code>. New multi-turn runner: <code>run_multi_turn.py</code>, results <code>multi_turn_{model}.json</code>.</li>
+    <li><b>SWE-bench-Lite</b>: requires a docker sandbox; no docker on wuc's box. (<b>TAU2</b> runs fine in-process — no docker needed.)</li>
+    <li>Harness: inspect_ai 0.3.263 + inspect_evals 0.19.0, custom <code>recon_model.py</code> adapter (<code>@modelapi("recon")</code>) hitting DLIS endpoints with <code>X-Api-Key</code>, all in <code>Q:\benchmarks\efficientllm-evals\.venv</code>. New runners: <code>run_multi_turn.py</code> (results <code>multi_turn_{model}.json</code>) and <code>run_tau2.py</code> (results <code>tau2_{model}.json</code>).</li>
   </ul>
 
   <div class="foot">Session <code>model-bench-2026-10</code> · Infra: chrona-showcase-internal Azure Static Web App (see CodeGuru KB 16_SHOWCASE_WEBAPP_RECIPE).
-     Raw results in <code>RecoNF\EfficientLLM\benchmarks\bench_2026_10\</code> ({general,agentic,extended,multi_turn}_{model}.json).</div>
+     Raw results in <code>RecoNF\EfficientLLM\benchmarks\bench_2026_10\</code> ({general,agentic,extended,multi_turn,tau2}_{model}.json).</div>
 </div>
 </div>
+<div class="fl-foot">Chrona Showcase Hub · recnf-evals · © 2026</div>
 </body>
 </html>

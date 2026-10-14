@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask-Chen — Remote Q&A Runbook (A2A via Azure Queue)</title>
+<style>
+  :root {
+    --accent:#0f6cbd;
+    --accent-hover:#115ea3;
+    --accent-soft:#e3f0fa;
+    --accent2:#2760ae;
+    --accent3:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --banner:#f3f2f1;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code2:#f3f2f1;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
+    --error:#c42b1c;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --info:#0f6cbd;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:"Cascadia Code",Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --nav-hover:#edebe9;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --panel2:#f7f6f5;
+    --paper:#ffffff;
+    --radius:8px;
+    --red:#c42b1c;
+    --round:8px;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --text:#1b1a19;
+    --thead:#f8f8f8;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.55}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:28px 32px;position:sticky;top:0;z-index:5}
+  header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.3px}
+  header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:22px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .stat .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:22px;font-weight:700;margin-top:4px;word-break:break-all}
+  .stat .s{font-size:12px;color:var(--muted);margin-top:4px}
+  h2{font-size:17px;margin:32px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--txt)}
+  h3{font-size:14px;margin:20px 0 8px;color:var(--accent)}
+  p{margin:8px 0}
+  code{background:var(--card2);padding:1px 6px;border-radius:5px;font-size:12.5px;font-family:Consolas,monospace;color:var(--txt)}
+  pre{background:#0b0f18;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:Consolas,monospace;font-size:12.5px;line-height:1.5}
+  pre code{background:none;padding:0;color:#c9d8f2}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:14px 0}
+  .warn{border-left:3px solid var(--amber);padding:12px 16px;background:var(--card);border-radius:0 8px 8px 0;margin:14px 0}
+  .ok{border-left:3px solid var(--green);padding:12px 16px;background:var(--card);border-radius:0 8px 8px 0;margin:14px 0}
+  .fix{border-left:3px solid var(--cyan);padding:12px 16px;background:var(--card);border-radius:0 8px 8px 0;margin:14px 0}
+  .warn b{color:var(--amber)} .ok b{color:var(--green)} .fix b{color:var(--cyan)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13.5px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--card2);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .b-ok{background:#e9f5e9;color:var(--green);border:1px solid rgba(61,214,140,.4)}
+  .b-warn{background:#fdf4dc;color:var(--amber);border:1px solid rgba(245,185,66,.4)}
+  .muted{color:var(--muted);font-size:13px}
+  footer{color:var(--muted);font-size:12px;margin-top:44px;padding-top:16px;border-top:1px solid var(--line)}
+  .steplist{counter-reset:step;padding-left:0;list-style:none}
+  .steplist>li{counter-increment:step;position:relative;padding-left:40px;margin:12px 0}
+  .steplist>li::before{content:counter(step);position:absolute;left:0;top:1px;width:26px;height:26px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+  a{color:var(--accent)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#d4e8fb}
+
+/* ---- Shared hub masthead + site nav ---- */
+.fl-hub{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.fl-hub-inner{max-width:1280px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:18px;height:18px;border-radius:4px;background:var(--accent);flex:0 0 auto;display:inline-block}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:var(--nav-hover,var(--bg2));color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+@media(max-width:760px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1280px;margin:0 auto;padding:20px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem Catalog</a>
+      <a href="ask-chen.html" class="active">Ask-Chen</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+
+<header>
+  <h1>Ask-Chen — Remote Q&amp;A Runbook</h1>
+  <div class="sub">Ask Chen's knowledge base from any machine / agent, over the internet &nbsp;·&nbsp; A2A-style async via Azure Storage queues &nbsp;·&nbsp; least-privilege SAS credentials</div>
+</header>
+<div class="wrap">
+
+  <div class="grid">
+    <div class="stat"><div class="k">Transport</div><div class="v" style="font-size:18px">Azure Queue</div><div class="s">askchen-inbox (send) → local worker → askchen-replies (answer)</div></div>
+    <div class="stat"><div class="k">Endpoint</div><div class="v" style="font-size:15px">askchenagentstor.queue.core.windows.net</div><div class="s">Storage acct <code>askchenagentstor</code> · RG <code>agentbus-askchen</code> · westus</div></div>
+    <div class="stat"><div class="k">Answer model</div><div class="v" style="font-size:15px">deepseek-v4-flash</div><div class="s">router direct call · KB-grounded, returns sources + confidence</div></div>
+    <div class="stat"><div class="k">Credential</div><div class="v" style="font-size:15px">Queue SAS ×2</div><div class="s">inbox = add only · replies = process only · no account key</div></div>
+  </div>
+
+  <div class="warn">
+    <b>Least-privilege credentials — no storage key.</b> Remote callers get two scoped
+    <b>queue SAS tokens</b> (expire <code>2027-10-15</code>): one is <b>add-only</b> on
+    <code>askchen-inbox</code>, the other is <b>process-only</b> (read + delete) on
+    <code>askchen-replies</code>. Neither can read queues, list, or touch anything else —
+    verified: an add-only SAS is <b>403 AuthorizationPermissionMismatch</b> on a read. Do
+    not share the full connection string (<code>AGENTBUS_AZURE_CONN</code>).
+  </div>
+
+  <h2>What this is</h2>
+  <div class="card">
+    <p>
+      <b>Ask-Chen</b> is a knowledge-base Q&amp;A agent. You send it a question; a local worker on
+      Chen's machine greps the KB, grounds an answer strictly in the matched evidence, and returns
+      it with <code>sources[]</code>, <code>confidence</code>, and a <code>needs_human</code> flag
+      (set when the KB is thin). The wire format is the industry-standard <b>A2A (Agent2Agent
+      v1.0)</b> task model, carried over <b>Azure Storage queues</b> instead of a hosted HTTP
+      endpoint — Azure blocked a public Functions deployment via the
+      <code>MAI-FunctionApps-v010</code> deny policy, so all compute stays local and queues are
+      the only public door. Any machine with internet + the two SAS tokens can ask.
+    </p>
+    <p class="muted">
+      Flow: <code>client → askchen-inbox</code> (correlation id) → local <code>agentbus</code>
+      worker answers via <code>ask_chen</code> → posts result to <code>askchen-replies</code>
+      (same id) → client polls, deletes its own reply. Questions that need a human are flagged to
+      Chen directly.
+    </p>
+  </div>
+
+  <h2>Quick start (Copilot / Claude)</h2>
+  <p class="muted">For a standalone remote call from any machine, take the two sibling stdlib
+  files from the agentbus repo — <code>azure_client.py</code> + <code>azure_queue.py</code>.
+  Both are pure <code>urllib</code> (no pip install needed anywhere). The Copilot skill's
+  <code>client.py</code> also supports this via <code>--transport remote</code> + env SAS vars.</p>
+  <pre><code># remote ask-chen client — stdlib only (urllib), no pip install
+copies of:  azure_client.py   +   azure_queue.py          (from Q:\CodeGuru\agentbus)
+
+export AGENTBUS_QUEUE_ENDPOINT="https://askchenagentstor.queue.core.windows.net"
+export AGENTBUS_QUEUE_SAS_INBOX="&lt;inbox-SAS: sv=...&amp;sp=a...&gt;"     # askchen-inbox   add only
+export AGENTBUS_QUEUE_SAS_REPLIES="&lt;replies-SAS: sv=...&amp;sp=p...&gt;" # askchen-replies read+delete
+
+# over the SAS relay
+python azure_client.py --question "What is the MSN ranking funnel?"
+# or explicit SAS arguments instead of env
+python azure_client.py --question "What is the MSN ranking funnel?" \
+  --inbox-sas "sv=...&amp;sp=a..." --replies-sas "sv=...&amp;sp=p..." \
+  --endpoint "https://askchenagentstor.queue.core.windows.net"</code></pre>
+  <p>Output: <code>STATUS:</code> (<code>answered</code> / <code>needs-human</code>) then
+  <code>ANSWER:</code> then <code>SOURCES</code>, <code>CONFIDENCE</code>, <code>NEEDS_HUMAN</code>.</p>
+
+  <h2>Raw protocol (if you're writing your own client)</h2>
+  <ol class="steplist">
+    <li><b>Enqueue your question</b> → <code>PUT /askchen-inbox/messages</code> with the SAS
+      (<code>sp=a</code>). Body is XML <code>&lt;QueueMessage&gt;&lt;MessageText&gt;{json}&lt;/MessageText&gt;&lt;/QueueMessage&gt;</code>
+      where <code>{json}</code> = <code>{"id":"&lt;corr&gt;","question":"...","caller":"..."}</code>.
+      The <code>corr</code> is a random hex id you generate.</li>
+    <li><b>Poll for the answer</b> → <code>GET /askchen-replies/messages?visibilitytimeout=120</code>
+      with the SAS (<code>sp=p</code>). Each message's text is
+      <code>{"id":"&lt;same corr&gt;","result":{answer,sources,confidence,needs_human}}</code>.</li>
+    <li><b>Keep only your own reply.</b> Messages are shared across callers — match on the
+      <code>id</code>, and <b>delete the message you consume</b> via
+      <code>DELETE /askchen-replies/messages/{msgId}?popreceipt={receipt}</code>.</li>
+    <li><b>Timeout:</b> the worker usually answers in seconds (retrieval + one router call).
+      Default client timeout 120–180&nbsp;s is generous. If KB-sensitive questions need Chen,
+      expect <code>needs_human=true</code> (answer may still be present).</li>
+  </ol>
+  <div class="fix"><b>SAS service version:</b> the tokens pin <code>sv=2021-02-12</code>.
+  Keep that api-version line in the SAS when sending — the example <code>azure_queue.py</code>
+  uses <code>2019-12-12</code> which is accepted, but don't strip or lower the SAS's own fields.</div>
+
+  <h2>Credentials reference</h2>
+  <table>
+    <thead><tr><th>Queue</th><th>SAS permission</th><th>Permits</th><th>Denies</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>askchen-inbox</code></td>
+        <td><span class="badge b-ok">a</span> (add)</td>
+        <td>Post/Put a question</td>
+        <td>read/list/delete — read returns <code>403</code></td>
+      </tr>
+      <tr>
+        <td><code>askchen-replies</code></td>
+        <td><span class="badge b-ok">p</span> (process)</td>
+        <td>read + delete your own reply</td>
+        <td>add/update/list/clear</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="muted">Both scoped to their own queue only (no account-level access), HTTPS-only, expiry
+  <code>2027-10-15</code>. To rotate: re-run <code>az storage queue generate-sas</code> (below) and
+  update whoever holds them; the old ones stop working at expiry / on manual rotation.</p>
+
+  <h2>Owner's references</h2>
+  <h3>Rotate / regenerate the SAS tokens</h3>
+  <pre><code>KEY="&lt;AccountKey from agentbus-secrets.json&gt;"
+az storage queue generate-sas -n askchen-inbox   --account-name askchenagentstor \
+    --account-key "$KEY" --permissions a --expiry 2027-10-15T00:00:00Z --https-only -o tsv
+az storage queue generate-sas -n askchen-replies --account-name askchenagentstor \
+    --account-key "$KEY" --permissions p --expiry 2027-10-15T00:00:00Z --https-only -o tsv</code></pre>
+
+  <h3>Run the local relay worker</h3>
+  <pre><code>cd /q/CodeGuru/agentbus
+# enable the ask-chen worker + the Azure queue relay (inbox → ask_chen → replies)
+AGENTBUS_AZURE_CONN="&lt;conn string&gt;" python server.py --ask-token "$AGENTBUS_ASK_TOKEN" --azure-relay</code></pre>
+  <p class="muted">The worker must be running for remote calls to be answered. It uses the full
+  connection string locally (that's fine — it's Chen's own machine); colleagues never get it.</p>
+
+  <h3>Local (loopback) same-machine path</h3>
+  <p>If you're on Chen's box, the faster direct path is the A2A HTTP endpoint (no queues):
+  <code>python client.py --transport a2a --question "..." --token "$AGENTBUS_ASK_TOKEN"</code>
+  against <code>http://127.0.0.1:8765</code>. The queue relay exists for the internet-reachable case.</p>
+
+  <h2>Error / status reference</h2>
+  <table>
+    <thead><tr><th>Signal</th><th>Meaning</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>STATUS: answered</code></td><td>KB-grounded answer returned</td><td>Use <code>ANSWER</code> + <code>SOURCES</code></td></tr>
+      <tr><td><code>STATUS: needs-human</code></td><td>KB thin; answer may be partial</td><td>Treat as uncertain; flagged to Chen</td></tr>
+      <tr><td><code>ERROR: timed out</code></td><td>No reply within timeout</td><td>Worker not running, or question queued but unprocessed — retry / check relay</td></tr>
+      <tr><td><code>403 AuthorizationPermissionMismatch</code></td><td>SAS used against wrong queue or wrong permission</td><td>Use add-only on inbox, process-only on replies</td></tr>
+      <tr><td><code>403 AuthenticationFailed</code></td><td>SharedKey path (full conn string) used with a bad signature</td><td>Prefer SAS mode for remote use</td></tr>
+    </tbody>
+  </table>
+
+  <footer>Ask-Chen remote Q&amp;A · Azure Storage-queue relay (inbox/replies) · least-privilege queue SAS · KB-grounded answers with sources · answers/confidence/needs_human in the reply payload · local worker on Chen's agentbus · page updated 2026-10-15</footer>
+</div>
+</body>
+</html>
