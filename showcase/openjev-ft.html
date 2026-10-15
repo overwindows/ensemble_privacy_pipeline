@@ -193,7 +193,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <div class="timeline">
       <span class="dot" style="background:var(--green)"></span> v12 recovered to share
       <span class="dot" style="background:var(--green)"></span> leak-safe multilingual split OK
-      <span class="dot" style="background:var(--green)"></span> <b>Full-SFT COMPLETED — new champion 0.7964</b>
+      <span class="dot" style="background:var(--red)"></span> Full-SFT 0.7964 <b>RETRACTED</b> (job FAILED pre-train — no model exists)
       <span class="dot" style="background:var(--amber)"></span> LoRA/DPO/RLCD trained (DPO 0.7442 / RLCD 0.7364 internal)
       <span class="dot" style="background:var(--blue)"></span> adapter-merge Errno 5 fixed (local init staging)
       <span class="dot" style="background:var(--blue)"></span> LoRA/DPO/RLCD resubmitted — queued
@@ -213,8 +213,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
         Take the best merged checkpoint (<code>qwen-clickbait-openjev-task-vector-50-0</code>)
         as init and fine-tune with 4 methods to push F1 past the merge champion 0.5495.
         Data = real v12_training_set.tsv multilingual leak-safe split (train 9164 / eval 1019).
-        Full-param SFT already lands <b>0.7964</b>; LoRA/DPO/RLCD are queued to confirm
-        whether preference methods stack further on top.
+        The first Full-SFT run 0.7964 was <b>RETRACTED</b> (job died pre-train, no model on disk);
+        SFT-v2/LoRA/DPO/RLCD are queued with Gen2 persistence to land real numbers.
       </p>
     </div>
     <div class="card">
