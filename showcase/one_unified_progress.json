@@ -1,32 +1,32 @@
 {
   "title": "One Unified SLM · Training Progress",
-  "generated": "2026-10-12 01:27:22 UTC",
+  "generated": "2026-10-15 02:22:43 UTC",
   "motivation": [
     "Three separate SLM workloads (MAI Profile, Quality, GEM story-assembly) each carried their own small fine-tune. The initiative consolidates them into ONE joint model fine-tuned over a merged train set, so all workloads share one served model and one inference footprint.",
-    "Start small (~4B Qwen3) to prove the orchestration end-to-end; the joint SFT can later be swapped to a larger MoE base if Quality/HPF capacity becomes the gating factor.",
+    "The 4-task joint model now folds in HPF query-extending too: MAI Profile + Quality + GEM + HPF over a merged ~570k-row train set, start on ~4B Qwen3 to prove orchestration end-to-end (swap to larger MoE later if Quality/HPF capacity gates).",
     "The AML A100 pool hands every job exactly ONE GPU (confirmed via gpu_diag). To use the fleet's GPUs at once, the train set is split into K disjoint shards, each trained on one node, then recombined by weight-delta averaging (model soup):  final = base + mean_k(shard_k − base)."
   ],
   "settings": {
     "run_name": "one_unified_v1",
     "base_model": "Qwen3-4B-Thinking-2507 (~4B)",
-    "tasks": "mai_profile, quality, gem",
+    "tasks": "mai_profile, quality, gem, hpf",
     "max_seq_len": "8192",
     "per_device_train_batch_size": "1 (×4 grad-accum)",
     "learning_rate": "5e-6 · cosine · warmup 3%",
     "num_train_epochs": "2",
     "optimizer strategy": "DeepSpeed ZeRO-3 + bf16, gradient checkpointing",
     "shard merge": "weight-delta averaging (model soup)",
-    "n_shards": "K=1 smoke → K=4/8 fleet",
+    "n_shards": "K=1 smoke validated → fleet",
     "seed": "42"
   },
   "dataset": [
     [
       "Scope",
-      "Train = MAI Profile (L1 70,952 + L2 74,327 rows) merged with Quality clickbait (10,646 rows) and GEM story-assembly (~150k rows recovered from Kusto GSPEventJob StorylineLog, 2026-09-19→10-11) → one joint SFT set."
+      "Train = MAI Profile (L1 70,952 + L2 74,327) + Quality clickbait (~10.6k) + GEM story-assembly (~150k) + HPF query-extending (~285k train slice) → one joint SFT set."
     ],
     [
       "Joint train",
-      "data_prepare merges each task's train.jsonl under one_unified_slm/<run>/data/train.jsonl (per-shard slice ≈ 35.9k rows at K=4)."
+      "data_prepare merges each task's train.jsonl under one_unified_slm/<run>/data/train.jsonl (5.66GB joint, ~570k rows post-filter)."
     ],
     [
       "Segments",
@@ -45,78 +45,44 @@
   ],
   "campaigns": [
     {
-      "name": "Single-GPU baseline (r9-n1)",
-      "notes": "Old slow path — every job gets exactly 1 A100; multi-GPU fails.",
+      "name": "Shard SFT — fleet (single-GPU parallelism)",
+      "notes": "Parallel single-GPU shards over the 1-GPU-per-job A100 pool, merged by weight-delta averaging. First full 4-task training to reach convergence.",
       "runs": [
         {
-          "id": "epic_button_twgf93swwj",
-          "display_name": "one-unified-slm-r9-n1",
-          "status": "Running",
+          "id": "unified-shard-000",
+          "display_name": "unified-shard-000",
+          "status": "Converged",
           "created": ""
         }
       ]
-    },
-    {
-      "name": "Shard SFT — K=1 smoke",
-      "notes": "Validates on-node shard slice + single-GPU render before scaling.",
-      "runs": [
-        {
-          "id": "wheat_clock_jh8rx9zvdq",
-          "display_name": "unified-shard-000",
-          "status": "Failed",
-          "created": ""
-        },
-        {
-          "id": "placid_coconut_vmwr9jywqv",
-          "display_name": "unified-shard-000",
-          "status": "Running",
-          "created": ""
-        }
-      ]
-    },
-    {
-      "name": "Shard SFT — fleet (K=4/8)",
-      "notes": "Parallel single-GPU shards, merged by weight-delta averaging.",
-      "runs": []
     },
     {
       "name": "Eval (merged model → vLLM)",
-      "notes": "Serve sft/final, sample per task, run objective eval.",
+      "notes": "Serve sft/final, sample per task, run objective eval. Pending — merge not yet run.",
       "runs": []
     },
     {
-      "name": "data_prepare / data (joint train)",
-      "notes": "35,882 rows on shard-000 of the joint train, from the RW cosmos mount.",
+      "name": "Data (joint train)",
+      "notes": "Joint 4-task train staged (5.66GB); per-task val+test splits for MAI/Quality/GEM/HPF present.",
       "runs": []
     }
   ],
-  "summary": "Pipeline: data_synth → data_prepare → sft → eval · Sharded single-GPU SFT over a 1-GPU-per-job A100 pool, merged by weight-delta averaging. Root cause of r1–r8 failures: multi-GPU --num_processes 8 on a 1-GPU pool (invalid device ordinal). K=1 smoke proved the on-node slice + single-GPU render; fixed an eval-time CUDA OOM by disabling eval during shard training.",
+  "summary": "Pipeline: data_synth → data_prepare → sft → eval · Sharded single-GPU SFT over a 1-GPU-per-job A100 pool, merged by weight-delta averaging. Fixed an eval-time CUDA OOM by disabling eval during shard training. First 4-task (MAI+Quality+GEM+HPF) run converged to loss ~0.12 at step 68000/69648 (epoch ~1.95).",
   "live_training": {
-    "single_gpu_baseline": {
+    "shard_fleet": {
       "available": true,
-      "global_step": 45400,
+      "global_step": 68000,
       "max_steps": 69648,
-      "epoch": 1.3036633428811406,
-      "last_loss": 0.1126,
+      "epoch": 1.9526270827500556,
+      "last_loss": 0.1229,
       "last_log": {
-        "epoch": 1.3036633428811406,
-        "step": 45400
+        "epoch": 1.9526270827500556,
+        "grad_norm": 2.2490355983657357,
+        "learning_rate": 7.346571026050076e-09,
+        "loss": 0.1229,
+        "step": 68000
       },
-      "checkpoint": 45400
-    },
-    "shard_k1_smoke": {
-      "available": true,
-      "global_step": 39200,
-      "max_steps": 69648,
-      "epoch": 1.1256290425631197,
-      "last_loss": 0.1127,
-      "last_log": {
-        "epoch": 1.1256290425631197,
-        "learning_rate": 2.1144148771106463e-06,
-        "loss": 0.1127,
-        "step": 39200
-      },
-      "checkpoint": 39200
+      "checkpoint": 68000
     }
   }
 }

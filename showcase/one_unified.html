@@ -340,7 +340,7 @@ function live(d){
   const lt = d.live_training || {};
   const keys = Object.keys(lt);
   if(!keys.length){ box.innerHTML = '<div class="desc">No live training runs yet.</div>'; return; }
-  const LABELS = { single_gpu_baseline:'Single-GPU baseline (r9-n1)', shard_k1_smoke:'Shard SFT — K=1 smoke', fleet:'Shard SFT — fleet (K=4/8)' };
+  const LABELS = { single_gpu_baseline:'Single-GPU baseline (r9-n1)', shard_k1_smoke:'Shard SFT — K=1 smoke', fleet:'Shard SFT — fleet (K=4/8)', shard_fleet:'Shard SFT — fleet (single-GPU)' };
   box.innerHTML = keys.map(k=>{
     const e = lt[k] || {};
     const step = e.global_step, max = e.max_steps;
