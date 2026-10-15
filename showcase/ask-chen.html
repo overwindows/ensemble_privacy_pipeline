@@ -175,18 +175,20 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <h2>What this is</h2>
   <div class="card">
     <p>
-      <b>Ask-Chen</b> is a knowledge-base Q&amp;A agent. You send it a question; a local worker on
-      Chen's machine greps the KB, grounds an answer strictly in the matched evidence, and returns
-      it with <code>sources[]</code>, <code>confidence</code>, and a <code>needs_human</code> flag
-      (set when the KB is thin). The wire format is the industry-standard <b>A2A (Agent2Agent
-      v1.0)</b> task model, carried over <b>Azure Storage queues</b> instead of a hosted HTTP
-      endpoint — Azure blocked a public Functions deployment via the
-      <code>MAI-FunctionApps-v010</code> deny policy, so all compute stays local and queues are
+      <b>Ask-Chen</b> is a knowledge-base Q&amp;A agent. You send it a question; a <b>live CodeGuru
+      window</b> on Chen's machine answers it with the full agentic harness — it greps the KB first
+      and grounds the answer in the matched evidence, extending with web/Loop/SharePoint as needed
+      — and returns it with <code>sources[]</code>, <code>confidence</code>, and a
+      <code>needs_human</code> flag (set when the KB is thin). The wire format is the
+      industry-standard <b>A2A (Agent2Agent v1.0)</b> task model, carried over <b>Azure Storage
+      queues</b> instead of a hosted HTTP endpoint — Azure blocked a public Functions deployment via
+      the <code>MAI-FunctionApps-v010</code> deny policy, so all compute stays local and queues are
       the only public door. Any machine with internet + the two SAS tokens can ask.
     </p>
     <p class="muted">
-      Flow: <code>client → askchen-inbox</code> (correlation id) → local <code>agentbus</code>
-      worker answers via <code>ask_chen</code> → posts result to <code>askchen-replies</code>
+      Flow: <code>client → askchen-inbox</code> (correlation id) → live CodeGuru harness
+      (CodeGuru's <code>ask-chen-harness</code> skill polls, answers with the full toolset) →
+      posts <code>{answer, sources, confidence, needs_human}</code> to <code>askchen-replies</code>
       (same id) → client polls, deletes its own reply. Questions that need a human are flagged to
       Chen directly.
     </p>
@@ -198,7 +200,11 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   Both are pure <code>urllib</code> (no pip install needed anywhere). The Copilot skill's
   <code>client.py</code> also supports this via <code>--transport remote</code> + env SAS vars.</p>
   <pre><code># remote ask-chen client — stdlib only (urllib), no pip install
-copies of:  azure_client.py   +   azure_queue.py          (from Q:\CodeGuru\agentbus)
+# Source files (local, on Chen's box):
+#   Q:\CodeGuru\agentbus\azure_client.py
+#   Q:\CodeGuru\agentbus\azure_queue.py
+# Remote users: request copies from the owner (or from the agentbus GitHub repo /
+# over the bus) — both are pure urllib stdlib, no pip install needed.
 
 export AGENTBUS_QUEUE_ENDPOINT="https://askchenagentstor.queue.core.windows.net"
 export AGENTBUS_QUEUE_SAS_INBOX="&lt;inbox-SAS: sv=...&amp;sp=a...&gt;"     # askchen-inbox   add only
@@ -263,12 +269,20 @@ az storage queue generate-sas -n askchen-inbox   --account-name askchenagentstor
 az storage queue generate-sas -n askchen-replies --account-name askchenagentstor \
     --account-key "$KEY" --permissions p --expiry 2027-10-15T00:00:00Z --https-only -o tsv</code></pre>
 
-  <h3>Run the local relay worker</h3>
-  <pre><code>cd /q/CodeGuru/agentbus
-# enable the ask-chen worker + the Azure queue relay (inbox → ask_chen → replies)
-AGENTBUS_AZURE_CONN="&lt;conn string&gt;" python server.py --ask-token "$AGENTBUS_ASK_TOKEN" --azure-relay</code></pre>
-  <p class="muted">The worker must be running for remote calls to be answered. It uses the full
-  connection string locally (that's fine — it's Chen's own machine); colleagues never get it.</p>
+  <h3>Run the local harness (CodeGuru answers the queue)</h3>
+  <pre><code># in a CodeGuru window, invoke the ask-chen-harness skill (or just ask):
+#   "run the ask-chen harness"
+# It loops: polls askchen-inbox → answers with the full toolset (KB first) →
+# posts to askchen-replies. Scripts live under ~/.codeguru/skills/ask-chen-harness/
+python ~/.codeguru/skills/ask-chen-harness/scripts/poll.py     # claim one question
+python ~/.codeguru/skills/ask-chen-harness/scripts/reply.py \  # post the answer back
+  --id &lt;corr&gt; --answer "&lt;answer&gt;" --sources '["segments/xx.md"]' \
+  --confidence 0.9 --qid &lt;qid&gt; --receipt &lt;receipt&gt;</code></pre>
+  <p class="muted">A live CodeGuru window must be running the harness for remote calls to be
+  answered. It uses the full connection string locally (that's fine — it's Chen's own machine);
+  colleagues never get it. (Legacy alternative: <code>AGENTBUS_AZURE_CONN="..." python
+  server.py --azure-relay</code> answers via the thin <code>ask_chen</code> worker instead of the
+  full harness.)</p>
 
   <h3>Local (loopback) same-machine path</h3>
   <p>If you're on Chen's box, the faster direct path is the A2A HTTP endpoint (no queues):
