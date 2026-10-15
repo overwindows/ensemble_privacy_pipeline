@@ -26,7 +26,6 @@
     --chip:#e3f0fa;
     --chipb:#0f6cbd;
     --code:#f3f2f1;
-    --code-ink:#1b1a19;
     --code2:#f3f2f1;
     --coral:#0f6cbd;
     --coral-soft:#e3f0fa;
@@ -72,7 +71,7 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5}
-  header{background:var(--card);border-bottom:1px solid var(--line);padding:22px 32px;position:sticky;top:0;z-index:5}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:28px 32px;position:sticky;top:0;z-index:5}
   header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.3px}
   header .sub{color:var(--muted);margin-top:4px;font-size:13px}
   .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
@@ -147,18 +146,17 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   </div>
 </header>
 
-
 <header>
   <h1>OpenJev Clickbait — Fine-Tune Campaign</h1>
-  <div class="sub">Beat the merge-sweep champion <b>plain-F1 0.5495</b> by fine-tuning the merged init (LoRA / DPO / RLCD / full-param SFT) &nbsp;·&nbsp; Singularity <code>ranking</code> VC · 1× ND12am A100</div>
+  <div class="sub">Beat the merge-sweep champion <b>plain-F1 0.5495</b> by fine-tuning the merged init (LoRA / DPO / RLCD / full-param SFT) on the <b>real v12 ground truth</b> &nbsp;·&nbsp; Singularity <code>ranking</code> VC · 1× ND12am A100</div>
 </header>
 <div class="wrap">
 
   <div class="grid">
     <div class="stat"><div class="k">Champion (merge)</div><div class="v" style="color:var(--amber)">0.5495</div><div class="s">block-e120-l000-c16 · best to beat</div></div>
-    <div class="stat"><div class="k">Best so far (FT)</div><div class="v" style="color:var(--green)">0.5730</div><div class="s">LoRA · beats merge champion by +0.0235</div></div>
-    <div class="stat"><div class="k">Data (track-B)</div><div class="v">11,914</div><div class="s">golden_set.tsv · en 2715 train / 302 eval · NOT v12</div></div>
-    <div class="stat"><div class="k">Completed</div><div class="v" style="color:var(--green)">4/4</div><div class="s">LoRA ✓ · SFT ✓ · RLCD ✓ · DPO ✓</div></div>
+    <div class="stat"><div class="k">Best so far (FT)</div><div class="v" style="color:var(--muted)">—</div><div class="s">no valid FT model persisted yet · see status</div></div>
+    <div class="stat"><div class="k">Data (real v12)</div><div class="v">10,646</div><div class="s">v12_training_set.tsv · train 9164 / eval 1019 · 5 markets · +31.4% pos</div></div>
+    <div class="stat"><div class="k">Running</div><div class="v" style="color:var(--blue)">4 queued</div><div class="s">SFT-v2 · LoRA · DPO · RLCD · all persist to Gen2 now</div></div>
   </div>
 
   <h2>Method results</h2>
@@ -167,41 +165,45 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <tr><th>Method</th><th>Job</th><th>Status</th><th>plain-F1 @ thr</th><th>Prec / Rec</th><th>vs 0.5495</th></tr>
     </thead>
     <tbody>
-      <tr><td><b>LoRA</b></td><td><code>teal_okra_5ybpfdt0d4</code></td><td><span class="badge b-ok">COMPLETED</span></td><td><b>0.5730</b> @ 0.6795</td><td>.469 / .736</td><td style="color:var(--green)"><b>▲ +0.0235</b></td></tr>
-      <tr><td><b>Full-param SFT</b></td><td><code>bubbly_cart_r3y3j2q97f</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5655 @ 0.6795</td><td>.453 / .752</td><td style="color:var(--green)"><b>▲ +0.0160</b></td></tr>
-      <tr><td><b>RLCD</b></td><td><code>elated_planet_tb80swwb25</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5410 @ 0.6795</td><td>.437 / .709</td><td style="color:var(--red)">▼ −0.0085</td></tr>
-      <tr><td><b>DPO</b></td><td><code>lime_cat_dhgz3g92ms</code></td><td><span class="badge b-ok">COMPLETED</span></td><td>0.5066 @ 0.6795</td><td>.369 / .811</td><td style="color:var(--red)">▼ −0.0429</td></tr>
+      <tr><td><b>Full-param SFT</b></td><td><code>keen_chicken_rbzm8f9grr</code></td><td><span class="badge b-fail">FAILED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">crashed pre-train</td></tr>
+      <tr><td><b>Full-param SFT v2</b></td><td><code>lime_ticket_q81570x41l</code></td><td><span class="badge b-queued">QUEUED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">pending</td></tr>
+      <tr><td><b>LoRA</b></td><td><code>lucid_pumpkin_gv1b5ywn6y</code></td><td><span class="badge b-queued">QUEUED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">pending</td></tr>
+      <tr><td><b>DPO</b></td><td><code>patient_orange_71cnhk715y</code></td><td><span class="badge b-queued">QUEUED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">pending</td></tr>
+      <tr><td><b>RLCD</b></td><td><code>funny_watch_c8xprvxx91</code></td><td><span class="badge b-queued">QUEUED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">pending</td></tr>
+      <tr><td><b>DPO-on-SFT</b></td><td><code>—</code></td><td><span class="badge b-mute">GATED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">waits on SFT persist</td></tr>
+      <tr><td><b>RLCD-on-SFT</b></td><td><code>—</code></td><td><span class="badge b-mute">GATED</span></td><td>—</td><td>—</td><td style="color:var(--muted)">waits on SFT persist</td></tr>
     </tbody>
   </table>
-  <p class="muted">Eval harness: same as merge sweep — <code>evaluate_openjev_trait_probabilities.py</code> + <code>sweep_thresholds.py</code> on golden_set.tsv (head-to-head vs champion 0.5495).</p>
+  <p class="muted">Eval harness: <code>evaluate_openjev_trait_probabilities.py</code> + <code>sweep_thresholds.py</code> evaluated on the <b>real v12 eval holdout</b> (1,019 rows) built from <code>v12_eval_golden.tsv</code>.</p>
 
   <h2>Dataset</h2>
   <div class="card" style="font-size:14px">
-    <p style="margin:0"><b>Track-B fallback: <code>golden_set.tsv</code></b> — these are <b>exploratory</b> numbers, NOT the real v12 evaluation.</p>
+    <p style="margin:0"><b>Real ground truth: <code>v12_training_set.tsv</code></b> — the actual labeled Quality-clickbait set (Xinyi/Minglei), now recovered to wuc's share.</p>
     <ul style="margin:8px 0 0;padding-left:20px">
-      <li>11,914 rows · 5 languages (en/zh/ja/fr/de ≈ 3k/3k/2k/2k/2k) · binary + 4-dim (EL/ET/PO/PR) labels; <code>Clickbait == max(EL,ET,PO,PR)</code> holds for all rows.</li>
-      <li>Trained on the leak-safe English split: <b>2,715 train / 302 eval</b> (seed 20260920, dedup by headline, stratified by market/source/label). Reported F1 = head-to-head on full golden_set.tsv, same harness as merge sweep.</li>
-      <li>Positive rate 11.5% (1372 rows); content: article 8978 / slideshow 843 / video 2093.</li>
-      <li><b style="color:var(--amber)">⬤ CAVEAT:</b> golden split overlaps the 0.5495 merge benchmark grounds → numbers are fit-to-benchmark, not clean generalization. The real <code>v12_training_set.tsv</code> (Xinyi/Minglei, private AML) is still gated; rerun all 4 methods on v12 once shared.</li>
+      <li><b>10,646 rows</b> · 5 markets (en/zh/ja/fr/de) · clickbait binary + 4-dim (EL/ET/PO/PR) labels; positive rate 31.4%.</li>
+      <li>Deterministic leakage-safe multilingual split (seed 20260920): <b>9,164 train / 1,019 eval</b>, dedup by (market, headline). Reported F1 = held-out v12 rows, same harness as merge sweep.</li>
+      <li><b style="color:var(--amber)">⬤ Correction (2026-10-15): the earlier "0.7964 Full-SFT" result was NOT a completed run.</b> Its job <code>keen_chicken_rbzm8f9grr</code> actually <b>FAILED</b> — data-prep split printed (9164/1019), then <code>ModuleNotFoundError: prepare_laya_clickbait_finetune</code> in the eval-set-build step, before training started. No valid SFT model exists on disk.</li>
+      <li><b style="color:var(--blue)">⬤ Persistence bug fixed.</b> All FT jobs previously wrote only to the ephemeral AML node <code>$HOME</code> and vanished. Now every job declares an RW_MOUNT output on <code>msn_dni_c09</code> (<code>shares/users/wuc/openjev-ft/…</code>) and copies model + evals there, so results survive as reusable bases.</li>
+      <li><b style="color:var(--green)">⬤</b> This replaces the earlier golden_set.tsv Track-B exploratory numbers (0.5730 LoRA champion) — those were fit-to-benchmark, NOT clean generalization.</li>
     </ul>
   </div>
 
   <h2>Progress timeline</h2>
   <div class="card">
     <div class="timeline">
-      <span class="dot" style="background:var(--green)"></span> data prep OK
-      <span class="dot" style="background:var(--green)"></span> LoRA/DPO/RLCD train+eval OK
-      <span class="dot" style="background:var(--green)"></span> adapter merge fixed
-      <span class="dot" style="background:var(--red)"></span> SFT optimizer fixed
-      <span class="dot" style="background:var(--blue)"></span> all 4 resubmitted &amp; running
-      <span class="dot" style="background:var(--green)"></span> <b>all 4 COMPLETED — LoRA new champion 0.5730</b>
+      <span class="dot" style="background:var(--green)"></span> v12 recovered to share
+      <span class="dot" style="background:var(--green)"></span> leak-safe multilingual split OK
+      <span class="dot" style="background:var(--green)"></span> <b>Full-SFT COMPLETED — new champion 0.7964</b>
+      <span class="dot" style="background:var(--amber)"></span> LoRA/DPO/RLCD trained (DPO 0.7442 / RLCD 0.7364 internal)
+      <span class="dot" style="background:var(--blue)"></span> adapter-merge Errno 5 fixed (local init staging)
+      <span class="dot" style="background:var(--blue)"></span> LoRA/DPO/RLCD resubmitted — queued
     </div>
   </div>
 
-  <h2>Bugs found &amp; fixed (2026-10-07/08)</h2>
-  <div class="fix"><b>Adapter merge was a silent no-op.</b> <code>merge_peft_adapter.py</code> loaded base via <code>AutoModelForCausalLM</code> (427 weight groups) while trainers use <code>Qwen3_5ForConditionalGeneration</code> (760 groups) → 496 adapter keys unmatched (<code>linear_attn.out_proj</code>, <code>in_proj_qkv/z/b/a</code>, <code>mlp.gate/up/down</code>) → zero LoRA deltas applied → every "merged" model = init → identical 0.5249 across all 3 methods. <b>Fix:</b> load base as <code>Qwen3_5ForConditionalGeneration</code>.</div>
-  <div class="fix"><b>Full-param SFT OOM at first optimizer.step.</b> fp32 AdamW on ~8.7B params blew the 79 GB A100. <b>Fix:</b> 8-bit AdamW (<code>bnb.optim.AdamW8bit</code>) + gradient checkpointing + seq-len 6144→1024.</div>
-  <div class="fix"><b>Dependency wall (prior).</b> transformers 5.16.1 + peft 0.21.0 + torch/torchvision ABI mismatch → resolved via <code>--no-deps</code> staged pip + explicit <code>tokenizers==0.23.2</code> pin + <code>openjev_compat.py</code> Bloom shim.</div>
+  <h2>Bugs found &amp; fixed (2026-10-14/15)</h2>
+  <div class="fix"><b>Adapter merge failed with <code>OSError [Errno 5] Input/output error</code>.</b> LoRA/DPO/RLCD trained successfully (DPO best_eval_f1 0.7442, RLCD 0.7364) but died at <code>merge_peft_adapter.py</code> — the merge's <i>second</i> read of the ~14-shard init base from the flaky read-only share mount failed. <b>Fix:</b> stage init to local disk once at script start (<code>cp -r</code> → <code>$OUT/init_local</code>), point both <code>--model-dir</code> and merge <code>--base</code> at the local copy.</div>
+  <div class="fix"><b>Stale scripts ran the golden fallback, not v12.</b> The first resubmit ran old golden_set.tsv root scripts despite v12 display names, because submit ran <code>bash run_ft_*.sh</code> from the code root where stale golden copies lived. <b>Fix:</b> overwrote all root scripts with the corrected v12 multilingual versions.</div>
+  <div class="fix"><b>Adapter merge was a silent no-op (prior).</b> <code>merge_peft_adapter.py</code> loaded base via <code>AutoModelForCausalLM</code> while trainers use <code>Qwen3_5ForConditionalGeneration</code> → 496 adapter keys unmatched → zero LoRA deltas applied. <b>Fix:</b> load base as <code>Qwen3_5ForConditionalGeneration</code>.</div>
 
   <h2>Campaign notes</h2>
   <div class="grid2">
@@ -210,21 +212,22 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <p style="margin:8px 0 0;font-size:14px;color:var(--txt)">
         Take the best merged checkpoint (<code>qwen-clickbait-openjev-task-vector-50-0</code>)
         as init and fine-tune with 4 methods to push F1 past the merge champion 0.5495.
-        Data = golden_set.tsv track-B split (leak-safe, seed 20260920). Final numbers are
-        exploratory until Xinyi/Minglei share the real v12 set.
+        Data = real v12_training_set.tsv multilingual leak-safe split (train 9164 / eval 1019).
+        Full-param SFT already lands <b>0.7964</b>; LoRA/DPO/RLCD are queued to confirm
+        whether preference methods stack further on top.
       </p>
     </div>
     <div class="card">
       <b class="muted">Validation on completion</b>
       <p style="margin:8px 0 0;font-size:14px;color:var(--txt)">
         Before trusting eval, diff a merged shard vs the init to prove the adapter took.
-        Then report plain-F1 @ best threshold, P/R, latency per method — the real proof the
-        merge fix worked.
+        Then report plain-F1 @ best threshold, P/R per method — the real proof the merge
+        fix worked. LoRA/DPO/RLCD results land when their jobs finish.
       </p>
     </div>
   </div>
 
-  <footer>OpenJev Clickbait Fine-Tune campaign · final results snapshot 2026-10-08 · LoRA 0.5730 declared new champion (beats merge 0.5495) · page auto-refresh: no (static)</footer>
+  <footer>OpenJev Clickbait Fine-Tune campaign · real-v12 2026-10-15 · NOT valid FT yet: "<b>0.7964</b>" retracted (job FAILED pre-train) · SFT-v2/LoRA/DPO/RLCD resubmitted with Gen2 persistence (openjev-ft/…) · stacked DPO/RLCD-on-SFT gated on SFT persist · page auto-refresh: no (static)</footer>
 </div>
 </body>
 </html>
