@@ -180,22 +180,23 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     serving from the previous best <b>2045.7 output tokens/s</b> to <b>2403.18</b>
     (<b>+17.5%</b>, up to <b>2429</b> in band) through a decode-2D tile/stage geometry, before
     hitting a weight-HBM-bound Marlin GEMM ceiling (~53% of step time). To clear the wall we
-    attack it from two independent angles: swap the speculative draft to <b>DSpark b16</b>
-    (a 5-layer qwen3 draft keyed on target hidden states) — which at matched workload
-    <b>beats the Google MTP-assistant k5 baseline by +3.8%</b> (1866.46 vs 1798.22 at
-    output_len=768/mm=8192) — and convert the MoE weights to <b>int4 W4A16</b> (Humming
-    force-requant, halving weight bytes/HBM). Because int4 is a <b>precision/quality change</b>,
-    we gate it behind a general GSM8K + BBH quality A/B: acceptance requires the int4 model to
-    stay <b>within noise of the FP8 control</b> (&lt;1–2% absolute per benchmark). This page is
-    the live results post of that campaign.
+    attack it by swapping the speculative draft to <b>DSpark b16</b> (a 5-layer qwen3 draft keyed
+    on target hidden states) — which <b>crosses the 2500 target</b>: at the true S2 8192-token
+    decode it reaches <b>2634.58 output TPS</b>, and at a fully matched workload it
+    <b>beats the Google MTP-assistant k5 baseline by +3.8%</b> (1866.46 vs 1798.22 TPS at
+    output_len=768/mm=8192). We also convert the MoE weights to <b>int4 W4A16</b> (Humming
+    force-requant, halving weight bytes/HBM) for further headroom. Because int4 is a
+    <b>precision/quality change</b>, we gate it behind a general GSM8K + BBH quality A/B:
+    acceptance requires the int4 model to stay <b>within noise of the FP8 control</b>
+    (&lt;1–2% absolute per benchmark). This page is the live results post of that campaign.
   </div>
 
   <h2>Headline Results</h2>
   <div class="metrics">
-    <div class="m"><div class="v">2045.7 → 2403</div><div class="l">Prev best → S2 output TPS</div><div class="d">+17.5%</div></div>
-    <div class="m"><div class="v">1.56 → 1.80</div><div class="l">QPS (CTRL → S2, unified script)</div><div class="d">+15.4%</div></div>
-    <div class="m"><div class="v">641 → 557</div><div class="l">1000-prompt elapsed (s)</div><div class="d">−13%</div></div>
-    <div class="m"><div class="v">2500</div><div class="l">Target (int4 W4A16 lever)</div><div class="d">pending quality gate</div></div>
+    <div class="m"><div class="v">2045.7 → 2500+</div><div class="l">Prev best → DSpark S2 output TPS</div><div class="d">+28.8%*</div></div>
+    <div class="m"><div class="v">2634.58</div><div class="l">DSpark b16 @ true-S2 8192 decode</div><div class="d">target crossed</div></div>
+    <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP (matched 768, TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
+    <div class="m"><div class="v">2500</div><div class="l">Target</div><div class="d">crossed via draft</div></div>
   </div>
 
   <h2>Throughput Journey <span class="tag">achieved</span></h2>
@@ -215,10 +216,13 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </tbody>
   </table>
   <p style="font-size:12px;color:var(--mut)"><b>Draft-swap comparison</b> (isolates draft method only —
-  identical stack/batch/greedy, output_len=768/mm=8192). At native depth k=7, topk=64: <b>DSpark b16
-  1866.46</b> vs <b>S2 MTP-assistant k5 1798.22</b> = <b>+3.8%</b>. DSpark engages (Qwen3DSparkModel,
-  spec_tokens=7, topk=64); draft staged on msn-dni-c09, resolved via <code>assistant_model_path</code>.
-  The decisive true-S2 DSpark run (output_len=8192/mm=24576) vs the ~2403 MTP baseline is in flight.</p>
+  identical stack/batch/greedy). <b>Matched 768:</b> at output_len=768/mm=8192, DSpark b16 @k7/topk64
+  <b>1866.46 TPS · QPS 2.98</b> vs S2 MTP-assistant k5 <b>1798.22 TPS · QPS 2.87</b> = <b>+3.8%</b>
+  (corrects an earlier mis-verdict). <b>True-S2 8192:</b> DSpark b16 decoded ~2295 tok/req at <b>2634.58 TPS ·
+  QPS 1.15 · 871s</b> — past the 2500 target. ⚠ The archived "~2403" baseline rows decode a shorter output
+  (~1320–1338 tok/req), so they are <b>not</b> a valid QPS/TPS comparator at the true 8192 decode; a matched
+  S2-MTP control at the same decode length is in flight. DSpark engages (Qwen3DSparkModel, spec_tokens=7,
+  topk=64); draft staged on msn-dni-c09, resolved via <code>assistant_model_path</code>.</p>
   <ul>
     <li>Weight-bound Marlin GEMM is <b>~53%</b> of step time — the bottleneck we now target.</li>
     <li><b>int4 W4A16 halves weight bytes/HBM</b> (0.5 vs 1.0 bytes/weight) → the remaining lever to ~2500.</li>

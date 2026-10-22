@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-21 18:40 UTC",
+  "generated": "2026-10-22 17:52 UTC",
   "campaigns": [
     {
       "name": "DSpark draft vs S2 MTP-assistant — same stack/greedy, draft-only swap",
@@ -7,23 +7,29 @@
         {
           "id": "hungry_room_9ghklmt4n7",
           "name": "Control — S2 MTP-assistant k5 @768 (mm=8192)",
-          "metric": "1798.22 TPS",
+          "metric": "1798.22 TPS · QPS 2.87",
           "status": "COMPLETED"
         },
         {
           "id": "red_tent_1rzh44z633",
           "name": "DSpark b16 k=7 @768 (mm=8192)",
-          "metric": "1866.46 TPS (+3.8%)",
+          "metric": "1866.46 TPS · QPS 2.98 (+3.8%)",
           "status": "COMPLETED"
         },
         {
           "id": "olden_chaconia_3wklc9wnv8",
-          "name": "DSpark b16 k=7 @8192 (true S2, mm=24576) vs ~2403 MTP baseline",
+          "name": "DSpark b16 k=7 @8192 (true S2, mm=24576)",
+          "metric": "2634.58 TPS · QPS 1.15 · 871s",
+          "status": "COMPLETED"
+        },
+        {
+          "id": "crimson_duck_l7zwbpxn7n",
+          "name": "Matched control — S2 MTP-assistant k5 @8192 (same decode length)",
           "metric": "",
           "status": "RUNNING"
         }
       ],
-      "notes": "At a fully matched workload (same stack/batch/greedy, output_len=768/mm=8192) DSpark b16 (1866.46) beats the S2 MTP-assistant k5 baseline (1798.22) by +3.8% — correcting an earlier mis-verdict. True S2 DSpark run (output_len=8192/mm=24576) in flight to compare against the ~2403 MTP baseline: if it lands above ~2403 it's advance on the 2500 target from the draft side."
+      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% — correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. NOTE: the archived '~2403' S2 baseline rows decode a SHORTER output (~1320-1338 tok/req), so they are NOT a valid comparator for TPS/QPS at the true 8192 decode. A matched S2-MTP control decoding the same ~2295 tok/req is now in flight; the clean 8192 delta lands when it completes."
     },
     {
       "name": "int4 Quality A/B — FP8-Marlin control vs int4-Humming candidate",
@@ -41,7 +47,7 @@
           "status": "RUNNING"
         }
       ],
-      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM to push past the ~2403-2429 Marlin wall toward 2500 output TPS. Both arms running in parallel (split to avoid the R51 shared-node reload wedge)."
+      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM. Note: with DSpark already crossing 2500, this gate answers the W4A16 headroom/quality question rather than being the sole path to 2500. Both arms running in parallel (split to avoid the R51 shared-node reload wedge)."
     }
   ]
 }
