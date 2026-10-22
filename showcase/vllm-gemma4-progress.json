@@ -1,23 +1,47 @@
 {
-  "generated": "2026-10-08 01:27 UTC",
+  "generated": "2026-10-21 18:40 UTC",
   "campaigns": [
+    {
+      "name": "DSpark draft vs S2 MTP-assistant — same stack/greedy, draft-only swap",
+      "runs": [
+        {
+          "id": "hungry_room_9ghklmt4n7",
+          "name": "Control — S2 MTP-assistant k5 @768 (mm=8192)",
+          "metric": "1798.22 TPS",
+          "status": "COMPLETED"
+        },
+        {
+          "id": "red_tent_1rzh44z633",
+          "name": "DSpark b16 k=7 @768 (mm=8192)",
+          "metric": "1866.46 TPS (+3.8%)",
+          "status": "COMPLETED"
+        },
+        {
+          "id": "olden_chaconia_3wklc9wnv8",
+          "name": "DSpark b16 k=7 @8192 (true S2, mm=24576) vs ~2403 MTP baseline",
+          "metric": "",
+          "status": "RUNNING"
+        }
+      ],
+      "notes": "At a fully matched workload (same stack/batch/greedy, output_len=768/mm=8192) DSpark b16 (1866.46) beats the S2 MTP-assistant k5 baseline (1798.22) by +3.8% — correcting an earlier mis-verdict. True S2 DSpark run (output_len=8192/mm=24576) in flight to compare against the ~2403 MTP baseline: if it lands above ~2403 it's advance on the 2500 target from the draft side."
+    },
     {
       "name": "int4 Quality A/B — FP8-Marlin control vs int4-Humming candidate",
       "runs": [
         {
-          "id": "good_box_l2h0msw2zs",
+          "id": "silver_soursop_4c5g6drcr5",
           "name": "Control — S2 FP8-Marlin (GSM8K + BBH quality)",
           "metric": "",
-          "status": "COMPLETED"
+          "status": "RUNNING"
         },
         {
-          "id": "bold_island_xwcydw23sm",
+          "id": "blue_lock_xcg78jdbsv",
           "name": "Candidate — S2 int4 W4A16 Humming (GSM8K + BBH quality)",
           "metric": "",
           "status": "RUNNING"
         }
       ],
-      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM to push past the ~2403-2429 Marlin wall toward 2500 output TPS."
+      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM to push past the ~2403-2429 Marlin wall toward 2500 output TPS. Both arms running in parallel (split to avoid the R51 shared-node reload wedge)."
     }
   ]
 }

@@ -171,7 +171,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 <div class="paper">
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
-    <h1>Gemma 4 26B-A4B: Closing the MoE Weight-Bandwidth Wall<br>with int4 W4A16 — at Controlled Quality</h1>
+    <h1>Gemma 4 26B-A4B: Closing the MoE Weight-Bandwidth Wall<br>— DSpark Draft + int4 W4A16, at Controlled Quality</h1>
     <div class="authors">Chen Wu · Q:\agentic_vllm + vllm-msn-s2 fork · <span id="updated">loading…</span></div>
   </div>
 
@@ -179,12 +179,15 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <b>Abstract.</b> On a single A100 80GB (sm_80) we push offline <code>gemma-4-26B-A4B</code> MoE
     serving from the previous best <b>2045.7 output tokens/s</b> to <b>2403.18</b>
     (<b>+17.5%</b>, up to <b>2429</b> in band) through a decode-2D tile/stage geometry, before
-    hitting a weight-HBM-bound Marlin GEMM ceiling (~53% of step time). We then convert the MoE
-    to <b>int4 W4A16</b> (Humming force-requant — halving weight bytes/HBM) as the last lever
-    toward the 2500 TPS target. Because int4 is a <b>precision/quality change</b>, we gate it
-    behind a general GSM8K + BBH quality A/B: acceptance requires the int4 model to stay
-    <b>within noise of the FP8 control</b> (&lt;1–2% absolute per benchmark). This page is the
-    live results post of that campaign.
+    hitting a weight-HBM-bound Marlin GEMM ceiling (~53% of step time). To clear the wall we
+    attack it from two independent angles: swap the speculative draft to <b>DSpark b16</b>
+    (a 5-layer qwen3 draft keyed on target hidden states) — which at matched workload
+    <b>beats the Google MTP-assistant k5 baseline by +3.8%</b> (1866.46 vs 1798.22 at
+    output_len=768/mm=8192) — and convert the MoE weights to <b>int4 W4A16</b> (Humming
+    force-requant, halving weight bytes/HBM). Because int4 is a <b>precision/quality change</b>,
+    we gate it behind a general GSM8K + BBH quality A/B: acceptance requires the int4 model to
+    stay <b>within noise of the FP8 control</b> (&lt;1–2% absolute per benchmark). This page is
+    the live results post of that campaign.
   </div>
 
   <h2>Headline Results</h2>
@@ -211,6 +214,11 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <tr><td>now</td><td>S2 tuning band</td><td>2403–2429</td><td>—</td><td>—</td><td class="up">ceiling</td></tr>
     </tbody>
   </table>
+  <p style="font-size:12px;color:var(--mut)"><b>Draft-swap comparison</b> (isolates draft method only —
+  identical stack/batch/greedy, output_len=768/mm=8192). At native depth k=7, topk=64: <b>DSpark b16
+  1866.46</b> vs <b>S2 MTP-assistant k5 1798.22</b> = <b>+3.8%</b>. DSpark engages (Qwen3DSparkModel,
+  spec_tokens=7, topk=64); draft staged on msn-dni-c09, resolved via <code>assistant_model_path</code>.
+  The decisive true-S2 DSpark run (output_len=8192/mm=24576) vs the ~2403 MTP baseline is in flight.</p>
   <ul>
     <li>Weight-bound Marlin GEMM is <b>~53%</b> of step time — the bottleneck we now target.</li>
     <li><b>int4 W4A16 halves weight bytes/HBM</b> (0.5 vs 1.0 bytes/weight) → the remaining lever to ~2500.</li>
