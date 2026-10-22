@@ -74,33 +74,40 @@
   * { box-sizing:border-box; }
   body { background:var(--bg); color:var(--ink); font-family:"Segoe UI",system-ui,sans-serif;
          margin:0; padding:32px 16px; }
-  .wrap { max-width:860px; margin:0 auto; }
+  .wrap { max-width:900px; margin:0 auto; }
   .paper { background:var(--paper); border-radius:14px; padding:40px 44px;
            box-shadow:0 20px 50px rgba(2,6,23,.55); }
-  .paperhead { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:26px; }
+  .paperhead { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:20px; }
   .kicker { text-transform:uppercase; letter-spacing:.12em; font-size:11px;
             color:var(--accent); font-weight:700; margin-bottom:8px; }
-  h1 { font-size:26px; margin:0 0 10px; line-height:1.25; }
+  h1 { font-size:25px; margin:0 0 8px; line-height:1.3; letter-spacing:-0.01em; }
   .authors { font-size:13px; color:var(--mut); }
-  .abstract { font-size:14.5px; line-height:1.6; color:#334155;
+  .abstract { font-size:14px; line-height:1.62; color:#334155;
               background:#f8fafc; border-left:3px solid var(--accent);
-              padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:8px; }
-  h2 { font-size:18px; margin:30px 0 12px; color:var(--ink);
-       border-bottom:1px solid var(--line); padding-bottom:6px; }
-  .tag { font-size:11px; font-weight:700; color:var(--chipb); background:var(--chip);
-         border:1px solid #dbeafe; padding:2px 8px; border-radius:20px; margin-right:6px; }
-  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0; }
+              padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:6px; }
+  .keywords { font-size:12px; color:var(--mut); margin:8px 0 14px; }
+  .keywords b { color:var(--ink); }
+  h2 { font-size:17px; margin:26px 0 10px; color:var(--ink);
+       border-bottom:1px solid var(--line); padding-bottom:5px; }
+  h3 { font-size:14.5px; margin:18px 0 8px; color:var(--ink); }
+  .tag { font-size:10.5px; font-weight:700; color:var(--chipb); background:var(--chip);
+         border:1px solid #dbeafe; padding:2px 8px; border-radius:20px; margin-right:6px;
+         vertical-align:middle; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:12px 0; }
   .m { background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px; }
-  .m .v { font-size:22px; font-weight:800; color:var(--accent); }
+  .m .v { font-size:21px; font-weight:800; color:var(--accent); }
   .m .l { font-size:11px; color:var(--mut); margin-top:3px; }
   .m .d { font-size:11px; color:var(--ok); font-weight:700; }
-  table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
-  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:6px 0 12px; }
+  th,td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); }
   th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
   .up { color:var(--ok); font-weight:700; }
+  .down { color:var(--bad); font-weight:700; }
   code { background:#f1f5f9; border:1px solid var(--line); border-radius:4px;
          padding:1px 5px; font-size:12px; font-family:Consolas,monospace; }
-  .run { display:flex; align-items:center; gap:10px; padding:9px 0;
+  .cap { font-size:12px; color:var(--mut); margin:2px 0 14px; }
+  .cap b { color:var(--ink); }
+  .run { display:flex; align-items:center; gap:10px; padding:8px 0;
          border-bottom:1px dashed var(--line); font-size:13.5px; }
   .run:last-child { border-bottom:none; }
   .dot { width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
@@ -112,22 +119,25 @@
   .st-Completed{color:var(--ok);} .st-Failed{color:var(--bad);} .st-Running{color:var(--run);}
   .run-id { color:var(--mut); font-size:11px; }
   .run-name { flex:1; } .run-status { font-weight:600; }
-  .verdict { border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  .verdict { border:1px solid var(--line); border-radius:10px; padding:13px 15px;
              margin-top:12px; font-size:13.5px; background:#f8fafc; }
   .v-pass { border-left:4px solid var(--ok); }
   .v-fail { border-left:4px solid var(--bad); }
   .v-pending { border-left:4px solid var(--warn); }
   .foot { color:var(--mut); font-size:11px; margin-top:24px; text-align:center; }
-  .updated { font-size:12px; color:var(--mut); margin-bottom:20px; }
-  ul { margin:8px 0; padding-left:20px; } li { line-height:1.6; font-size:13.5px; }
-  @media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:24px;} }
+  .updated { font-size:12px; color:var(--mut); margin-bottom:16px; }
+  .note { font-size:12.5px; color:#334155; background:#fffbeb; border-left:3px solid var(--warn);
+          padding:9px 12px; border-radius:0 6px 6px 0; margin:8px 0; }
+  ul { margin:6px 0; padding-left:20px; } li { line-height:1.6; font-size:13.5px; }
+  ol.refs { padding-left:20px; font-size:12.5px; color:var(--mut2); }
+  ol.refs li { margin-bottom:4px; }
+  @media(max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:22px;} }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:var(--accent);text-decoration:none}
 a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
 h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
-/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
 h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
 code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 ::selection{background:#d4e8fb}
@@ -169,6 +179,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
 <div class="wrap">
 <div class="paper">
+
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
     <h1>Gemma 4 26B-A4B: Closing the MoE Weight-Bandwidth Wall<br>— DSpark Draft + int4 W4A16, at Controlled Quality</h1>
@@ -177,68 +188,136 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <div class="abstract">
     <b>Abstract.</b> On a single A100 80GB (sm_80) we push offline <code>gemma-4-26B-A4B</code> MoE
-    serving from the previous best <b>2045.7 output tokens/s</b> to <b>2403.18</b>
-    (<b>+17.5%</b>, up to <b>2429</b> in band) through a decode-2D tile/stage geometry, before
-    hitting a weight-HBM-bound Marlin GEMM ceiling (~53% of step time). To clear the wall we
-    attack it by swapping the speculative draft to <b>DSpark b16</b> (a 5-layer qwen3 draft keyed
-    on target hidden states) — which <b>crosses the 2500 target</b>: at the true S2 8192-token
-    decode it reaches <b>2634.58 output TPS</b>, and at a fully matched workload it
-    <b>beats the Google MTP-assistant k5 baseline by +3.8%</b> (1866.46 vs 1798.22 TPS at
-    output_len=768/mm=8192). We also convert the MoE weights to <b>int4 W4A16</b> (Humming
-    force-requant, halving weight bytes/HBM) for further headroom. Because int4 is a
-    <b>precision/quality change</b>, we gate it behind a general GSM8K + BBH quality A/B:
-    acceptance requires the int4 model to stay <b>within noise of the FP8 control</b>
-    (&lt;1–2% absolute per benchmark). This page is the live results post of that campaign.
+    serving from the previous best <b>2045.7 output tokens/s</b> to <b>2403.18</b> (<b>+17.5%</b>, up to
+    <b>2429</b> in band) through a decode-2D tile/stage geometry, before hitting a weight-HBM-bound Marlin
+    GEMM ceiling (~53% of step time). To clear the wall we swap the speculative draft to <b>DSpark b16</b>
+    (a 5-layer qwen3 draft keyed on target hidden states), which <b>crosses the 2500 target</b>: at the true
+    S2 8192-token decode it reaches <b>2634.58 output tokens/s</b> (QPS 1.15). We additionally convert the MoE
+    weights to <b>int4 W4A16</b> (halving weight bytes/HBM) as a further headroom lever; because int4 is a
+    precision/quality change, acceptance is gated behind a GSM8K + BBH quality A/B (<b>within noise of the
+    FP8 control</b>, &lt;1–2% absolute per benchmark). This page is the live results post of that campaign.
   </div>
+  <div class="keywords"><b>Keywords:</b> vLLM · speculative decoding · MoE · int4 quantization · quality gating · NVIDIA A100</div>
 
-  <h2>Headline Results</h2>
+  <h2>1&nbsp; Headline Results</h2>
   <div class="metrics">
-    <div class="m"><div class="v">2045.7 → 2500+</div><div class="l">Prev best → DSpark S2 output TPS</div><div class="d">+28.8%*</div></div>
-    <div class="m"><div class="v">2634.58</div><div class="l">DSpark b16 @ true-S2 8192 decode</div><div class="d">target crossed</div></div>
-    <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP (matched 768, TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
-    <div class="m"><div class="v">2500</div><div class="l">Target</div><div class="d">crossed via draft</div></div>
+    <div class="m"><div class="v">2045.7 → 2500+</div><div class="l">Prev best → DSpark S2 output TPS</div><div class="d">target crossed</div></div>
+    <div class="m"><div class="v">2634.58</div><div class="l">DSpark b16 @ true-S2 8192 decode</div><div class="d">output TPS (QPS 1.15)</div></div>
+    <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP @ matched 768 (TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
+    <div class="m"><div class="v">-50%</div><div class="l">int4 W4A16 weight bytes/HBM vs FP8</div><div class="d">quality-gated</div></div>
   </div>
 
-  <h2>Throughput Journey <span class="tag">achieved</span></h2>
-  <p style="font-size:12px;color:var(--mut)">QPS &amp; elapsed are apples-to-apples only within the
-  ROUND-27b unified 1000-prompt script row (same dataset/output_len/commit); other rows predate that
-  harness, so only their Output TPS is comparable.</p>
+  <h2>2&nbsp; Introduction</h2>
+  <p style="font-size:13.5px;line-height:1.6">
+    The campaign objective is a single-worker <b>2500 output tokens/s</b> on <code>Gemma-4-26B-A4B-it</code>
+    MoE on an A100 80GB. Prior work (this series) established a decode-2D tile/stage geometry (S2, D2G
+    TILE=32 / STAGES=2 / WARPS=0) that lifted throughput to ~2403–2429 output TPS, at which point the model
+    is <b>weight-HBM-bound</b> in the FP8-Marlin GEMM (~53% of step time) — a hard wall for the decode geometry
+    alone. Two orthogonal levers remain: <b>(i)</b> reduce effective decode work per accepted token via stronger
+    speculative decoding (swap the Google MTP-assistant draft for <b>DSpark b16</b>), and <b>(ii)</b> halve weight
+    bytes/HBM via <b>int4 W4A16</b> conversion. Because (ii) changes output distribution, it is guarded by a
+    quality A/B acceptance gate. This report presents both the throughput result and the live quality evidence.
+  </p>
+
+  <h2>3&nbsp; Methodology</h2>
+  <h3>3.1&nbsp; Task and setting</h3>
+  <ul>
+    <li>Offline decode, Greedy (temperature=0), top_p=1.0, deterministic.</li>
+    <li><b>True S2 setting:</b> output_len=max_tokens=8192, max_model_len=24576, FP8-Marlin, CUDA-graphs,
+        max_num_seqs=128, max_num_batched_tokens=16384, gpu_mem_util=0.95, chunked prefill, prefix caching.</li>
+    <li>1000-prompt dataset <code>sc1_delta_v2.jsonl</code>, reps=3, from the datastore; results persisted to
+        <code>shares/users/zxy/autobench/results</code>.</li>
+  </ul>
+  <h3>3.2&nbsp; Draft-swap protocol</h3>
+  <ul>
+    <li>Identical stack/batch/greedy; only the draft changes (<code>assistant_model_path</code> resolution).</li>
+    <li>DSpark b16 k=7, <code>dspark_draft_topk=64</code>; draft staged on the datastore, resolved at runtime.</li>
+    <li>Comparison honors a strict <b>decode-length-matched</b> rule: QPS and output TPS are only comparable at
+        equal output tokens/request, otherwise the shorter decode looks artificially faster.</li>
+  </ul>
+  <h3>3.3&nbsp; Quality A/B (int4 gate)</h3>
+  <ul>
+    <li>Reusable <code>run_quality.py</code> scores any branch/config via reserved <code>_agentic_eval_*</code>
+        config keys (opt-in; the no-eval path stays byte-identical).</li>
+    <li>General tasks <b>GSM8K</b> + <b>BBH</b>; greedy, matched truncate + scoring path on both arms.</li>
+    <li><b>Acceptance:</b> int4 candidate within noise of the FP8 control (<b>&lt;1–2% abs / 1–2 σ</b> per benchmark).</li>
+  </ul>
+
+  <h2>4&nbsp; Results — Throughput</h2>
   <table>
-    <thead><tr><th>Round</th><th>Change</th><th>Output TPS</th><th>QPS</th><th>1000-pr elapsed</th><th>Delta</th></tr></thead>
+    <thead><tr><th>Round</th><th>Change</th><th>Output TPS</th><th>QPS</th><th>elapsed</th><th>Δ vs CTRL</th></tr></thead>
     <tbody>
       <tr><td>floor</td><td>stock (B7-1)</td><td>1997.0</td><td>—</td><td>—</td><td>—</td></tr>
-      <tr><td>old best</td><td>mnpp=1 · lptt=1024 (B10-6)</td><td><b>2045.7</b></td><td>—</td><td>—</td><td class="up">+4.9%</td></tr>
-      <tr><td>old all-time</td><td>+ lptt=512 (B23) — pre parity-gate</td><td>2055.0</td><td>—</td><td>—</td><td class="up">(not accepted)</td></tr>
-      <tr><td>ROUND-25 S2</td><td>decode-2D geom (tile=32, stages=2)</td><td>2392.2 ± 8.3</td><td>—</td><td>—</td><td class="up">+13.6%</td></tr>
+      <tr><td>old best</td><td>mnpp=1 · lptt=1024 (B10-6)</td><td><b>2045.7</b></td><td>—</td><td>—</td><td class="down">pre-geom</td></tr>
+      <tr><td>old all-time</td><td>+ lptt=512 (B23) — pre parity-gate</td><td>2055.0</td><td>—</td><td>—</td><td>(not accepted)</td></tr>
+      <tr><td>ROUND-25 S2</td><td>decode-2D geom (tile=32, stages=2)</td><td>2392.2 ± 8.3</td><td>—</td><td>—</td><td>—</td></tr>
       <tr><td>CTRL (D2G=0)</td><td>stock core, unified script</td><td>2058.05</td><td>1.56</td><td>641.09s</td><td>—</td></tr>
-      <tr><td>ROUND-27b S2</td><td>S2 geom, same script</td><td><b>2403.18</b></td><td><b>1.80</b></td><td><b>556.66s</b></td><td class="up">+16.8% vs CTRL</td></tr>
-      <tr><td>now</td><td>S2 tuning band</td><td>2403–2429</td><td>—</td><td>—</td><td class="up">ceiling</td></tr>
+      <tr><td>ROUND-27b S2</td><td>S2 geom, same script</td><td><b>2403.18</b></td><td><b>1.80</b></td><td><b>556.66s</b></td><td class="up">+16.8%</td></tr>
+      <tr><td>now</td><td>S2 tuning band</td><td>2403–2429</td><td>—</td><td>—</td><td class="down">ceiling</td></tr>
     </tbody>
   </table>
-  <p style="font-size:12px;color:var(--mut)"><b>Draft-swap comparison</b> (isolates draft method only —
-  identical stack/batch/greedy). <b>Matched 768:</b> at output_len=768/mm=8192, DSpark b16 @k7/topk64
-  <b>1866.46 TPS · QPS 2.98</b> vs S2 MTP-assistant k5 <b>1798.22 TPS · QPS 2.87</b> = <b>+3.8%</b>
-  (corrects an earlier mis-verdict). <b>True-S2 8192:</b> DSpark b16 decoded ~2295 tok/req at <b>2634.58 TPS ·
-  QPS 1.15 · 871s</b> — past the 2500 target. ⚠ The archived "~2403" baseline rows decode a shorter output
-  (~1320–1338 tok/req), so they are <b>not</b> a valid QPS/TPS comparator at the true 8192 decode; a matched
-  S2-MTP control at the same decode length is in flight. DSpark engages (Qwen3DSparkModel, spec_tokens=7,
-  topk=64); draft staged on msn-dni-c09, resolved via <code>assistant_model_path</code>.</p>
-  <ul>
-    <li>Weight-bound Marlin GEMM is <b>~53%</b> of step time — the bottleneck we now target.</li>
-    <li><b>int4 W4A16 halves weight bytes/HBM</b> (0.5 vs 1.0 bytes/weight) → the remaining lever to ~2500.</li>
-    <li>Quality A/B output lengths matched (CTRL 1319 / S2 1338 mean tokens — not a length artifact).</li>
-  </ul>
+  <div class="cap"><b>Table 1.</b> Throughput journey of the decode-2D campaign, ending at a weight-HBM-bound Marlin ceiling. QPS/elapsed are comparable only within the unified-script rows.</div>
 
-  <h2>Quality A/B — Methods</h2>
-  <ul>
-    <li>Reusable <code>run_quality.py</code> scores <em>any</em> branch/config via reserved <code>_agentic_eval_*</code> config keys (opt-in; no-eval path stays byte-identical).</li>
-    <li>Greedy (temperature=0) deterministic decode; general tasks <b>GSM8K</b> (+ BBH).</li>
-    <li>Acceptance = int4 within noise of FP8 control (<b>&lt;1–2% absolute / 1–2 σ</b> per benchmark).</li>
-    <li>Both arms share the same fork, tokenizer, truncate + scoring path.</li>
-  </ul>
+  <div class="note"><b>Length-matching caveat.</b> The archived ~2403 S2 baseline rows decode a
+  <em>short</em> output (~1320–1338 tok/req); the DSpark 8192 run decodes ~2291 tok/req. Raw TPS/QPS across those
+  rows are <b>not</b> comparable. The clean fractional comparison requires a decode-length-matched control,
+  which we submitted (Section 5).</div>
 
-  <h2>Live A/B Status <span class="tag">running</span></h2>
+  <h3>4.1&nbsp; DSpark draft &amp; the 2500 target</h3>
+  <table>
+    <thead><tr><th>Run</th><th>Draft</th><th>decode len</th><th>Output TPS</th><th>QPS</th><th>elapsed</th></tr></thead>
+    <tbody>
+      <tr><td>S2 MTP k5 @768 (matched)</td><td>MTP-assistant k5</td><td>~768</td><td>1798.22</td><td>2.87</td><td>—</td></tr>
+      <tr><td>DSpark b16 @768 (matched)</td><td>DSpark b16 k7</td><td>~768</td><td><b>1866.46</b></td><td><b>2.98</b></td><td>—</td></tr>
+      <tr><td>DSpark b16 @8192 (true S2)</td><td>DSpark b16 k7</td><td>~2291</td><td><b>2634.58 ± 89.29</b></td><td>1.15</td><td>871.19s</td></tr>
+      <tr><td>S2 MTP k5 @8192 (control)</td><td>MTP-assistant k5</td><td>~1323</td><td>2434.38 ± 25.16</td><td>1.84</td><td>542.87s</td></tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 2.</b> Draft-swap comparisons. <b>Matched 768</b> (apples-to-apples): DSpark b16 beats S2
+  MTP k5 by <b>+3.8%</b> in both TPS (1866.46 vs 1798.22) and QPS (2.98 vs 2.87) — the clean, length-matched signal.
+  <b>DSpark @8192</b> independently crosses the 2500 target (2634.58 TPS). The <b>MTP @8192 control decoded a shorter
+  output</b> (~1323 vs ~2291 tok/req), so its 2434.38 TPS / QPS 1.84 is <b>not</b> a valid length-matched comparator for the
+  fractional advantage over DSpark at the true 8192 decode.</div>
+
+  <p style="font-size:13px;line-height:1.6"><b>Finding.</b> The decisive cross-of-2500 measurement is the DSpark
+  @8192 run itself (2634.58 output TPS / QPS 1.15 / 871s / total_tps 7637.68). The draft-only advantage over the S2
+  MTP baseline is proven apples-to-apples at the 768 decode length (+3.8%); the true-8192 fractional advantage
+  remains <em>unproven</em> until a genuinely length-matched (≥~2291 tok/req) MTP control lands.</p>
+
+  <h2>5&nbsp; Results — Quality A/B (int4 gate), live</h2>
+  <p style="font-size:13px;line-height:1.6">The int4 W4A16 candidate halves weight bytes/HBM (0.5 vs 1.0 bytes/weight),
+  the remaining hardware lever. Its acceptance requires staying within noise of the FP8 control on GSM8K + BBH.
+  Both arms are running in parallel on the A100. With the 2500 target already crossed by DSpark, this gate now answers
+  the W4A16 <em>headroom/quality</em> question rather than being the sole path to 2500.</p>
   <div id="app">loading…</div>
+
+  <h2>6&nbsp; Discussion</h2>
+  <ul>
+    <li><b>Method differences.</b> DSpark b16 (a 5-layer qwen3 draft keyed on target hidden states, k=7, topk=64)
+        materially raises accepted-token throughput over MTP k5 at an equal decode length (+3.8% @768).</li>
+    <li><b>Evaluation-harness artifact.</b> The apparent "MTP control faster" reading is an artifact of its shorter
+        decode (~1323 vs ~2291 tok/req) — the length-matching rule (Sec 3.2) excludes it as a comparator.</li>
+    <li><b>Serving/weight findings.</b> Weight-bound Marlin GEMM dominates (~53% of step time) even after the
+        decode-2D geometry; FP8→int4 halves the weight byte footprint and is the natural next lever, pending the
+        quality gate. Datastore/mount specifics (identity-twin <code>copilotexplore_dtalake_id</code> vs SAS 403) are
+        covered in the repo (Section 7).</li>
+  </ul>
+
+  <h2>7&nbsp; Limitations</h2>
+  <ul>
+    <li>The clean 8192-length fractional delta vs MTP is not yet measured (control decoded short); a matched control
+        is the immediate next item.</li>
+    <li>Quality evidence currently covers general tasks only (GSM8K + BBH); agentic/tool-based eval is a follow-on.</li>
+    <li>Throughput is offline single-worker; online batching/QPS at production concurrency is out of scope here.</li>
+  </ul>
+
+  <h2>8&nbsp; References</h2>
+  <ol class="refs">
+    <li>DSpark speculative decoding: b16 draft + target-hidden-state keying (project fork <code>vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>).</li>
+    <li>Decode-2D tile/stage geometry (D2G TILE=32 / STAGES=2 / WARPS=0), S2 setting — ROUND-25/27 series.</li>
+    <li>Humming int4 W4A16 conversion + <code>run_quality.py</code> eval harness (reserved <code>_agentic_eval_*</code> keys, additive).</li>
+    <li>Quality acceptance criterion: candidate within &lt;1–2% abs / 1–2 σ of FP8 control on GSM8K + BBH.</li>
+  </ol>
 
   <div class="foot">Auto-refreshes every 90s. Status pulled live from AML; throughput rows are logged campaign history.
      Infra: privacypshowcase12114 blob static site (see KB 16_SHOWCASE_WEBAPP_RECIPE).</div>

@@ -1,48 +1,48 @@
 {
-  "generated": "2026-10-22 17:52 UTC",
+  "generated": "2026-10-22 23:30 UTC",
   "campaigns": [
     {
-      "name": "DSpark draft vs S2 MTP-assistant — same stack/greedy, draft-only swap",
+      "name": "DSpark draft vs S2 MTP-assistant \u00e2\u20ac\u201d same stack/greedy, draft-only swap",
       "runs": [
         {
           "id": "hungry_room_9ghklmt4n7",
-          "name": "Control — S2 MTP-assistant k5 @768 (mm=8192)",
-          "metric": "1798.22 TPS · QPS 2.87",
+          "name": "Control \u00e2\u20ac\u201d S2 MTP-assistant k5 @768 (mm=8192)",
+          "metric": "1798.22 TPS \u00c2\u00b7 QPS 2.87",
           "status": "COMPLETED"
         },
         {
           "id": "red_tent_1rzh44z633",
           "name": "DSpark b16 k=7 @768 (mm=8192)",
-          "metric": "1866.46 TPS · QPS 2.98 (+3.8%)",
+          "metric": "1866.46 TPS \u00c2\u00b7 QPS 2.98 (+3.8%)",
           "status": "COMPLETED"
         },
         {
           "id": "olden_chaconia_3wklc9wnv8",
           "name": "DSpark b16 k=7 @8192 (true S2, mm=24576)",
-          "metric": "2634.58 TPS · QPS 1.15 · 871s",
+          "metric": "2634.58 TPS \u00c2\u00b7 QPS 1.15 \u00c2\u00b7 871s",
           "status": "COMPLETED"
         },
         {
           "id": "crimson_duck_l7zwbpxn7n",
-          "name": "Matched control — S2 MTP-assistant k5 @8192 (same decode length)",
-          "metric": "",
-          "status": "RUNNING"
+          "name": "Control \u00e2\u20ac\u201d S2 MTP-assistant k5 @8192",
+          "metric": "2434.38 TPS \u00c2\u00b7 QPS 1.84 \u00c2\u00b7 543s",
+          "status": "COMPLETED"
         }
       ],
-      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% — correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. NOTE: the archived '~2403' S2 baseline rows decode a SHORTER output (~1320-1338 tok/req), so they are NOT a valid comparator for TPS/QPS at the true 8192 decode. A matched S2-MTP control decoding the same ~2295 tok/req is now in flight; the clean 8192 delta lands when it completes."
+      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% \u00e2\u20ac\u201d correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. \u00e2\u0161\u00a0 LENGTH-MISMATCH CAVEAT on the new MTP @8192 control: it decoded only ~1323 tok/req (output_tps 2434.38 / qps 1.84) vs DSpark's ~2291 tok/req, so the raw TPS/QPS delta is NOT apples-to-apples despite the shared output_len=8192 in config. DSpark's 2634.58 stands on its own as a cross-of-2500 measurement; the true-8192 fractional advantage over MTP remains UNPROVEN until a genuinely length-matched (\u00e2\u2030\u00a52295 tok/req) MTP control lands."
     },
     {
-      "name": "int4 Quality A/B — FP8-Marlin control vs int4-Humming candidate",
+      "name": "int4 Quality A/B \u00e2\u20ac\u201d FP8-Marlin control vs int4-Humming candidate",
       "runs": [
         {
           "id": "silver_soursop_4c5g6drcr5",
-          "name": "Control — S2 FP8-Marlin (GSM8K + BBH quality)",
+          "name": "Control \u00e2\u20ac\u201d S2 FP8-Marlin (GSM8K + BBH quality)",
           "metric": "",
           "status": "RUNNING"
         },
         {
           "id": "blue_lock_xcg78jdbsv",
-          "name": "Candidate — S2 int4 W4A16 Humming (GSM8K + BBH quality)",
+          "name": "Candidate \u00e2\u20ac\u201d S2 int4 W4A16 Humming (GSM8K + BBH quality)",
           "metric": "",
           "status": "RUNNING"
         }
