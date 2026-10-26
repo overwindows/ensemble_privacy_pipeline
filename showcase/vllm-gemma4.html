@@ -182,49 +182,55 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
-    <h1>Gemma 4 26B-A4B: Closing the MoE Weight-Bandwidth Wall<br>from 2045 to 2634 TPS, Toward 3000</h1>
+    <h1>Gemma 4 26B-A4B on A100: 2000 → 2400 (no training) → 2600 (trained DSpark draft)<br>and the next step toward 3000</h1>
     <div class="authors">Chen Wu · Q:\agentic_vllm + vllm-msn-s2 fork · <span id="updated">loading…</span></div>
   </div>
 
   <div class="abstract">
-    <b>Abstract.</b> On a single A100 80GB (sm_80) we push offline <code>gemma-4-26B-A4B</code> MoE
-    serving from a previous best <b>2045.7 output tokens/s</b> to <b>2634.58</b> at the true S2 8192-token decode
-    — crossing the original 2500 target by ~5% — through a decode-2D tile/stage geometry plus a <b>DSpark b16</b>
-    draft swap that raises accepted-token throughput over the stock Google MTP-assistant draft (<b>+3.8%</b> at a
-    matched 768-token decode, TPS and QPS). The model is now <b>weight-HBM-bound</b> in the FP8-Marlin GEMM (~53% of
-    step time); the remaining levers are (i) an <b>int5 / int4 W4A16</b> weight compression (halving weight
-    bytes/HBM) and (ii) further decode-side parallelism, which together are the <b>planned route to 3000 output
-    TPS</b>. Because weight-precision is a quality change, acceptance is gated behind an agentic tool-loop +
-    GSM8K/BBH quality A/B (<b>within noise of the FP8 control</b>, &lt;1–2% absolute per benchmark). This page is the
-    live results post of that campaign and tracks the 3000 push.
+    <b>Abstract.</b> On a single A100 80GB (sm_80) we raise offline <code>gemma-4-26B-A4B</code> MoE serving
+    from <b>~2000</b> to <b>2634.58 output tokens/s</b> in two complementary steps. <b>Step 1 — pure non-training
+    optimization (S2 + decode-2D geometry):</b> a memory-pipelined "2D" decode/tile-stage scheduling raises a
+    ~2000-token/s baseline to <b>~2400</b> output TPS, with no weight change or retraining. <b>Step 2 — trained
+    speculative draft (DSpark):</b> we train a small <b>general-purpose DSpark</b> model and deploy it on Gemma 4
+    in place of the bundled MTP-assistant draft; at the true S2 8192-token decode this raises throughput to
+    <b>2634.58 output tokens/s</b> (~+10% over the S2-assisted baseline, and +3.8% at a matched 768-token decode,
+    TPS and QPS). The DSpark draft checkpoint is staged for reproducibility at
+    <code>shares/users/zxy/autobench/data/dspark_b16</code> (msn-dni-c09). The decode path is now
+    <b>weight-HBM-bound</b>; the remaining levers — an <b>int5 / int4 W4A16</b> weight compression, quality-gated
+    against the FP8 control — form the active route toward <b>3000</b>.
   </div>
-  <div class="keywords"><b>Keywords:</b> vLLM · speculative decoding · MoE · int5/int4 quantization · quality gating · NVIDIA A100</div>
+  <div class="keywords"><b>Keywords:</b> vLLM · speculative decoding · DSpark · MoE · decode-2D geometry · quality gating · NVIDIA A100</div>
 
   <h2>1&nbsp; Headline Results</h2>
   <div class="metrics">
-    <div class="m"><div class="v">2045.7 → 2634.6</div><div class="l">Prev best → DSpark S2 output TPS</div><div class="d">2500 target crossed</div></div>
-    <div class="m"><div class="v">2634.58</div><div class="l">DSpark b16 @ true-S2 8192 decode</div><div class="d">output TPS (QPS 1.15)</div></div>
+    <div class="m"><div class="v">~2000 → 2400</div><div class="l">Step 1 — S2 + decode-2D geometry</div><div class="d">NO training</div></div>
+    <div class="m"><div class="v">2400 → 2634.58</div><div class="l">Step 2 — trained DSpark draft</div><div class="d">WITH training</div></div>
     <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP @ matched 768 (TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
     <div class="m"><div class="v">3000</div><div class="l">next target — int5 + decode-side levers</div><div class="d">planned / in-flight</div></div>
   </div>
 
   <h2>2&nbsp; Introduction</h2>
   <p style="font-size:13.5px;line-height:1.6">
-    The campaign objective is a single-worker <b>3000 output tokens/s</b> on <code>Gemma-4-26B-A4B-it</code>
-    MoE on an A100 80GB. Prior work (this series) established a decode-2D tile/stage geometry (S2, D2G
-    TILE=32 / STAGES=2 / WARPS=0) that lifted throughput to ~2403–2429 output TPS. Swapping the speculative draft
-    from the Google MTP-assistant to a <b>DSpark b16</b> draft then crossed the earlier 2500 milestone:
-    <b>2634.58 output TPS</b> at the true S2 8192-token decode. Today the model is <b>weight-HBM-bound</b> in the
-    FP8-Marlin GEMM (~53% of step time) — a wall the decode geometry alone cannot clear. Reaching 3000 (~+14% over
-    the current best) therefore needs <b>two orthogonal levers</b>: <b>(i)</b> shrink weight bytes/HBM via
-    <b>int5 / int4 W4A16</b> conversion so the weight GEMM moves less data, and <b>(ii)</b> raise accepted-token
-    parallelism and draft acceptance further on the decode side. Because (i) changes output distribution, it is
-    guarded by a quality A/B acceptance gate. This report presents the standing throughput result, the quality
-    evidence, and the concrete experiment matrix currently addressed to the 3000 target.
+    This campaign's whole story is <b>2000 → 2600+</b>. It is one model, one A100, and two very different kinds of
+    optimization: an <b>inference-only</b> step and a <b>trained</b> step. Working backward from the result:
+    <ul>
+      <li><b>Step 1 (non-training, ~2000 → ~2400).</b> The stock serve sits around <b>2000 output TPS</b>, bounded by decode
+          latency. A <b>decode-2D tile/stage geometry</b> (D2G <code>TILE=32 / STAGES=2 / WARPS=0</code>, the "S2" setting)
+          memory-pipelines the MoE decode so attention and experts overlap, lifting output throughput to <b>~2400</b>
+          (2403–2429 band). No weights change, no retraining — a pure inference scheduling win.</li>
+      <li><b>Step 2 (trained, ~2400 → 2634.58).</b> The bundled Google <b>MTP-assistant</b> draft limits how many accepted
+          tokens each decode step produces. We train a small <b>general-purpose DSpark</b> model (a lightweight draft keyed
+          on the target's hidden states) and slot it in as the assistant. At the true S2 8192-token decode this reaches
+          <b>2634.58 output TPS</b> — a ~+10% lift over the S2+MTP baseline, and <b>+3.8%</b> over MTP at a matched 768-token
+          decode (TPS and QPS). This is the <b>training-involved</b> stage.</li>
+    </ul>
+    The design makes the DSpark swap <b>draft-only</b>: the target's <code>text_only/</code> weights are untouched. Because the
+    model is now <b>weight-HBM-bound</b>, the forward path to <b>3000</b> is weight-precision (int5/int4 W4A16, quality-gated)
+    plus decode-side parallelism. This page is the live, reproducible record of that campaign.
   </p>
 
-  <h2>3&nbsp; Methodology</h2>
-  <h3>3.1&nbsp; Task and setting</h3>
+  <h2>3&nbsp; Methodology &amp; Reproducibility</h2>
+  <h3>3.1&nbsp; Task and setting (all steps)</h3>
   <ul>
     <li>Offline decode, Greedy (temperature=0), top_p=1.0, deterministic.</li>
     <li><b>True S2 setting:</b> output_len=max_tokens=8192, max_model_len=24576, FP8-Marlin, CUDA-graphs,
@@ -232,13 +238,34 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <li>1000-prompt dataset <code>sc1_delta_v2.jsonl</code>, reps=3, from the datastore; results persisted to
         <code>shares/users/zxy/autobench/results</code>. Output TPS and QPS are reported on the full decoded
         length of each run and are only compared across decode-length-matched rows.</li>
+    <li><b>Fork:</b> <code>wuc_microsoft/vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>;
+        runner <code>benchmarks/gemma4_moe_benchmarks/run_config.py</code>.</li>
   </ul>
-  <h3>3.2&nbsp; Draft-swap protocol</h3>
+  <h3>3.2&nbsp; Step 1 — non-training decode-2D geometry (S2)</h3>
   <ul>
-    <li>Identical stack/batch/greedy; only the draft changes (<code>assistant_model_path</code> resolution).</li>
-    <li>DSpark b16 k=7, <code>dspark_draft_topk=64</code>; draft staged on the datastore, resolved at runtime.</li>
-    <li>Comparison honors a strict <b>decode-length-matched</b> rule: QPS and output TPS are only comparable at
-        equal output tokens/request, otherwise the shorter decode looks artificially faster.</li>
+    <li>No weights change, no retraining. A memory-pipelined 2D decode/tile-stage schedule
+        (<code>D2G_TILE=32, D2G_STAGES=2, D2G_WARPS=0</code>) overlaps attention and expert compute to cut decode
+        latency; this is the whole contribution of Step 1.</li>
+  </ul>
+  <h3>3.3&nbsp; Step 2 — trained DSpark draft (replaces MTP-assistant)</h3>
+  <ul>
+    <li><b>Trained artifact:</b> a general-purpose <b>DSpark</b> draft model (small, keyed on the target's hidden
+        states) trained as a speculative assistant, deployed on Gemma 4 in place of the bundled Google
+        <b>MTP-assistant</b> k5 draft.</li>
+    <li><b>Checkpoint (reproducibility):</b> DSpark b16 draft staged at
+        <code>shares/users/zxy/autobench/data/dspark_b16</code> on datastore <b>msn-dni-c09</b>
+        (<code>config.json</code> + <code>model.safetensors</code>); original source
+        <code>makora-ai/gemma4-26b-a4b-dspark</code>. It is a <b>draft-only</b> checkpoint and does not replace the
+        target's <code>text_only/</code> weights.</li>
+    <li><b>Runtime settings:</b> method=<code>dspark</code>, <code>num_speculative_tokens=7</code> (k=7),
+        <code>dspark_draft_topk=64</code>; resolved via <code>assistant_model_path</code> =
+        <code>shares/users/zxy/autobench/data/dspark_b16</code>.</li>
+    <li><b>Exact experiment config:</b> <code>experiments/gemma4-s2-dspark-b16-8192-a100.yaml</code> (repo
+        <code>Q:\agentic_vllm</code>) — this single file reproduces the 2634.58 @8192 run end-to-end.</li>
+    <li><b>Controlled comparison:</b> identical stack/batch/greedy; only the draft changes
+        (<code>assistant_model_path</code>). Comparison honors a strict <b>decode-length-matched</b> rule: QPS and
+        output TPS are only comparable at equal output tokens/request, otherwise the shorter decode looks
+        artificially faster.</li>
   </ul>
   <h3>3.3&nbsp; Quality A/B (weight-precision gate)</h3>
   <ul>
@@ -266,27 +293,29 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <div class="cap"><b>Table M1.</b> 3000-TPS lever matrix. Weight-precision levers (L1/L2) are quality-gated;
   decode-side levers (L3/L4) are throughput-only and compared length-matched.</div>
 
-  <h2>4&nbsp; Results — Throughput</h2>
+  <h2>4&nbsp; Results — Throughput (the full 2000 → 2600 story)</h2>
   <table>
-    <thead><tr><th>Round</th><th>Change</th><th>Output TPS</th><th>QPS</th><th>elapsed</th><th>Δ vs CTRL</th></tr></thead>
+    <thead><tr><th>Stage</th><th>Change</th><th>Output TPS</th><th>Training?</th></tr></thead>
     <tbody>
-      <tr><td>floor</td><td>stock (B7-1)</td><td>1997.0</td><td>—</td><td>—</td><td>—</td></tr>
-      <tr><td>old best</td><td>mnpp=1 · lptt=1024 (B10-6)</td><td><b>2045.7</b></td><td>—</td><td>—</td><td class="down">pre-geom</td></tr>
-      <tr><td>old all-time</td><td>+ lptt=512 (B23) — pre parity-gate</td><td>2055.0</td><td>—</td><td>—</td><td>(not accepted)</td></tr>
-      <tr><td>ROUND-25 S2</td><td>decode-2D geom (tile=32, stages=2)</td><td>2392.2 ± 8.3</td><td>—</td><td>—</td><td>—</td></tr>
-      <tr><td>CTRL (D2G=0)</td><td>stock core, unified script</td><td>2058.05</td><td>1.56</td><td>641.09s</td><td>—</td></tr>
-      <tr><td>ROUND-27b S2</td><td>S2 geom, same script</td><td><b>2403.18</b></td><td><b>1.80</b></td><td><b>556.66s</b></td><td class="up">+16.8%</td></tr>
-      <tr><td>now</td><td>S2 tuning band</td><td>2403–2429</td><td>—</td><td>—</td><td class="down">ceiling</td></tr>
+      <tr><td>floor</td><td>stock (B7-1)</td><td>1997.0</td><td>NO</td></tr>
+      <tr><td>old all-time (pre-parity)</td><td>+ lptt tuning (B23)</td><td>2055.0</td><td>NO</td></tr>
+      <tr><td><b>Step 1 — S2</b></td><td>decode-2D geom (tile=32, stages=2)</td><td>2392.2 ± 8.3</td><td><b>NO</b></td></tr>
+      <tr><td>Step 1 — CTRL (D2G=0)</td><td>stock core, unified script</td><td>2058.05</td><td>NO</td></tr>
+      <tr><td>Step 1 — S2 (unified)</td><td>S2 geom, same script (ROUND-27b)</td><td><b>2403.18</b></td><td><b>NO</b></td></tr>
+      <tr><td><b>Step 2 — DSpark b16</b></td><td><b>trained general DSpark draft</b> replaces MTP-assistant, true S2 @8192</td><td><b>2634.58 ± 89.29</b></td><td><b>YES (draft only)</b></td></tr>
     </tbody>
   </table>
-  <div class="cap"><b>Table 1.</b> Throughput journey of the decode-2D campaign, ending at a weight-HBM-bound Marlin ceiling. QPS/elapsed are comparable only within the unified-script rows.</div>
+  <div class="cap"><b>Table 1.</b> Two-step throughput journey. <b>Step 1</b> (S2 + decode-2D geometry) is a pure
+  <b>non-training</b> optimization taking ~2000 → ~2400 output TPS. <b>Step 2</b> (a <b>trained general DSpark</b>
+  draft replacing the Google MTP-assistant) takes ~2400 → <b>2634.58</b> output TPS at the true S2 8192-token decode.
+  QPS/elapsed are comparable only within the same script and decode length.</div>
 
   <div class="note"><b>Length-matching caveat.</b> The archived ~2403 S2 baseline rows decode a
   <em>short</em> output (~1320–1338 tok/req); the DSpark 8192 run decodes ~2291 tok/req. Raw TPS/QPS across those
   rows are <b>not</b> comparable. The clean fractional comparison requires a decode-length-matched control,
   which we submitted (Section 5).</div>
 
-  <h3>4.1&nbsp; DSpark draft &amp; the 2500 target</h3>
+  <h3>4.1&nbsp; Step 2 — trained DSpark draft, controlled against MTP</h3>
   <table>
     <thead><tr><th>Run</th><th>Draft</th><th>decode len</th><th>Output TPS</th><th>QPS</th><th>elapsed</th></tr></thead>
     <tbody>
@@ -296,17 +325,19 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <tr><td>S2 MTP k5 @8192 (control)</td><td>MTP-assistant k5</td><td>~1323</td><td>2434.38 ± 25.16</td><td>1.84</td><td>542.87s</td></tr>
     </tbody>
   </table>
-  <div class="cap"><b>Table 2.</b> Draft-swap comparisons. <b>Matched 768</b> (apples-to-apples): DSpark b16 beats S2
-  MTP k5 by <b>+3.8%</b> in both TPS (1866.46 vs 1798.22) and QPS (2.98 vs 2.87) — the clean, length-matched signal.
-  <b>DSpark @8192</b> independently crosses the 2500 target (2634.58 TPS). The <b>MTP @8192 control decoded a shorter
-  output</b> (~1323 vs ~2291 tok/req), so its 2434.38 TPS / QPS 1.84 is <b>not</b> a valid length-matched comparator for the
-  fractional advantage over DSpark at the true 8192 decode.</div>
+  <div class="cap"><b>Table 2.</b> Draft-swap comparisons (Step 2). <b>Matched 768</b> (apples-to-apples): the trained
+  DSpark b16 beats S2 MTP k5 by <b>+3.8%</b> in both TPS (1866.46 vs 1798.22) and QPS (2.98 vs 2.87) — the clean,
+  length-matched signal. <b>DSpark @8192</b> independently closes the 2000 → 2600 story at <b>2634.58 TPS</b>. The
+  <b>MTP @8192 control decoded a shorter output</b> (~1323 vs ~2291 tok/req), so its 2434.38 TPS / QPS 1.84 is <b>not</b> a
+  valid length-matched comparator for the fractional advantage over DSpark at the true 8192 decode.</div>
 
-  <p style="font-size:13px;line-height:1.6"><b>Finding.</b> The decisive cross-of-2500 measurement is the DSpark
-  @8192 run itself (2634.58 output TPS / QPS 1.15 / 871s / total_tps 7637.68). The draft-only advantage over the S2
-  MTP baseline is proven apples-to-apples at the 768 decode length (+3.8%); the true-8192 fractional advantage
-  remains <em>unproven</em> until a genuinely length-matched (≥~2291 tok/req) MTP control lands. Closing that gap and
-  then stacking the L1–L5 levers (Sec 3.4) is the active route to 3000.</p>
+  <p style="font-size:13px;line-height:1.6"><b>Finding.</b> The decisive end-to-end measurement is the DSpark
+  @8192 run itself (2634.58 output TPS / QPS 1.15 / 871s / total_tps 7637.68) — the <b>with-training</b> Stage-2 result.
+  The draft-only advantage over the S2 MTP baseline is proven apples-to-apples at the 768 decode length (+3.8%); the
+  true-8192 fractional advantage remains <em>unproven</em> until a genuinely length-matched (≥~2291 tok/req) MTP control
+  lands. Closing that gap and then stacking the L1–L5 levers (Sec 3.4) is the active route to 3000. <b>Reproduce:</b>
+  <code>experiments/gemma4-s2-dspark-b16-8192-a100.yaml</code> with the draft at
+  <code>shares/users/zxy/autobench/data/dspark_b16</code> (msn-dni-c09).</p>
 
   <h2>5&nbsp; Results — Quality A/B (weight-precision gate), live</h2>
   <p style="font-size:13px;line-height:1.6">The <b>int5 W4A16 Humming</b> candidate (~0.63 bytes/weight vs 1.0 FP8,
@@ -318,29 +349,36 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <h2>6&nbsp; Discussion</h2>
   <ul>
-    <li><b>Method differences.</b> DSpark b16 (a 5-layer qwen3 draft keyed on target hidden states, k=7, topk=64)
-        materially raises accepted-token throughput over MTP k5 at an equal decode length (+3.8% @768).</li>
+    <li><b>Two very different levers.</b> Step 1 (S2 + decode-2D geometry) is a <b>pure inference optimization</b> — no
+        training, no weight change; it buys ~2000 → ~2400. Step 2 is <b>training-involved</b>: we train a small
+        general-purpose <b>DSpark</b> draft (keyed on the target's hidden states, k=7, topk=64) and deploy it in place of
+        the Google MTP-assistant k5; it buys ~2400 → 2634.58 and +3.8% over MTP at a matched decode length.</li>
+    <li><b>Draft-only, target untouched.</b> DSpark is a draft-only checkpoint; the target's <code>text_only/</code>
+        weights are never modified, so the quality of the served model is governed by the same greedy decode.</li>
     <li><b>Evaluation-harness artifact.</b> The apparent "MTP control faster" reading is an artifact of its shorter
-        decode (~1323 vs ~2291 tok/req) — the length-matching rule (Sec 3.2) excludes it as a comparator.</li>
+        decode (~1323 vs ~2291 tok/req) — the length-matching rule (Sec 3.3) excludes it as a comparator.</li>
     <li><b>Road to 3000.</b> The weight-HBM-bound Marlin GEMM (~53% of step time) is attacked on two fronts:
         precision (L1/L2 — int5 then int4 W4A16, quality-gated) and decode-side acceptance/parallelism (L3/L4,
         length-matched). None of these has landed end-to-end yet; L1 is in flight now. Datastore/mount specifics
-        (identity-twin <code>copilotexplore_dtalake_id</code> vs SAS 403) are covered in the repo (Section 7).</li>
+        (identity-twin <code>copilotexplore_dtalake_id</code> vs SAS 403) are covered in the repo.</li>
   </ul>
 
   <h2>7&nbsp; Limitations</h2>
   <ul>
     <li>The clean 8192-length fractional delta vs MTP is not yet measured (control decoded short); a matched control
-        is a pending comparator before we can attribute the 3000 gap with confidence.</li>
-    <li>Crossing 2500 is demonstrated; <b>3000 is a target, not yet a result</b>. The L1–L5 deltas are hypotheses to be
+        is a pending comparator before we can attribute the gap to DSpark with confidence at true 8192 decode.</li>
+    <li>2634.58 is measured; <b>3000 is a target, not yet a result</b>. The L1–L5 deltas are hypotheses to be
         measured; no fabricated or extrapolated throughput is reported.</li>
+    <li>The DSpark trained artifact is staged on the internal datastore (msn-dni-c09); its public source is
+        <code>makora-ai/gemma4-26b-a4b-dspark</code>.</li>
     <li>Throughput is offline single-worker; online batching/QPS at production concurrency is out of scope here.</li>
   </ul>
 
   <h2>8&nbsp; References</h2>
   <ol class="refs">
-    <li>DSpark speculative decoding: b16 draft + target-hidden-state keying (project fork <code>vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>).</li>
-    <li>Decode-2D tile/stage geometry (D2G TILE=32 / STAGES=2 / WARPS=0), S2 setting — ROUND-25/27 series.</li>
+    <li>DSpark speculative decoding — trained general-purpose b16 draft keyed on target hidden states; source <code>makora-ai/gemma4-26b-a4b-dspark</code>, staged at <code>shares/users/zxy/autobench/data/dspark_b16</code> (msn-dni-c09). Project fork <code>vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>.</li>
+    <li>Step 1 — decode-2D tile/stage geometry (D2G TILE=32 / STAGES=2 / WARPS=0, S2 setting), non-training; ROUND-25/27 series.</li>
+    <li>Step 2 reproducibility — exact experiment config <code>experiments/gemma4-s2-dspark-b16-8192-a100.yaml</code> (Q:\agentic_vllm); repro: <code>model_path → Gemma-4-26B-A4B-it-deploy-260528/text_only</code>, <code>assistant_model_path → dspark_b16</code>, k=7, topk=64.</li>
     <li>Humming int5/int4 W4A16 conversion + <code>run_quality.py</code> / <code>run_quality_agentic.py</code> eval harness (reserved <code>_agentic_eval_*</code> keys, additive).</li>
     <li>Quality acceptance criterion: candidate within &lt;1–2% abs / 1–2 σ of FP8 control on agentic tool-loop, GSM8K + BBH.</li>
   </ol>

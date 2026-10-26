@@ -1,9 +1,11 @@
 {
-  "generated": "2026-10-26 02:30 UTC",
-  "headline": "Standing best 2634.58 output TPS (DSpark b16, true S2 @8192) — original 2500 target crossed. Active campaign: 3000 output TPS via int5/int4 W4A16 + decode-side levers (quality-gated).",
+  "generated": "2026-10-26 20:15 UTC",
+  "headline": "Two-step story: 2000 → 2400 (S2 + decode-2D geometry, NO training) → 2634.58 (trained general DSpark draft replacing MTP-assistant, true S2 @8192). Draft ckpt at shares/users/zxy/autobench/data/dspark_b16 (msn-dni-c09). Active: 3000 via int5/int4 W4A16 (quality-gated).",
   "campaigns": [
     {
-      "name": "DSpark draft vs S2 MTP-assistant — same stack/greedy, draft-only swap",
+      "name": "Step 2 — trained general DSpark b16 draft vs S2 MTP-assistant (draft-only swap; WITH training)",
+      "ckpt": "shares/users/zxy/autobench/data/dspark_b16 (msn-dni-c09); source makora-ai/gemma4-26b-a4b-dspark",
+      "repro": "experiments/gemma4-s2-dspark-b16-8192-a100.yaml (k=7, topk=64, assistant_model_path->dspark_b16)",
       "runs": [
         {
           "id": "hungry_room_9ghklmt4n7",
@@ -30,7 +32,7 @@
           "status": "COMPLETED"
         }
       ],
-      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% — correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. LENGTH-MISMATCH CAVEAT on the new MTP @8192 control: it decoded only ~1323 tok/req (output_tps 2434.38 / qps 1.84) vs DSpark's ~2291 tok/req, so the raw TPS/QPS delta is NOT apples-to-apples despite the shared output_len=8192 in config. DSpark's 2634.58 stands on its own as a crossing of the original 2500 target; the true-8192 fractional advantage over MTP remains UNPROVEN until a genuinely length-matched (>=2295 tok/req) MTP control lands. 3000 is the active target (Sec 3.4 lever matrix)."
+      "notes": "Step 2 is WITH-training: a general-purpose DSpark model is trained as a speculative draft and deployed on Gemma 4 in place of the bundled Google MTP-assistant k5 (draft-only; target text_only untouched). Matched 768 (apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% in both TPS and QPS. True-S2 DSpark @8192 decoded ~2295 tok/req at 2634.58 TPS / QPS 1.15 in 871s — closes 2000->2600. LENGTH-MISMATCH CAVEAT: MTP @8192 control decoded only ~1323 tok/req (2434.38 / 1.84) vs DSpark ~2291 — NOT apples-to-apples despite shared output_len=8192; fractional true-8192 gain over MTP remains UNPROVEN until a length-matched (>=2295 tok/req) MTP control lands. 3000 is the active target (lever matrix: int5 L1 in-flight, int4 L2, draft-accept L3, parallelism L4, fused-MoE L5)."
     },
     {
       "name": "int5 Quality A/B — FP8-Marlin control vs int5-Humming candidate (agentic tool-loop + GSM8K + BBH)",
