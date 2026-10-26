@@ -183,15 +183,15 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
-    <h1>Gemma 4 26B-A4B on A100: 2000 → 2403.18 (no training) → 2634.58 (trained DSpark draft)<br>and the next step toward 3000</h1>
+    <h1>Gemma 4 26B-A4B on A100: 2045.0 → 2403.18 (no training) → 2634.58 (trained DSpark draft)<br>and the next step toward 3000</h1>
     <div class="authors">Chen Wu · Q:\agentic_vllm + vllm-msn-s2 fork · <span id="updated">loading…</span></div>
   </div>
 
   <div class="abstract">
     <b>Abstract.</b> On a single A100 80GB (sm_80) we raise offline <code>gemma-4-26B-A4B</code> MoE serving
-    from <b>~2000</b> to <b>2634.58 output tokens/s</b> in two complementary steps. <b>Step 1 — pure non-training
-    optimization (S2 + decode-2D geometry):</b> a memory-pipelined "2D" decode/tile-stage scheduling raises a
-    ~2000-token/s baseline to <b>2403.18</b> output TPS, with no weight change or retraining. <b>Step 2 — trained
+    from a <b>2045.0</b> baseline to <b>2634.58 output tokens/s</b> in two complementary steps. <b>Step 1 — pure non-training
+    optimization (S2 + decode-2D geometry):</b> a memory-pipelined "2D" decode/tile-stage scheduling raises the
+    2045.0-token/s baseline to <b>2403.18</b> output TPS, with no weight change or retraining. <b>Step 2 — trained
     speculative draft (DSpark):</b> we train a small <b>general-purpose DSpark</b> model and deploy it on Gemma 4
     in place of the bundled MTP-assistant draft; at the true S2 8192-token decode this raises throughput to
     <b>2634.58 output tokens/s</b> (~+10% over the S2-assisted baseline, and +3.8% at a matched 768-token decode,
@@ -204,7 +204,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <h2>1&nbsp; Headline Results</h2>
   <div class="metrics">
-    <div class="m"><div class="v">~2000 → 2403.18</div><div class="l">Step 1 — S2 + decode-2D geometry</div><div class="d">NO training</div></div>
+    <div class="m"><div class="v">2045.0 → 2403.18</div><div class="l">Step 1 — S2 + decode-2D geometry</div><div class="d">NO training</div></div>
     <div class="m"><div class="v">2403.18 → 2634.58</div><div class="l">Step 2 — trained DSpark draft</div><div class="d">WITH training</div></div>
     <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP @ matched 768 (TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
     <div class="m"><div class="v">3000</div><div class="l">next target — int5 + decode-side levers</div><div class="d">planned / in-flight</div></div>
@@ -212,10 +212,10 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <h2>2&nbsp; Introduction</h2>
   <p style="font-size:13.5px;line-height:1.6">
-    This campaign's whole story is <b>2000 → 2600+</b>. It is one model, one A100, and two very different kinds of
+    This campaign's whole story is <b>2045.0 → 2600+</b>. It is one model, one A100, and two very different kinds of
     optimization: an <b>inference-only</b> step and a <b>trained</b> step. Working backward from the result:
     <ul>
-      <li><b>Step 1 (non-training, ~2000 → 2403.18).</b> The stock serve sits around <b>2000 output TPS</b>, bounded by decode
+      <li><b>Step 1 (non-training, 2045.0 → 2403.18).</b> The stock serve sits around <b>2045.0 output TPS</b>, bounded by decode
           latency. A <b>decode-2D tile/stage geometry</b> (D2G <code>TILE=32 / STAGES=2 / WARPS=0</code>, the "S2" setting)
           memory-pipelines the MoE decode so attention and experts overlap, lifting output throughput to <b>2403.18</b>
           (a 2403–2429 band). No weights change, no retraining — a pure inference scheduling win.</li>
@@ -255,8 +255,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
         <b>MTP-assistant</b> k5 draft.</li>
     <li><b>Checkpoint (reproducibility):</b> DSpark b16 draft staged at
         <code>shares/users/zxy/autobench/data/dspark_b16</code> on datastore <b>msn-dni-c09</b>
-        (<code>config.json</code> + <code>model.safetensors</code>); original source
-        <code>makora-ai/gemma4-26b-a4b-dspark</code>. It is a <b>draft-only</b> checkpoint and does not replace the
+        (<code>config.json</code> + <code>model.safetensors</code>); public source
+        <code>IWRITECODE/gemma4-26b-a4b-dspark-b16</code>. It is a <b>draft-only</b> checkpoint and does not replace the
         target's <code>text_only/</code> weights.</li>
     <li><b>Runtime settings:</b> method=<code>dspark</code>, <code>num_speculative_tokens=7</code> (k=7),
         <code>dspark_draft_topk=64</code>; resolved via <code>assistant_model_path</code> =
@@ -294,7 +294,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <div class="cap"><b>Table M1.</b> 3000-TPS lever matrix. Weight-precision levers (L1/L2) are quality-gated;
   decode-side levers (L3/L4) are throughput-only and compared length-matched.</div>
 
-  <h2>4&nbsp; Results — Throughput (the full 2000 → 2600 story)</h2>
+  <h2>4&nbsp; Results — Throughput (the full 2045 → 2600 story)</h2>
   <table>
     <thead><tr><th>Stage</th><th>Change</th><th>Output TPS</th><th>Training?</th></tr></thead>
     <tbody>
@@ -307,7 +307,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </tbody>
   </table>
   <div class="cap"><b>Table 1.</b> Two-step throughput journey. <b>Step 1</b> (S2 + decode-2D geometry) is a pure
-  <b>non-training</b> optimization taking ~2000 → 2403.18 output TPS. <b>Step 2</b> (a <b>trained general DSpark</b>
+  <b>non-training</b> optimization taking 2045.0 → 2403.18 output TPS. <b>Step 2</b> (a <b>trained general DSpark</b>
   draft replacing the Google MTP-assistant) takes 2403.18 → <b>2634.58</b> output TPS at the true S2 8192-token decode.
   QPS/elapsed are comparable only within the same script and decode length.</div>
 
@@ -328,7 +328,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   </table>
   <div class="cap"><b>Table 2.</b> Draft-swap comparisons (Step 2). <b>Matched 768</b> (apples-to-apples): the trained
   DSpark b16 beats S2 MTP k5 by <b>+3.8%</b> in both TPS (1866.46 vs 1798.22) and QPS (2.98 vs 2.87) — the clean,
-  length-matched signal. <b>DSpark @8192</b> independently closes the 2000 → 2600 story at <b>2634.58 TPS</b>. The
+  length-matched signal. <b>DSpark @8192</b> independently closes the 2045 → 2600 story at <b>2634.58 TPS</b>. The
   <b>MTP @8192 control decoded a shorter output</b> (~1323 vs ~2291 tok/req), so its 2434.38 TPS / QPS 1.84 is <b>not</b> a
   valid length-matched comparator for the fractional advantage over DSpark at the true 8192 decode.</div>
 
@@ -351,7 +351,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <h2>6&nbsp; Discussion</h2>
   <ul>
     <li><b>Two very different levers.</b> Step 1 (S2 + decode-2D geometry) is a <b>pure inference optimization</b> — no
-        training, no weight change; it buys ~2000 → 2403.18. Step 2 is <b>training-involved</b>: we train a small
+        training, no weight change; it buys 2045.0 → 2403.18. Step 2 is <b>training-involved</b>: we train a small
         general-purpose <b>DSpark</b> draft (keyed on the target's hidden states, k=7, topk=64) and deploy it in place of
         the Google MTP-assistant k5; it buys 2403.18 → 2634.58 and +3.8% over MTP at a matched decode length.</li>
     <li><b>Draft-only, target untouched.</b> DSpark is a draft-only checkpoint; the target's <code>text_only/</code>
@@ -371,13 +371,13 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <li>2634.58 is measured; <b>3000 is a target, not yet a result</b>. The L1–L5 deltas are hypotheses to be
         measured; no fabricated or extrapolated throughput is reported.</li>
     <li>The DSpark trained artifact is staged on the internal datastore (msn-dni-c09); its public source is
-        <code>makora-ai/gemma4-26b-a4b-dspark</code>.</li>
+        <code>IWRITECODE/gemma4-26b-a4b-dspark-b16</code>.</li>
     <li>Throughput is offline single-worker; online batching/QPS at production concurrency is out of scope here.</li>
   </ul>
 
   <h2>8&nbsp; References</h2>
   <ol class="refs">
-    <li>DSpark speculative decoding — trained general-purpose b16 draft keyed on target hidden states; source <code>makora-ai/gemma4-26b-a4b-dspark</code>, staged at <code>shares/users/zxy/autobench/data/dspark_b16</code> (msn-dni-c09). Project fork <code>vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>.</li>
+    <li>DSpark speculative decoding — trained general-purpose b16 draft keyed on target hidden states; source <code>IWRITECODE/gemma4-26b-a4b-dspark-b16</code>, staged at <code>shares/users/zxy/autobench/data/dspark_b16</code> (msn-dni-c09). Project fork <code>vllm-msn</code>, branch <code>feat/gemma4-decode2d-geom</code>.</li>
     <li>Step 1 — decode-2D tile/stage geometry (D2G TILE=32 / STAGES=2 / WARPS=0, S2 setting), non-training; ROUND-25/27 series.</li>
     <li>Step 2 reproducibility — exact experiment config <code>experiments/gemma4-s2-dspark-b16-8192-a100.yaml</code> (Q:\agentic_vllm); repro: <code>model_path → Gemma-4-26B-A4B-it-deploy-260528/text_only</code>, <code>assistant_model_path → dspark_b16</code>, k=7, topk=64.</li>
     <li>Humming int5/int4 W4A16 conversion + <code>run_quality.py</code> / <code>run_quality_agentic.py</code> eval harness (reserved <code>_agentic_eval_*</code> keys, additive).</li>
