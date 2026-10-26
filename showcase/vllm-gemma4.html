@@ -170,6 +170,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <a href="vllm-gemma4.html" class="active">vLLM Gemma4</a>
       <a href="newsrank.html">NewsRank</a>
       <a href="bench_models.html">Benchmarks</a>
+      <a href="llm_recommender_design.html">LLM Recommender</a>
       <a href="speculators.html">Speculators</a>
       <a href="reproduce_s2_best.html">Reproduce S2</a>
     </nav>
@@ -182,7 +183,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM on NVIDIA A100 (sm_80)</div>
-    <h1>Gemma 4 26B-A4B on A100: 2000 → 2400 (no training) → 2600 (trained DSpark draft)<br>and the next step toward 3000</h1>
+    <h1>Gemma 4 26B-A4B on A100: 2000 → 2403.18 (no training) → 2634.58 (trained DSpark draft)<br>and the next step toward 3000</h1>
     <div class="authors">Chen Wu · Q:\agentic_vllm + vllm-msn-s2 fork · <span id="updated">loading…</span></div>
   </div>
 
@@ -190,7 +191,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <b>Abstract.</b> On a single A100 80GB (sm_80) we raise offline <code>gemma-4-26B-A4B</code> MoE serving
     from <b>~2000</b> to <b>2634.58 output tokens/s</b> in two complementary steps. <b>Step 1 — pure non-training
     optimization (S2 + decode-2D geometry):</b> a memory-pipelined "2D" decode/tile-stage scheduling raises a
-    ~2000-token/s baseline to <b>~2400</b> output TPS, with no weight change or retraining. <b>Step 2 — trained
+    ~2000-token/s baseline to <b>2403.18</b> output TPS, with no weight change or retraining. <b>Step 2 — trained
     speculative draft (DSpark):</b> we train a small <b>general-purpose DSpark</b> model and deploy it on Gemma 4
     in place of the bundled MTP-assistant draft; at the true S2 8192-token decode this raises throughput to
     <b>2634.58 output tokens/s</b> (~+10% over the S2-assisted baseline, and +3.8% at a matched 768-token decode,
@@ -203,8 +204,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 
   <h2>1&nbsp; Headline Results</h2>
   <div class="metrics">
-    <div class="m"><div class="v">~2000 → 2400</div><div class="l">Step 1 — S2 + decode-2D geometry</div><div class="d">NO training</div></div>
-    <div class="m"><div class="v">2400 → 2634.58</div><div class="l">Step 2 — trained DSpark draft</div><div class="d">WITH training</div></div>
+    <div class="m"><div class="v">~2000 → 2403.18</div><div class="l">Step 1 — S2 + decode-2D geometry</div><div class="d">NO training</div></div>
+    <div class="m"><div class="v">2403.18 → 2634.58</div><div class="l">Step 2 — trained DSpark draft</div><div class="d">WITH training</div></div>
     <div class="m"><div class="v">+3.8%</div><div class="l">DSpark vs MTP @ matched 768 (TPS &amp; QPS)</div><div class="d">apples-to-apples</div></div>
     <div class="m"><div class="v">3000</div><div class="l">next target — int5 + decode-side levers</div><div class="d">planned / in-flight</div></div>
   </div>
@@ -214,11 +215,11 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     This campaign's whole story is <b>2000 → 2600+</b>. It is one model, one A100, and two very different kinds of
     optimization: an <b>inference-only</b> step and a <b>trained</b> step. Working backward from the result:
     <ul>
-      <li><b>Step 1 (non-training, ~2000 → ~2400).</b> The stock serve sits around <b>2000 output TPS</b>, bounded by decode
+      <li><b>Step 1 (non-training, ~2000 → 2403.18).</b> The stock serve sits around <b>2000 output TPS</b>, bounded by decode
           latency. A <b>decode-2D tile/stage geometry</b> (D2G <code>TILE=32 / STAGES=2 / WARPS=0</code>, the "S2" setting)
-          memory-pipelines the MoE decode so attention and experts overlap, lifting output throughput to <b>~2400</b>
-          (2403–2429 band). No weights change, no retraining — a pure inference scheduling win.</li>
-      <li><b>Step 2 (trained, ~2400 → 2634.58).</b> The bundled Google <b>MTP-assistant</b> draft limits how many accepted
+          memory-pipelines the MoE decode so attention and experts overlap, lifting output throughput to <b>2403.18</b>
+          (a 2403–2429 band). No weights change, no retraining — a pure inference scheduling win.</li>
+      <li><b>Step 2 (trained, 2403.18 → 2634.58).</b> The bundled Google <b>MTP-assistant</b> draft limits how many accepted
           tokens each decode step produces. We train a small <b>general-purpose DSpark</b> model (a lightweight draft keyed
           on the target's hidden states) and slot it in as the assistant. At the true S2 8192-token decode this reaches
           <b>2634.58 output TPS</b> — a ~+10% lift over the S2+MTP baseline, and <b>+3.8%</b> over MTP at a matched 768-token
@@ -306,8 +307,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </tbody>
   </table>
   <div class="cap"><b>Table 1.</b> Two-step throughput journey. <b>Step 1</b> (S2 + decode-2D geometry) is a pure
-  <b>non-training</b> optimization taking ~2000 → ~2400 output TPS. <b>Step 2</b> (a <b>trained general DSpark</b>
-  draft replacing the Google MTP-assistant) takes ~2400 → <b>2634.58</b> output TPS at the true S2 8192-token decode.
+  <b>non-training</b> optimization taking ~2000 → 2403.18 output TPS. <b>Step 2</b> (a <b>trained general DSpark</b>
+  draft replacing the Google MTP-assistant) takes 2403.18 → <b>2634.58</b> output TPS at the true S2 8192-token decode.
   QPS/elapsed are comparable only within the same script and decode length.</div>
 
   <div class="note"><b>Length-matching caveat.</b> The archived ~2403 S2 baseline rows decode a
@@ -350,9 +351,9 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <h2>6&nbsp; Discussion</h2>
   <ul>
     <li><b>Two very different levers.</b> Step 1 (S2 + decode-2D geometry) is a <b>pure inference optimization</b> — no
-        training, no weight change; it buys ~2000 → ~2400. Step 2 is <b>training-involved</b>: we train a small
+        training, no weight change; it buys ~2000 → 2403.18. Step 2 is <b>training-involved</b>: we train a small
         general-purpose <b>DSpark</b> draft (keyed on the target's hidden states, k=7, topk=64) and deploy it in place of
-        the Google MTP-assistant k5; it buys ~2400 → 2634.58 and +3.8% over MTP at a matched decode length.</li>
+        the Google MTP-assistant k5; it buys 2403.18 → 2634.58 and +3.8% over MTP at a matched decode length.</li>
     <li><b>Draft-only, target untouched.</b> DSpark is a draft-only checkpoint; the target's <code>text_only/</code>
         weights are never modified, so the quality of the served model is governed by the same greedy decode.</li>
     <li><b>Evaluation-harness artifact.</b> The apparent "MTP control faster" reading is an artifact of its shorter

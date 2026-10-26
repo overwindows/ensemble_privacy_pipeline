@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-26 20:15 UTC",
-  "headline": "Two-step story: 2000 → 2400 (S2 + decode-2D geometry, NO training) → 2634.58 (trained general DSpark draft replacing MTP-assistant, true S2 @8192). Draft ckpt at shares/users/zxy/autobench/data/dspark_b16 (msn-dni-c09). Active: 3000 via int5/int4 W4A16 (quality-gated).",
+  "headline": "Two-step story: 2000 → 2403.18 (S2 + decode-2D geometry, NO training) → 2634.58 (trained general DSpark draft replacing MTP-assistant, true S2 @8192). Draft ckpt at shares/users/zxy/autobench/data/dspark_b16 (msn-dni-c09). Active: 3000 via int5/int4 W4A16 (quality-gated).",
   "campaigns": [
     {
       "name": "Step 2 — trained general DSpark b16 draft vs S2 MTP-assistant (draft-only swap; WITH training)",
