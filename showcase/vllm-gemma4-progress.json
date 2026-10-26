@@ -1,53 +1,54 @@
 {
-  "generated": "2026-10-22 23:30 UTC",
+  "generated": "2026-10-26 02:30 UTC",
+  "headline": "Standing best 2634.58 output TPS (DSpark b16, true S2 @8192) — original 2500 target crossed. Active campaign: 3000 output TPS via int5/int4 W4A16 + decode-side levers (quality-gated).",
   "campaigns": [
     {
-      "name": "DSpark draft vs S2 MTP-assistant \u00e2\u20ac\u201d same stack/greedy, draft-only swap",
+      "name": "DSpark draft vs S2 MTP-assistant — same stack/greedy, draft-only swap",
       "runs": [
         {
           "id": "hungry_room_9ghklmt4n7",
-          "name": "Control \u00e2\u20ac\u201d S2 MTP-assistant k5 @768 (mm=8192)",
-          "metric": "1798.22 TPS \u00c2\u00b7 QPS 2.87",
+          "name": "Control — S2 MTP-assistant k5 @768 (mm=8192)",
+          "metric": "1798.22 TPS · QPS 2.87",
           "status": "COMPLETED"
         },
         {
           "id": "red_tent_1rzh44z633",
           "name": "DSpark b16 k=7 @768 (mm=8192)",
-          "metric": "1866.46 TPS \u00c2\u00b7 QPS 2.98 (+3.8%)",
+          "metric": "1866.46 TPS · QPS 2.98 (+3.8%)",
           "status": "COMPLETED"
         },
         {
           "id": "olden_chaconia_3wklc9wnv8",
           "name": "DSpark b16 k=7 @8192 (true S2, mm=24576)",
-          "metric": "2634.58 TPS \u00c2\u00b7 QPS 1.15 \u00c2\u00b7 871s",
+          "metric": "2634.58 TPS · QPS 1.15 · 871s",
           "status": "COMPLETED"
         },
         {
           "id": "crimson_duck_l7zwbpxn7n",
-          "name": "Control \u00e2\u20ac\u201d S2 MTP-assistant k5 @8192",
-          "metric": "2434.38 TPS \u00c2\u00b7 QPS 1.84 \u00c2\u00b7 543s",
+          "name": "Control — S2 MTP-assistant k5 @8192",
+          "metric": "2434.38 TPS · QPS 1.84 · 543s",
           "status": "COMPLETED"
         }
       ],
-      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% \u00e2\u20ac\u201d correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. \u00e2\u0161\u00a0 LENGTH-MISMATCH CAVEAT on the new MTP @8192 control: it decoded only ~1323 tok/req (output_tps 2434.38 / qps 1.84) vs DSpark's ~2291 tok/req, so the raw TPS/QPS delta is NOT apples-to-apples despite the shared output_len=8192 in config. DSpark's 2634.58 stands on its own as a cross-of-2500 measurement; the true-8192 fractional advantage over MTP remains UNPROVEN until a genuinely length-matched (\u00e2\u2030\u00a52295 tok/req) MTP control lands."
+      "notes": "Matched-workload proof FIRST (boxed 768, apples-to-apples): DSpark b16 (1866.46 TPS / QPS 2.98) beats S2 MTP-assistant k5 (1798.22 TPS / QPS 2.87) by +3.8% — correcting an earlier mis-verdict. True-S2 DSpark run decoded ~2295 tok/req (8192 cap) at 2634.58 TPS / QPS 1.15 in 871s. LENGTH-MISMATCH CAVEAT on the new MTP @8192 control: it decoded only ~1323 tok/req (output_tps 2434.38 / qps 1.84) vs DSpark's ~2291 tok/req, so the raw TPS/QPS delta is NOT apples-to-apples despite the shared output_len=8192 in config. DSpark's 2634.58 stands on its own as a crossing of the original 2500 target; the true-8192 fractional advantage over MTP remains UNPROVEN until a genuinely length-matched (>=2295 tok/req) MTP control lands. 3000 is the active target (Sec 3.4 lever matrix)."
     },
     {
-      "name": "int4 Quality A/B \u00e2\u20ac\u201d FP8-Marlin control vs int4-Humming candidate",
+      "name": "int5 Quality A/B — FP8-Marlin control vs int5-Humming candidate (agentic tool-loop + GSM8K + BBH)",
       "runs": [
         {
-          "id": "silver_soursop_4c5g6drcr5",
-          "name": "Control \u00e2\u20ac\u201d S2 FP8-Marlin (GSM8K + BBH quality)",
+          "id": "maroon_pasta_sqfbhb8345",
+          "name": "Control — S2 FP8-Marlin (agentic tool-loop + GSM8K + BBH quality)",
           "metric": "",
           "status": "RUNNING"
         },
         {
-          "id": "blue_lock_xcg78jdbsv",
-          "name": "Candidate \u00e2\u20ac\u201d S2 int4 W4A16 Humming (GSM8K + BBH quality)",
+          "id": "wheat_parcel_vhy57rvy8l",
+          "name": "Candidate — S2 int5 W4A16 Humming (agentic tool-loop + GSM8K + BBH quality)",
           "metric": "",
           "status": "RUNNING"
         }
       ],
-      "notes": "Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on GSM8K + BBH). int4 W4A16 halves weight bytes/HBM. Note: with DSpark already crossing 2500, this gate answers the W4A16 headroom/quality question rather than being the sole path to 2500. Both arms running in parallel (split to avoid the R51 shared-node reload wedge)."
+      "notes": "This is the weight-precision gate (L1) on the road to 3000. Acceptance = candidate within noise of control (<1-2% abs / 1-2 sigma per benchmark on agentic tool-loop + GSM8K + BBH). int5 W4A16 ~0.63 bytes/weight vs 1.0 FP8 (~37% less weight HBM); int4 W4A16 (0.5, ~50%) follows via the same gate. Both arms were resubmitted to fresh nodes after repeated preemption (10-25); currently RUNNING. No verdict yet — results still landing."
     }
   ]
 }
