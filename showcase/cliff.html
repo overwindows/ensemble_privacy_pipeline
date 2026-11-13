@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
-<title>Developer Reproduction &amp; Rollout Handbook: DLIS Falcon Qwen3.5-9B Freshness Serving Optimization on A100</title>
+<title>CLIFF Freshness Serving Optimization Handbook (2.3× QPS)</title>
 <style>
   :root {
     --accent:#0f6cbd;
@@ -234,7 +234,7 @@
   .fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
   @media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
   .fl-foot{max-width:1360px;margin:0 auto;padding:22px 20px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-  .fl-foot code{font-size:11.5px}
+  .fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -265,6 +265,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 <body>
 
 
+
+
 <header class="fl-hub">
   <div class="fl-hub-inner">
     <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
@@ -288,6 +290,8 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </nav>
   </div>
 </header>
+
+
 
 
 <div class="page-shell">
@@ -318,20 +322,16 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <main class="paper" id="top">
 
     <div class="paperhead">
-      <div class="kicker">Developer Reproduction &amp; Rollout Handbook · DLIS Falcon Production HTTP Serving · Qwen3.5-9B CLIFF Freshness</div>
-      <h1>DLIS Falcon Qwen3.5-9B Serving Optimization Handbook: Step-by-Step Guide to Apply &amp; Reproduce 2.31×–3.81× QPS on A100</h1>
+      <div class="kicker">Developer Handbook · DLIS Falcon · Qwen3.5-9B CLIFF</div>
+      <h1>CLIFF Freshness Serving Optimization Handbook (2.3× QPS on A100)</h1>
       <div class="authors">
-        <span>Chen Wu · Target Container <code>cliff-freshness-dlis-falcon:20261021-v2</code> on 1× NVIDIA A100-SXM4-80GB · <span id="updated">last updated 2026-11-13</span></span>
-        <a class="btn-dl" href="patches/cliff_dlis_falcon_serving_opt.patch" download>⬇ Download Unified Git Patch (.patch)</a>
+        <span>Chen Wu · <code>cliff-freshness-dlis-falcon:20261021-v2</code> · 1× A100-80GB · <span id="updated">2026-11-14</span></span>
+        <a class="btn-dl" href="patches/cliff_dlis_falcon_serving_opt.patch" download>⬇ Download Git Patch (.patch)</a>
       </div>
     </div>
 
     <div class="abstract">
-      <b>Abstract &amp; Developer TL;DR.</b> Unmodified production pods running <code>cliff-freshness-dlis-falcon:20261021-v2</code> (<code>/model/start_freshness.sh http</code>) plateau at <b>16.96 QPS</b> on the official 120-prompt benchmark (<code>input.performance.jsonl</code>) and <b>9.90 QPS</b> on the 5-prompt heavy-truncation suite (<code>input.json</code>) because the A100 GPU is starved at 53%–78% SM utilization by three host/config bottlenecks:
-      <b>(1)</b> Tornado's single-request concurrency gate (<code>_Parallelism_=1</code>),
-      <b>(2)</b> vLLM's 4-sequence cap (<code>VLLM_MAX_NUM_SEQS=4</code>, <code>max_num_batched_tokens=8320</code>), and
-      <b>(3)</b> a 17-step character binary search in <code>/model/model/freshness_prompt.py</code> that runs <b>37 full ~8,000-token Jinja + tokenizer passes (~280–350 ms)</b> while holding a process-wide mutex (<code>self._tok_lock</code>).
-      <b>Part I (§1–§5)</b> shows developers how to apply our <b>100% non-model optimizations</b> via <b>Path A (Env-Vars Only, +88% to +146% QPS)</b>, <b>Path B (Zero-Docker-Rebuild <code>/Model/sitecustomize.py</code> Hook, +131% QPS &amp; −36% p95 latency)</b>, or <b>Path C (Unified Git Patch <code>cliff_dlis_falcon_serving_opt.patch</code>)</b> with <b>100% bitwise-identical token IDs</b>. <b>Part II (Appendices A–E)</b> contains the complete experimental benchmarks, latency breakdowns, attention kernel ablations, and 1 Hz A100 telemetry.
+      <b>Abstract.</b> Stock <code>cliff-freshness-dlis-falcon:20261021-v2</code> caps at <b>16.96 QPS</b> (120-prompt suite) due to three host/config bottlenecks: <code>_Parallelism_=1</code>, <code>VLLM_MAX_NUM_SEQS=4</code>, and a 37-pass binary-search tokenizer under <code>self._tok_lock</code>. Fixing these with <b>zero model changes</b> lifts throughput to <b>39.18 QPS (+131%)</b> and cuts p95 latency by <b>36%</b> while preserving <b>100% bitwise-identical token IDs</b>. Use <b>Part I (§1–§5)</b> to apply via env vars, a zero-rebuild <code>sitecustomize.py</code> hook, or <code>git apply</code>; see <b>Part II (Appendices A–E)</b> for benchmarks.
     </div>
 
     <div class="metrics">
