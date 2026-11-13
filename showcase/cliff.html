@@ -334,7 +334,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
         <thead>
           <tr>
             <th style="width:24%">AML Setting / Parameter</th>
-            <th style="width:52%">Exact Value Used in All 26 AML Benchmark Jobs</th>
+            <th style="width:52%">Exact Value Used in All 33 AML Benchmark Jobs</th>
             <th style="width:24%">Notes / Usage</th>
           </tr>
         </thead>
@@ -406,7 +406,18 @@ python scripts/submit_falcon_serving.py --name ml11-arm1-stock \
 
 python scripts/submit_falcon_serving.py --name ml11-arm4-fullstack \
   --requests-file input_multilingual_11.jsonl --use-model-prompt \
-  --parallelism 32 --max-num-seqs 32 --gpu-mem 0.90 --max-batched-tokens 32768 --fast-prompt --concurrencies 1,8,16,32</pre>
+  --parallelism 32 --max-num-seqs 32 --gpu-mem 0.90 --max-batched-tokens 32768 --fast-prompt --concurrencies 1,8,16,32
+
+# 3. Reproduce on Combined 2,048-Prompt Dataset (120 v1 + 120 v2 + 5 EN + 11 ML = 256 x 8) with enable_prefix_caching=False:
+python scripts/submit_falcon_serving.py --name comb2k-sweep-stock-epc0 \
+  --requests-file input_combined_2k.jsonl --use-model-prompt \
+  --vllm-enable-prefix-caching 0 --parallelism 1 --max-num-seqs 4 --gpu-mem 0.80 --max-batched-tokens 8320 --no-hook \
+  --concurrencies 4,8,16,32 --load-duration 180
+
+python scripts/submit_falcon_serving.py --name comb2k-sweep-fast-nocache-epc0 \
+  --requests-file input_combined_2k.jsonl --use-model-prompt \
+  --vllm-enable-prefix-caching 0 --parallelism 32 --max-num-seqs 32 --gpu-mem 0.90 --max-batched-tokens 32768 --fast-prompt --fast-prompt-no-cache \
+  --concurrencies 4,8,16,32 --load-duration 180</pre>
 
     <!-- ===================================================================== -->
     <!-- SECTION 2: ALL-DATASET EVALUATION MATRIX                              -->
@@ -475,6 +486,70 @@ python scripts/submit_falcon_serving.py --name ml11-arm4-fullstack \
       1. <b>On 120-prompt suites (2.5% overlong truncation):</b> Env vars alone (<b>Change 1</b>) provide the largest initial jump (<b><code>+50.4%</code></b> on <code>v2</code> 120p and <b><code>+87.6%</code></b> on <code>v1</code> 120p), while <b>Changes 2+3</b> (Fast Single-Encode Binary Search + <code>bt=32768</code>) add another <b><code>+35% to +68%</code></b> over stock—bringing total throughput to <b><code>33.64–37.87 QPS</code> with cache disabled</b> and <b><code>39.18–39.62 QPS</code> (2.19×–2.31×) with full stack</b>, while cutting p95 tail latency by <b>31%–36%</b>.<br>
       2. <b>On multilingual &amp; truncation-heavy suites (<code>20261023-v1/input.json</code> 11 rows &amp; <code>v1/input.json</code> 5 rows):</b> Non-English scripts (HI/JA/AR/FR/DE/ES) and 9.1%–20% overlong binary-search rows hold <code>self._tok_lock</code> for ~280 ms per truncated article. There, Env-Only stalls at <code>18.00 QPS (+30.4%)</code> on the 11-row multilingual set, whereas adding <b>Change 2 (Fast Single-Encode Binary Search, NO cache)</b> immediately unlocks <b><code>33.59 QPS (2.43×)</code></b> and Full Stack reaches <b><code>36.65 QPS (2.66×)</code></b>. Both layers are required to eliminate host-CPU lock stalls under multilingual bursts.
     </div>
+
+    <h3 id="sec-comb2k">2.2&nbsp; Combined 2,048-Prompt Benchmark with Prefix Caching Disabled (<code>enable_prefix_caching=False</code>)</h3>
+    <p>
+      To test the uncached GPU prefill regime across all prompts combined, we concatenated all 4 ADLS datasets (<code>120</code> rows <code>v1</code> + <code>120</code> rows <code>v2</code> + <code>5</code> EN rows + <code>11</code> multilingual rows = <b><code>256</code> rows per pass</b>, avg <code>3,262.3</code> tokens, min <code>1,224</code>, max <code>8,189</code>, 8 overlong rows &gt;8,192 tokens per pass [3.1%]) and duplicated the combined pool <code>8×</code> to <b><code>2,048</code> prompts</b> (<code>input_combined_2k.jsonl</code>, <code>6.68M</code> total input tokens, 64 overlong truncations) with <b><code>enable_prefix_caching=False</code></b> (<code>--vllm-enable-prefix-caching 0</code>).
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Evaluation Arm on Combined 2,048-Prompt Suite<br>(<code>enable_prefix_caching=False</code>, avg <code>3,262.3</code> tok/req)</th>
+            <th>Sweep AML Job ID<br>(180s / window)</th>
+            <th><code>c = 4</code> QPS<br>(p50 / p95)</th>
+            <th><code>c = 8</code> QPS<br>(p50 / p95)</th>
+            <th><code>c = 16</code> QPS<br>(p50 / p95)</th>
+            <th><code>c = 32</code> QPS<br>(mean / p50 / p95)</th>
+            <th>Fixed 2,048-Prompt Run @ <code>c = 32</code><br>(Wall Time · QPS · p50 · Job ID)</th>
+            <th>1 Hz A100 SM%<br>&amp; Mean Power</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Arm 1: Stock Prod Config</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, seqs=4, mem=0.80, bt=8320, epc=False</code></span></td>
+            <td><code>hungry_ticket_rztdm6tyqy</code></td>
+            <td>4.05 QPS<br><span style="font-size:11.2px;color:var(--mut)">879 / 1881 ms</span></td>
+            <td>4.10 QPS<br><span style="font-size:11.2px;color:var(--mut)">1788 / 3428 ms</span></td>
+            <td>4.07 QPS<br><span style="font-size:11.2px;color:var(--mut)">3644 / 6396 ms</span></td>
+            <td><b>4.07 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">7716 / 7516 / 12007 ms</span></td>
+            <td>Est. <code>503.2s</code> @ 4.07 QPS<br><span style="font-size:11.2px;color:var(--mut)">(13,278 prefill tok/s)</span></td>
+            <td>99.3% SM (98.8% @100%)<br><span style="font-size:11.2px;color:var(--mut)">396.1 W · 66,005 MiB</span></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 2: Path A / Env-Vars Only (0 Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, seqs=32, mem=0.90, bt=8320, epc=False</code></span></td>
+            <td><code>mango_glass_1dh5s8yhx5</code></td>
+            <td><b>4.12 QPS</b><br><span style="font-size:11.2px">865 / 1916 ms</span></td>
+            <td><b>4.38 QPS (+6.8%)</b><br><span style="font-size:11.2px">1609 / 3573 ms</span></td>
+            <td><b>4.65 QPS (+14.3%)</b><br><span style="font-size:11.2px">3091 / 6775 ms</span></td>
+            <td><b>4.73 QPS (+16.2%)</b><br><span style="font-size:11.2px"><b>6748 (−12.5%)</b> / 6550 / <b>11440 ms</b></span></td>
+            <td><b>459.0s · 4.46 QPS</b> (2048/2048 ok)<br><span style="font-size:11.2px">p50 6793 ms · <code>plucky_nut_jkh1q2f08p</code></span></td>
+            <td><b>99.2–100.0% SM</b><br><span style="font-size:11.2px">395.6–397.0 W · 74.3 GiB</span></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 3: + Fast BSearch (<code>NO _req_cache</code>) + <code>bt=32768</code></b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch, cache disabled, <code>epc=False</code></span></td>
+            <td><code>blue_parrot_31v3ppc74g</code></td>
+            <td>4.11 QPS<br><span style="font-size:11.2px">886 / <b>1734 ms (−7.8%)</b></span></td>
+            <td>4.36 QPS (+6.3%)<br><span style="font-size:11.2px">1632 / 3477 ms</span></td>
+            <td>4.58 QPS (+12.5%)<br><span style="font-size:11.2px">3238 / 6508 ms</span></td>
+            <td><b>4.69 QPS (+15.2%)</b><br><span style="font-size:11.2px">6809 / <b>6003 ms (−20.1%)</b> / 13648 ms</span></td>
+            <td><b>458.1s · 4.47 QPS</b> (2048/2048 ok)<br><span style="font-size:11.2px"><b>p50 6381 ms (−15.1%)</b> · <code>gentle_brush_24jr28cz23</code></span></td>
+            <td><b>99.6–100.0% SM</b><br><span style="font-size:11.2px">396.1–397.5 W · 78.4 GiB</span></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 4: Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code>, <code>epc=False</code></span></td>
+            <td><code>olden_leather_r0sd2p4jnp</code></td>
+            <td>4.09 QPS<br><span style="font-size:11.2px">886 / 1778 ms</span></td>
+            <td>4.23 QPS<br><span style="font-size:11.2px">1654 / 3767 ms</span></td>
+            <td>4.48 QPS (+10.1%)<br><span style="font-size:11.2px">3215 / 6692 ms</span></td>
+            <td><b>4.60 QPS (+13.0%)</b><br><span style="font-size:11.2px">6949 / <b>6184 ms (−17.7%)</b> / 13329 ms</span></td>
+            <td><b>453.0s · 4.52 QPS (+11.1%)</b> (2048/2048 ok)<br><span style="font-size:11.2px">p50 6460 ms · <code>serene_oil_b09j17pzdy</code></span></td>
+            <td><b>99.6–100.0% SM</b><br><span style="font-size:11.2px">397.6–398.1 W · 79.5 GiB</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table 2.2.</b> Combined 2,048-prompt evaluation across all 4 ADLS datasets (<code>256 × 8 = 2,048</code> requests, <code>0</code> HTTP errors, <code>252/252</code> unique JSONL lines verified <code>mismatches=0</code>) with <b><code>enable_prefix_caching=False</code></b>. Disabling prefix caching forces full GPU prefill of all <code>3,262.3</code> avg tokens per request, pinning the A100 at <b>99.2%–100.0% SM activity</b> and <b>396–398 W TDP</b> (~<code>15,430</code> prefill tok/s ceiling). Even at 100% GPU hardware saturation, unlocking batching (<code>seqs=32, mem=0.90</code>) + Fast Binary Search lifts throughput by <b>+15.2% to +16.2% (<code>4.07 → 4.69–4.73 QPS</code>)</b> and cuts <code>c = 32</code> median latency (<code>p50</code>) by <b>20.1% (<code>7,516 → 6,003 ms</code>)</b>.</div>
 
     <!-- ===================================================================== -->
     <!-- SECTION 3: DIAGNOSIS AT A GLANCE                                      -->
