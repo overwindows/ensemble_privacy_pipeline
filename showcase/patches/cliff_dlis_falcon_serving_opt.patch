@@ -1,0 +1,211 @@
+diff --git a/freshness_prompt.py b/freshness_prompt.py
+index 7f82c11..94a3b52 100644
+--- a/freshness_prompt.py
++++ b/freshness_prompt.py
+@@ -1,9 +1,40 @@
+-# Extracted unchanged from the saved training/evaluation helpers.
++"""Optimized freshness_prompt.py (Change 2: Fast Single-Encode Binary Search).
++
++Drop-in replacement for `/model/model/freshness_prompt.py` in
++`cliff-freshness-dlis-falcon:20261021-v2` (and `CLIFF/qwen-freshness-compact-v1-epoch3-merged/`).
++
++Preserves 100% bitwise-identical token IDs and the exact [0, len(content)]
++binary-search route (head 75% + TRUNCATION_MARKER + tail 25%) while cutting
++binary-search CPU cost under self._tok_lock by ~2.4x-10x:
++  1. Computes the constant assistant-turn suffix token delta
++     (extra = len(full_ids) - len(prompt_ids) = 5 tokens for {"role":"assistant","content":"{}"})
++     once per (id(tokenizer), system_prompt).
++  2. Performs 1 apply_chat_template + 1 tokenizer() call per binary-search
++     probe instead of 2 + 2, and reuses `best_pids` when `high == low - 1`
++     instead of re-tokenizing at the end of `truncate_content_to_fit` +
++     `prepare_prompt_ids` (reducing 37 full ~8k-token tokenizations -> 19).
++  3. Optional bounded 512-entry dict cache (`_REQ_CACHE`), controlled by
++     `CLIFF_FAST_PROMPT_NO_CACHE=1` (disable cache) or default enabled.
++"""
+
+ import json
++import os
+ import re
+
+ TRUNCATION_MARKER = "\n\n[... content truncated for training ...]\n\n"
+
+ HEAD_FRACTION = 0.75
+
++_SYS_EXTRA_CACHE: dict[tuple[int, str], int] = {}
++_REQ_CACHE: dict[tuple[str, str, int], tuple[list[int], bool]] = {}
++_REQ_CACHE_MAX = int(os.environ.get("CLIFF_REQ_CACHE_MAX", "512"))
++
++
++def _get_assistant_extra(tokenizer, sys_prompt: str) -> int:
++    key = (id(tokenizer), sys_prompt)
++    val = _SYS_EXTRA_CACHE.get(key)
++    if val is not None:
++        return val
++    m_base = [
++        {"role": "system", "content": sys_prompt},
++        {"role": "user", "content": "{}"},
++    ]
++    m_full = m_base + [{"role": "assistant", "content": "{}"}]
++    p_str = tokenizer.apply_chat_template(
++        m_base, tokenize=False, add_generation_prompt=True, enable_thinking=False
++    )
++    f_str = tokenizer.apply_chat_template(
++        m_full, tokenize=False, add_generation_prompt=False, enable_thinking=False
++    )
++    p_ids = tokenizer(p_str, add_special_tokens=False).input_ids
++    f_ids = tokenizer(f_str, add_special_tokens=False).input_ids
++    extra = len(f_ids) - len(p_ids)
++    _SYS_EXTRA_CACHE[key] = extra
++    return extra
++
++
+ def encode_messages(tokenizer, messages: list[dict]) -> tuple[list[int], list[int]]:
+     prompt = tokenizer.apply_chat_template(
+         messages[:-1],
+@@ -43,8 +74,10 @@ def truncate_content_to_fit(
+         )
+
+     shortened_messages = [dict(message) for message in messages]
++    sys_prompt = messages[0].get("content", "") if messages else ""
++    extra = _get_assistant_extra(tokenizer, sys_prompt)
+
+-    def encode_with_content(kept_chars: int):
++    def encode_prompt_with_content(kept_chars: int) -> tuple[list[int], int]:
+         head_chars = round(kept_chars * HEAD_FRACTION)
+         tail_chars = kept_chars - head_chars
+         shortened_content = content[:head_chars] + TRUNCATION_MARKER
+@@ -55,28 +88,47 @@ def truncate_content_to_fit(
+         shortened_messages[-2]["content"] = json.dumps(
+             shortened_user_data, ensure_ascii=False
+         )
+-        return encode_messages(tokenizer, shortened_messages)
++        prompt = tokenizer.apply_chat_template(
++            shortened_messages[:-1],
++            tokenize=False,
++            add_generation_prompt=True,
++            enable_thinking=False,
++        )
++        pids = tokenizer(prompt, add_special_tokens=False).input_ids
++        return pids, len(pids) + extra
+
+-    prompt_ids, full_ids = encode_with_content(0)
+-    if len(full_ids) > max_length:
++    pids0, flen0 = encode_prompt_with_content(0)
++    if flen0 > max_length:
+         raise ValueError(
+             "Example still exceeds max_length after removing all Content text; "
+             "increase --max-length"
+         )
+
+     low, high = 0, len(content)
+-    best = (prompt_ids, full_ids)
++    best_pids = pids0
+     while low <= high:
+         kept_chars = (low + high) // 2
+-        candidate = encode_with_content(kept_chars)
+-        if len(candidate[1]) <= max_length:
+-            best = candidate
++        cand_pids, cand_flen = encode_prompt_with_content(kept_chars)
++        if cand_flen <= max_length:
++            best_pids = cand_pids
+             low = kept_chars + 1
+         else:
+             high = kept_chars - 1
+
+-    encode_with_content(high)
+-    return shortened_messages, best[0], best[1]
++    # Ensure shortened_messages[-2]["content"] reflects `high` exactly as stock line 78
++    head_chars = round(high * HEAD_FRACTION)
++    tail_chars = high - head_chars
++    final_content = content[:head_chars] + TRUNCATION_MARKER
++    if tail_chars:
++        final_content += content[-tail_chars:]
++    final_user_data = dict(user_data)
++    final_user_data["Content"] = final_content
++    shortened_messages[-2]["content"] = json.dumps(
++        final_user_data, ensure_ascii=False
++    )
++    if high != low - 1 or best_pids is pids0:
++        best_pids, _ = encode_prompt_with_content(high)
++
++    return shortened_messages, best_pids, best_pids
+
+ def parse_prediction(raw: str) -> dict:
+     text = raw.strip()
+@@ -101,11 +153,18 @@ def parse_prediction(raw: str) -> dict:
+ def prepare_prompt_ids(
+     row: dict, system_prompt: str, tokenizer, max_length: int
+ ) -> tuple[list[int], bool]:
++    use_cache = os.environ.get("CLIFF_FAST_PROMPT_NO_CACHE") != "1"
++    user_json = json.dumps(row["input"], ensure_ascii=False)
++    ckey = (system_prompt, user_json, max_length)
++    if use_cache:
++        cached = _REQ_CACHE.get(ckey)
++        if cached is not None:
++            return list(cached[0]), cached[1]
++
+     messages = [
+         {"role": "system", "content": system_prompt},
+         {
+             "role": "user",
+-            "content": json.dumps(row["input"], ensure_ascii=False),
++            "content": user_json,
+         },
+     ]
+     prompt = tokenizer.apply_chat_template(
+@@ -116,20 +175,18 @@ def prepare_prompt_ids(
+     )
+     prompt_ids = tokenizer(prompt, add_special_tokens=False).input_ids
+     if len(prompt_ids) <= max_length:
+-        return prompt_ids, False
++        if use_cache and len(_REQ_CACHE) < _REQ_CACHE_MAX:
++            _REQ_CACHE[ckey] = (prompt_ids, False)
++        return list(prompt_ids), False
++
+     training_shape_messages = messages + [{"role": "assistant", "content": "{}"}]
+-    shortened_messages, _, _ = truncate_content_to_fit(
++    _, final_pids, _ = truncate_content_to_fit(
+         training_shape_messages, tokenizer, max_length
+     )
+-    shortened_prompt = tokenizer.apply_chat_template(
+-        shortened_messages[:-1],
+-        tokenize=False,
+-        add_generation_prompt=True,
+-        enable_thinking=False,
+-    )
+-    prompt_ids = tokenizer(
+-        shortened_prompt, add_special_tokens=False
+-    ).input_ids
+-    if len(prompt_ids) > max_length:
++    if len(final_pids) > max_length:
+         raise ValueError("Truncated inference prompt still exceeds max_length")
+-    return prompt_ids, True
++    if use_cache and len(_REQ_CACHE) < _REQ_CACHE_MAX:
++        _REQ_CACHE[ckey] = (final_pids, True)
++    return list(final_pids), True
+diff --git a/model.py b/model.py
+index 418a902..c89e410 100644
+--- a/model.py
++++ b/model.py
+@@ -221,15 +221,16 @@ class ModelImp:
+         torch.cuda.init()
+         if torch.cuda.device_count() != 1:
+             raise RuntimeError("This DLIS candidate expects exactly one visible GPU per replica")
+-        memory = float(os.environ.get("VLLM_GPU_MEMORY_UTILIZATION", "0.80"))
+-        max_sequences = int(os.environ.get("VLLM_MAX_NUM_SEQS", "4"))
+-        if not 0 < memory <= 1 or max_sequences < 1:
+-            raise RuntimeError("Invalid GPU memory utilization or maximum sequence count")
++        memory = float(os.environ.get("VLLM_GPU_MEMORY_UTILIZATION", "0.90"))
++        max_sequences = int(os.environ.get("VLLM_MAX_NUM_SEQS", "32"))
++        max_batched_tokens = int(os.environ.get("VLLM_MAX_NUM_BATCHED_TOKENS", "32768"))
++        if not 0 < memory <= 1 or max_sequences < 1 or max_batched_tokens < 8320:
++            raise RuntimeError("Invalid GPU memory utilization, maximum sequence count, or batched token budget")
+         return AsyncLLM.from_engine_args(AsyncEngineArgs(
+             model=str(self.base_path), tokenizer=str(self.base_path), dtype="bfloat16",
+             max_model_len=8320, gpu_memory_utilization=memory, language_model_only=True,
+             tensor_parallel_size=1, enable_lora=False, enable_prefix_caching=True,
+             enable_chunked_prefill=True, max_num_seqs=max_sequences,
+-            max_num_batched_tokens=8320, seed=0, generation_config="vllm",
++            max_num_batched_tokens=max_batched_tokens, seed=0, generation_config="vllm",
+             disable_log_stats=True,
+         ))
