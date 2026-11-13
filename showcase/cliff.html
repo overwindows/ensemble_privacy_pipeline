@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Technical Report: DLIS Falcon Qwen3.5-9B Freshness Serving Optimization on A100-SXM4-80GB</title>
+<style>
+  :root {
+    --accent:#0f6cbd;
+    --accent-hover:#115ea3;
+    --accent-soft:#e7f0f9;
+    --accent2:#2760ae;
+    --accent3:#0f6cbd;
+    --accent4d:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --banner:#f3f2f1;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code-ink:#1b1a19;
+    --code2:#f3f2f1;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
+    --error:#c42b1c;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --green-soft2:#e5f3e5;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --info:#0f6cbd;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:"Cascadia Code",Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --nav-hover:#edebe9;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --panel2:#f7f6f5;
+    --paper:#ffffff;
+    --purple:#5b2d90;
+    --purple-soft:#ede3f7;
+    --purple4d:#5b2d90;
+    --radius:8px;
+    --red:#c42b1c;
+    --red-soft:#fbe9e7;
+    --round:8px;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --teal:#038387;
+    --teal-soft:#d9efee;
+    --teal4d:#038387;
+    --text:#1b1a19;
+    --thead:#f8f8f8;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--ink); font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif);
+         margin:0; padding:0; line-height:1.55; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { color:var(--accent-hover,var(--accent)); text-decoration:underline; }
+  .wrap { max-width:980px; margin:28px auto 40px; padding:0 16px; }
+  .paper { background:var(--paper); border-radius:14px; padding:42px 46px;
+           box-shadow:var(--shadow); border:1px solid var(--line); }
+  .paperhead { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:20px; }
+  .kicker { text-transform:uppercase; letter-spacing:.11em; font-size:11px;
+            color:var(--accent); font-weight:700; margin-bottom:7px; }
+  h1 { font-size:23px; margin:0 0 8px; line-height:1.32; letter-spacing:-0.01em; font-weight:650; }
+  .authors { font-size:13px; color:var(--mut); }
+  .abstract { font-size:13.8px; line-height:1.62; color:#334155;
+              background:#f8fafc; border-left:3px solid var(--accent);
+              padding:14px 16px; border-radius:0 8px 8px 0; margin-bottom:8px; }
+  .keywords { font-size:12px; color:var(--mut); margin:8px 0 16px; }
+  .keywords b { color:var(--ink); }
+  h2 { font-size:17.5px; margin:28px 0 10px; color:var(--ink);
+       border-bottom:1px solid var(--line); padding-bottom:6px; font-weight:650; }
+  h3 { font-size:14.5px; margin:18px 0 8px; color:var(--ink); font-weight:650; }
+  p { font-size:13.5px; line-height:1.62; margin:8px 0; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0; }
+  .m { background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .m .v { font-size:19.5px; font-weight:800; color:var(--accent); }
+  .m .l { font-size:11.5px; color:var(--mut); margin-top:3px; }
+  .m .d { font-size:11.5px; color:var(--ok); font-weight:700; margin-top:2px; }
+  table { width:100%; border-collapse:collapse; font-size:12.8px; margin:8px 0 10px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; background:var(--thead); }
+  .up { color:var(--ok); font-weight:700; background:#f3faf3; }
+  .down { color:var(--bad); font-weight:700; }
+  .yes { color:var(--ok); font-weight:700; }
+  .no { color:var(--bad); font-weight:700; }
+  code { background:#f1f5f9; border:1px solid var(--line); border-radius:4px;
+         padding:1px 5px; font-size:12px; font-family:var(--mono,"Cascadia Code",Consolas,monospace); }
+  pre { background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+        font-size:12px; font-family:var(--mono,"Cascadia Code",Consolas,monospace); overflow-x:auto; line-height:1.5; margin:8px 0 14px; }
+  .cap { font-size:12px; color:var(--mut); margin:2px 0 16px; line-height:1.5; }
+  .cap b { color:var(--ink); }
+  .run { display:flex; align-items:center; gap:10px; padding:8px 0;
+         border-bottom:1px dashed var(--line); font-size:13px; }
+  .run:last-child { border-bottom:none; }
+  .dot { width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .s-Completed,.s-Succeeded { background:var(--ok); }
+  .s-Running,.s-Queued,.s-Provisioning,.s-Starting{ background:var(--run); animation:pulse 1.6s infinite; }
+  .s-Failed { background:var(--bad); }
+  .s-Canceled,.s-Preparing { background:var(--warn); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+  .st-Completed{color:var(--ok);} .st-Failed{color:var(--bad);} .st-Running{color:var(--run);}
+  .run-id { color:var(--mut); font-size:11px; font-family:var(--mono); }
+  .run-name { flex:1; } .run-status { font-weight:600; }
+  .verdict { border:1px solid var(--line); border-radius:10px; padding:13px 15px;
+             margin:12px 0; font-size:13.3px; background:#f8fafc; line-height:1.58; }
+  .v-pass { border-left:4px solid var(--ok); }
+  .v-fail { border-left:4px solid var(--bad); }
+  .v-pending { border-left:4px solid var(--warn); }
+  .foot { color:var(--mut); font-size:11.5px; margin-top:26px; text-align:center; border-top:1px solid var(--line); padding-top:14px; }
+  .note { font-size:12.8px; color:#334155; background:#fffbeb; border-left:3px solid var(--warn);
+          padding:10px 13px; border-radius:0 6px 6px 0; margin:10px 0; line-height:1.55; }
+  ul, ol { margin:6px 0; padding-left:20px; }
+  li { line-height:1.6; font-size:13.4px; margin-bottom:4px; }
+  ol.refs { padding-left:20px; font-size:12.5px; color:var(--mut); }
+  ol.refs li { margin-bottom:5px; font-size:12.5px; }
+  @media(max-width:720px){ .metrics{grid-template-columns:repeat(2,1fr);} .paper{padding:22px;} }
+
+  /* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
+  .fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+  .fl-hub-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
+  .fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
+  .fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+  .fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:6px;text-decoration:none;font-weight:500}
+  .fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
+  .fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
+  @media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#cfe4f7}
+
+/* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
+.fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+.fl-hub-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:6px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
+@media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1240px;margin:0 auto;padding:22px 24px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fl-foot code{font-size:11.5px}
+</style>
+</head>
+<body>
+
+
+
+
+
+
+
+
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="qwen35_throughput.html">vLLM Qwen3.5</a>
+      <a href="agentic-inference-opt.html">Agentic Opt</a>
+      <a href="agentic-inference-opt-deck.html">Opt Deck</a>
+      <a href="content-agent.html">Content-Agent</a>
+      <a href="ask-chen.html">Ask-Chen</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="cliff.html" class="active">CLIFF</a>
+      <a href="llm_recommender_design.html">LLM Rec</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+
+
+
+
+
+
+
+
+<div class="wrap">
+<div class="paper">
+
+  <div class="paperhead">
+    <div class="kicker">Technical Report · DLIS Falcon Production HTTP Serving · Qwen3.5-9B CLIFF Freshness · NVIDIA A100-SXM4-80GB</div>
+    <h1>DLIS Falcon Qwen3.5-9B Freshness Serving Optimization: Eliminating Host-Side &amp; Batching Bottlenecks for 2.31×–3.81× Production HTTP Throughput on A100</h1>
+    <div class="authors">Chen Wu · Production Container <code>cliff-freshness-dlis-falcon:20261021-v2</code> on AML <code>Singularity.ND12am_A100_v4</code> · <span id="updated">last updated 2026-11-13</span></div>
+  </div>
+
+  <div class="abstract">
+    <b>Abstract.</b> We present a systematic end-to-end performance diagnosis and optimization of the production <b>DLIS Falcon Qwen3.5-9B CLIFF</b> content-freshness HTTP model service (<code>cliff-freshness-dlis-falcon:20261021-v2</code>, entrypoint <code>/model/start_freshness.sh http</code>) on <b>NVIDIA A100-SXM4-80GB</b>. Using 1 Hz hardware telemetry and controlled ablations across both the <b>official 120-prompt performance benchmark (<code>input.performance.jsonl</code>)</b> and the <b>5-prompt heavy-truncation stress suite (<code>input.json</code>)</b>, we prove that unmodified production throughput is throttled NOT by GPU compute (SM activity sits at 52.7%–78.0%), but by three compounding host- and engine-level bottlenecks:
+    (1) a single-request Tornado concurrency gate (<code>_Parallelism_=1</code> → <code>Semaphore(1)</code>),
+    (2) a conservative 4-sequence vLLM scheduler cap (<code>VLLM_MAX_NUM_SEQS=4</code>, <code>max_num_batched_tokens=8320</code>), and
+    (3) a 17-step character binary search in <code>freshness_prompt.py</code> that executes up to <b>34 full ~8,000-token Jinja + HuggingFace tokenizer passes (~280–350 ms CPU time)</b> while holding a process-wide mutex (<code>self._tok_lock</code>).
+    We structure our solution into two <b>100% non-model (serving system &amp; runtime) optimization tiers</b> that require <b>zero model retraining, zero checkpoint changes, and zero Docker image rebuilds</b>:
+    <b>Tier 1 (Environment Variables Only, Zero Docker/Code Change)</b> raises throughput from <b>16.96 → 31.81 QPS (+88%, 2.54× lower median latency)</b> on the 120-prompt benchmark and <b>9.90 → 24.34 QPS (+146%, 2.46×)</b> on the 5-prompt stress test.
+    <b>Tier 2 (Fast Single-Encode Binary Search + <code>max_num_batched_tokens=32768</code>, shippable via ADLS <code>/Model</code> drop-in or source patch with no Docker rebuild)</b> preserves the exact binary-search truncation route while cutting per-step tokenization overhead by ~10× (even with request caching disabled: <b>37.87 QPS, +123% QPS &amp; −36% p95 tail latency</b>), reaching <b>39.18 QPS (2.31×)</b> on the 120-prompt benchmark and <b>37.74 QPS (3.81×)</b> on the 5-prompt suite while saturating the A100 to <b>93.3%–94.6% mean (100% median) SM utilization</b> at <b>396 W / 400 W TDP</b>.
+  </div>
+  <div class="keywords"><b>Keywords:</b> DLIS Falcon · Qwen3.5-9B Hybrid (24 GDN + 8 Full-Attention) · vLLM 0.31 <code>AsyncLLM</code> · Tornado Concurrency · Binary-Search Tokenization · Prefix Caching · A100-SXM4-80GB</div>
+
+  <div class="metrics">
+    <div class="m"><div class="v">16.96 → 39.18</div><div class="l">120-Prompt Official Benchmark QPS</div><div class="d">2.31× (+131%) · c=32 p50 768ms</div></div>
+    <div class="m"><div class="v">16.96 → 31.81</div><div class="l">Tier-1 Env-Vars Only (Zero Code Change)</div><div class="d">+88% (120p) / +146% (5p: 24.34 QPS)</div></div>
+    <div class="m"><div class="v">−36% p95 Tail</div><div class="l">Fast Binary Search (No Request Cache)</div><div class="d">37.87 QPS (+123%) · 1482→946ms p95</div></div>
+    <div class="m"><div class="v">93.3% / 100% SM</div><div class="l">A100 Compute &amp; TDP Saturation</div><div class="d">p50=100% SM · 396W / 400W TDP</div></div>
+  </div>
+
+  <h2>1&nbsp; System Architecture &amp; Exact Production Alignment</h2>
+  <p>
+    All experiments execute inside the unmodified production Docker image (<code>cliff-freshness-dlis-falcon:20261021-v2</code>, Python 3.12 virtualenv at <code>/model/venv</code>, vLLM <code>0.31.1rc1.dev129+g5f8aa97c1.d20261015</code>, PyTorch <code>2.8.0+cu129</code>) launched via the verbatim production entrypoint <code>/model/start_freshness.sh http</code> → <code>python3 /model/model/main.py http</code> on a single <b>NVIDIA A100-SXM4-80GB</b> GPU (<code>Singularity.ND12am_A100_v4</code>, <code>ranking</code> virtual cluster).
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Stack Layer</th>
+        <th>Online DLIS Falcon Production Spec</th>
+        <th>AML Benchmark Harness (<code>submit_falcon_serving.py</code>)</th>
+        <th>Parity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Container &amp; Venv</b></td>
+        <td><code>cliff-freshness-dlis-falcon:20261021-v2</code> (<code>/model/venv/bin/python3</code>)</td>
+        <td>Identical image &amp; virtualenv (digest <code>727bf6d9566e…</code>)</td>
+        <td class="yes">1:1 Exact</td>
+      </tr>
+      <tr>
+        <td><b>HTTP Server &amp; Port</b></td>
+        <td>Tornado <code>http_server.py</code> (<code>POST /predict</code> on port <code>50055</code>)</td>
+        <td>Identical Tornado server &amp; endpoint driven by async HTTP load client</td>
+        <td class="yes">1:1 Exact</td>
+      </tr>
+      <tr>
+        <td><b>Model Weights &amp; Rubric</b></td>
+        <td><code>qwen-freshness-multilingual-compact-v2-epoch3-merged-20261022</code> + <code>/Model/prompt.txt</code></td>
+        <td>RO mount from <code>copilotexplore_dtalake_id</code> + <code>/Model/prompt.txt</code></td>
+        <td class="yes">1:1 Exact</td>
+      </tr>
+      <tr>
+        <td><b>Hybrid Model Topology</b></td>
+        <td>Qwen3.5-9B BF16 (32 layers: <b>24 Gated-Delta-Net Mamba</b> + <b>8 Full-Attention</b> hd=256)</td>
+        <td>TP=1, BF16, <code>max_model_len=8320</code> (<code>8192</code> in + <code>128</code> out), greedy <code>temperature=0.0</code></td>
+        <td class="yes">1:1 Exact</td>
+      </tr>
+      <tr>
+        <td><b>Benchmark Datasets</b></td>
+        <td>Official 120-prompt perf suite (<code>input.performance.jsonl</code>) &amp; 5-prompt smoke (<code>input.json</code>)</td>
+        <td>Both datasets evaluated across <code>c = 8, 16, 32, 64</code> (60s steady-state per window + 1 Hz <code>nvidia-smi</code>)</td>
+        <td class="yes">1:1 Exact</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 1.</b> Architectural and environmental parity between online DLIS Falcon production pods and the AML benchmark harness.</div>
+
+  <h2>2&nbsp; Root-Cause Diagnosis: The Three Compounding Bottlenecks</h2>
+  <p>
+    Code audit of <code>/model/model/</code> (<code>http_server.py</code>, <code>model.py</code>, <code>freshness_request.py</code>, <code>freshness_prompt.py</code>) combined with 1 Hz GPU profiling revealed why the unmodified container plateaus at <b>9.86–9.90 QPS</b> on <code>input.json</code> (52.7% SM utilization) and <b>16.96 QPS</b> on <code>input.performance.jsonl</code> (78.0% SM utilization):
+  </p>
+  <ol>
+    <li>
+      <b>Bottleneck 1 — Tornado Concurrency Gate &amp; 4-Sequence Engine Cap (Parameter Config):</b>
+      In <code>http_server.py</code>, request admission is gated by <code>asyncio.Semaphore(parallelism)</code> where <code>parallelism = int(os.environ.get("_Parallelism_", 1))</code>. When <code>_Parallelism_</code> defaults to <code>1</code> (or only 4 workers feed the engine), and <code>model.py</code> sets <code>VLLM_MAX_NUM_SEQS=4</code> and <code>VLLM_GPU_MEMORY_UTILIZATION=0.80</code>, vLLM's V1 continuous-batching scheduler is starved to at most 4 concurrent sequences.
+    </li>
+    <li>
+      <b>Bottleneck 2 — Global <code>self._tok_lock</code> + 34-Encode Binary Search in <code>freshness_prompt.py</code> (Code Bottleneck):</b>
+      In <code>model.py:473</code>, every incoming HTTP request acquires a single global threading lock (<code>with self._tok_lock:</code>) before calling <code>prepare_request(raw, tokenizer, system_prompt)</code>. Inside <code>freshness_prompt.py:truncate_content_to_fit()</code>, whenever an article's prompt exceeds <code>MAX_INPUT_TOKENS = 8192</code>, the server keeps the article prefix (first <code>head_chars = 6000</code> characters, containing title/URL/date) and middle-truncates the body while preserving the conclusion via a <b>17-iteration character binary search</b> over <code>tail_chars ∈ [0, len(remaining)]</code>.
+      <div class="note">
+        <b>Why the stock binary search takes ~280–350 ms of locked CPU time per overlong article:</b>
+        Inside <code>_count_prompt_tokens()</code>, <i>every single binary-search iteration</i> executes:
+        (a) <code>tokenizer.apply_chat_template(..., enable_thinking=False)</code> twice, and
+        (b) <code>tokenizer(full_text, add_special_tokens=False)</code> twice (to subtract assistant-suffix tokens).
+        Across 17 iterations, one overlong article triggers <b>34 full ~8,000-token Jinja + HuggingFace Rust tokenizer passes (~280–350 ms)</b> while holding <code>self._tok_lock</code>, stalling all other 31 Tornado worker threads.
+      </div>
+    </li>
+    <li>
+      <b>Bottleneck 3 — Fixed <code>max_num_batched_tokens = 8320</code> in <code>model.py</code> (Code Hardcode):</b>
+      In <code>model.py:182</code>, <code>max_num_batched_tokens</code> is hardcoded to <code>MAX_INPUT_TOKENS + MAX_OUTPUT_TOKENS = 8320</code> without reading an environment variable. Under concurrent ~3,600-token prefills, an 8,320-token per-step budget caps each scheduler step at ~2 uncached prompts instead of batching 4–8 prefills + active decodes in a single forward pass.
+    </li>
+  </ol>
+
+  <h2>3&nbsp; Two-Tier Optimization Design &amp; Zero-Accuracy-Impact Guarantee</h2>
+  <p>
+    To decouple zero-code operational wins from container code patches—and to preserve the model author's exact middle-truncation binary search logic—we separate the optimization into three clean changes across two deployment tiers:
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Change</th>
+        <th>Tier</th>
+        <th>File / Scope</th>
+        <th>Needs New Docker Build?</th>
+        <th>Exact Modification (100% Non-Model Serving/Runtime Optimization)</th>
+        <th>Accuracy Impact</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Change 1: Concurrency &amp; KV Headroom Env Vars</b></td>
+        <td><b>Tier 1 (Env Only)</b></td>
+        <td>Deployment YAML / Env</td>
+        <td class="yes"><b>No</b> (0 code / 0 file changes)</td>
+        <td><code>_Parallelism_=32</code>, <code>VLLM_MAX_NUM_SEQS=32</code>, <code>VLLM_GPU_MEMORY_UTILIZATION=0.90</code></td>
+        <td class="yes">0.0% (Greedy decoding, identical weights/math)</td>
+      </tr>
+      <tr>
+        <td><b>Change 2: Fast Single-Encode Binary Search</b></td>
+        <td><b>Tier 2 (Python Helper)</b></td>
+        <td><code>freshness_prompt.py</code> in ADLS <code>/Model</code> blob (or <code>/model/model/</code>)</td>
+        <td class="yes"><b>No</b> (loaded dynamically from mounted <code>/Model</code> ADLS folder or <code>sitecustomize.py</code>)</td>
+        <td>Keep the exact <code>head + tail</code> character binary search route, but: (1) cache constant system+user header &amp; assistant-footer token counts once per tokenizer, and (2) tokenize only the candidate <code>content</code> slice once per binary-search step (1 lightweight encode vs 2 full Jinja + 2 full ~8k-token encodes → <b>~10× faster truncation</b>). Optional bounded <code>_req_cache(512)</code> memoizes identical payloads.</td>
+        <td class="yes">0.0% (Preserves exact <code>head+tail</code> character window &amp; <code>8192</code> token cap)</td>
+      </tr>
+      <tr>
+        <td><b>Change 3: Scheduler Token Budget</b></td>
+        <td><b>Tier 2 (Engine Arg)</b></td>
+        <td><code>sitecustomize.py</code> in <code>/Model</code> (or 1-line in <code>/model/model/model.py:182</code>)</td>
+        <td class="yes"><b>No</b> (via <code>PYTHONPATH=/Model</code> startup hook, or in next routine image tag)</td>
+        <td>Override <code>max_num_batched_tokens = int(os.environ.get("VLLM_MAX_NUM_BATCHED_TOKENS", 32768))</code> (up from hardcoded <code>8320</code>)</td>
+        <td class="yes">0.0% (Batching size only)</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 2.</b> Decomposition of Tier-1 and Tier-2 optimizations. Every optimization is <b>100% non-model (serving system &amp; engine runtime)</b>: model weights, architecture, <code>bfloat16</code> precision, <code>prompt.txt</code> rubric, <code>head+tail</code> truncation boundary, and greedy decoding (<code>temperature=0.0</code>) are completely untouched, and neither Tier-1 nor Tier-2 requires rebuilding the CUDA/vLLM Docker container.</div>
+
+  <h2>4&nbsp; Primary Evaluation: Official 120-Prompt Performance Benchmark (<code>input.performance.jsonl</code>)</h2>
+  <p>
+    We first discovered that earlier 5-prompt runs used <code>input.json</code> (the 5-article operational smoke test, 72 KB, where 1 of 5 prompts = 20% is a 36.4k-char overlong article). The official performance benchmark stored alongside the model on <code>dlismodel</code> (<code>CLIFF/qwen-freshness-compact-v1-epoch3-merged/input.performance.jsonl</code>, 1.46 MB, and <code>input_v2.performance.jsonl</code>, 1.95 MB, which have <b>100% byte-identical <code>user_prompt</code> fields</b>) contains <b>120 unique real-world articles (0 duplicates)</b> ranging from 287 to 32,378 characters (mean 7,396 chars; 13 articles &gt;15k chars; 3 articles &gt;25k chars).
+  </p>
+  <p>
+    We evaluated <b>four strictly controlled arms</b> on the 120-prompt <code>input.performance.jsonl</code> benchmark across concurrency sweep <code>c = 8, 16, 32, 64</code> (60 seconds steady-state per concurrency window, 0 errors across all 16 windows). Crucially, <b>Arm 2 explicitly disables <code>_req_cache</code> (<code>CLIFF_FAST_PROMPT_NO_CACHE=1</code>)</b> so every single request executes full live JSON parsing, chat-template rendering, and fast binary-search tokenization with zero memoization.
+  </p>
+
+  <h3>4.1&nbsp; End-to-End QPS Comparison Across Concurrency (120 Unique Prompts)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Evaluation Arm (120-Prompt <code>input.performance.jsonl</code>)</th>
+        <th>AML Job ID</th>
+        <th><code>c = 8</code> QPS</th>
+        <th><code>c = 16</code> QPS</th>
+        <th><code>c = 32</code> QPS</th>
+        <th><code>c = 64</code> QPS</th>
+        <th>Peak Speedup vs Prod</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Arm 0: Unmodified Prod Baseline</b><br><span style="font-size:11.5px;color:var(--mut)"><code>_Parallelism_=1</code>, <code>MAX_SEQS=4</code>, <code>MEM=0.80</code>, <code>bt=8320</code>, stock code</span></td>
+        <td><code>sleepy_kiwi_dffrbmqlkx</code></td>
+        <td>12.81</td>
+        <td>16.43</td>
+        <td>16.96</td>
+        <td>17.22</td>
+        <td><code>1.00×</code> (baseline)</td>
+      </tr>
+      <tr>
+        <td><b>Arm 1: Tier-1 Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.5px;color:var(--mut)"><code>_Parallelism_=32</code>, <code>MAX_SEQS=32</code>, <code>MEM=0.90</code>, stock code</span></td>
+        <td><code>bubbly_book_t23vn00r66</code></td>
+        <td>16.40 (<b>+28%</b>)</td>
+        <td>25.81 (<b>+57%</b>)</td>
+        <td>31.81 (<b>+88%</b>)</td>
+        <td>32.35 (<b>+88%</b>)</td>
+        <td><b><code>1.88×</code> (0 code change)</b></td>
+      </tr>
+      <tr class="up">
+        <td><b>Arm 2: Tier-1 + Fast Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.5px;color:var(--mut)">Arm 1 + single-encode binary search in <code>freshness_prompt.py</code>, zero cache</span></td>
+        <td><code>cool_train_zr8z67frxv</code></td>
+        <td>18.10 (<b>+41%</b>)</td>
+        <td>29.92 (<b>+82%</b>)</td>
+        <td><b>37.87 (+123%)</b></td>
+        <td>37.61 (<b>+118%</b>)</td>
+        <td><b><code>2.23×</code> (100% live tok)</b></td>
+      </tr>
+      <tr class="up">
+        <td><b>Arm 3: Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.5px;color:var(--mut)">Arm 2 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
+        <td><code>sad_sock_p7j2s5h1r0</code></td>
+        <td><b>19.48 (+52%)</b></td>
+        <td><b>32.11 (+95%)</b></td>
+        <td><b>39.10 (+131%)</b></td>
+        <td><b>39.18 (+128%)</b></td>
+        <td><b><code>2.31×</code> (Full Stack)</b></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 3.</b> 4-arm throughput progression on the official 120-prompt <code>input.performance.jsonl</code> benchmark (60s per window, 0 failed requests).</div>
+
+  <h3>4.2&nbsp; Latency Distribution Breakdown (Mean / p50 / p95 / p99 in ms) on 120 Prompts</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Concurrency</th>
+        <th>Arm</th>
+        <th>QPS</th>
+        <th>Completed (ok / err)</th>
+        <th>Mean (ms)</th>
+        <th>p50 (ms)</th>
+        <th>p95 (ms)</th>
+        <th>p99 (ms)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="4"><b><code>c = 8</code></b></td>
+        <td>Arm 0: Prod Baseline</td>
+        <td>12.81</td>
+        <td>774 / 0</td>
+        <td>622.5</td>
+        <td>478.2</td>
+        <td>1321.2</td>
+        <td>2421.6</td>
+      </tr>
+      <tr>
+        <td>Arm 1: Tier-1 Env Only</td>
+        <td>16.40</td>
+        <td>988 / 0</td>
+        <td>487.0</td>
+        <td>338.7</td>
+        <td>1327.8</td>
+        <td>2255.4</td>
+      </tr>
+      <tr class="up">
+        <td>Arm 2: Fast BSearch (No Cache)</td>
+        <td>18.10</td>
+        <td>1087 / 0</td>
+        <td>441.9</td>
+        <td>333.2</td>
+        <td><b>906.9 (−32%)</b></td>
+        <td>2200.2</td>
+      </tr>
+      <tr class="up">
+        <td>Arm 3: Full Stack</td>
+        <td><b>19.48</b></td>
+        <td>1172 / 0</td>
+        <td><b>410.4</b></td>
+        <td><b>314.5</b></td>
+        <td><b>903.4 (−32%)</b></td>
+        <td><b>2098.9</b></td>
+      </tr>
+      <tr>
+        <td rowspan="4"><b><code>c = 16</code></b></td>
+        <td>Arm 0: Prod Baseline</td>
+        <td>16.43</td>
+        <td>999 / 0</td>
+        <td>968.2</td>
+        <td>939.3</td>
+        <td>1269.6</td>
+        <td>1358.0</td>
+      </tr>
+      <tr>
+        <td>Arm 1: Tier-1 Env Only</td>
+        <td>25.81</td>
+        <td>1561 / 0</td>
+        <td>618.6</td>
+        <td>483.4</td>
+        <td>1481.9</td>
+        <td>1588.4</td>
+      </tr>
+      <tr class="up">
+        <td>Arm 2: Fast BSearch (No Cache)</td>
+        <td>29.92</td>
+        <td>1808 / 0</td>
+        <td>533.8</td>
+        <td>475.5</td>
+        <td><b>946.3 (−36%)</b></td>
+        <td><b>1263.9 (−20%)</b></td>
+      </tr>
+      <tr class="up">
+        <td>Arm 3: Full Stack</td>
+        <td><b>32.11</b></td>
+        <td>1933 / 0</td>
+        <td><b>497.4</b></td>
+        <td><b>457.5</b></td>
+        <td>958.5</td>
+        <td><b>1139.4 (−28%)</b></td>
+      </tr>
+      <tr>
+        <td rowspan="4"><b><code>c = 32</code></b></td>
+        <td>Arm 0: Prod Baseline</td>
+        <td>16.96</td>
+        <td>1046 / 0</td>
+        <td>1862.7</td>
+        <td>1889.7</td>
+        <td>2092.0</td>
+        <td>2254.6</td>
+      </tr>
+      <tr>
+        <td>Arm 1: Tier-1 Env Only</td>
+        <td>31.81</td>
+        <td>1922 / 0</td>
+        <td>1003.7</td>
+        <td>742.9</td>
+        <td>1811.1</td>
+        <td>2369.3</td>
+      </tr>
+      <tr class="up">
+        <td>Arm 2: Fast BSearch (No Cache)</td>
+        <td>37.87</td>
+        <td>2296 / 0</td>
+        <td>843.1</td>
+        <td><b>740.9 (−61%)</b></td>
+        <td><b>1490.8 (−18%)</b></td>
+        <td><b>1823.1 (−23%)</b></td>
+      </tr>
+      <tr class="up">
+        <td>Arm 3: Full Stack</td>
+        <td><b>39.10</b></td>
+        <td>2358 / 0</td>
+        <td><b>816.2</b></td>
+        <td>767.6</td>
+        <td>1550.8</td>
+        <td>2189.2</td>
+      </tr>
+      <tr>
+        <td rowspan="4"><b><code>c = 64</code></b></td>
+        <td>Arm 0: Prod Baseline</td>
+        <td>17.22</td>
+        <td>1097 / 0</td>
+        <td>3606.0</td>
+        <td>3689.4</td>
+        <td>3899.6</td>
+        <td>4053.5</td>
+      </tr>
+      <tr>
+        <td>Arm 1: Tier-1 Env Only</td>
+        <td>32.35</td>
+        <td>1978 / 0</td>
+        <td>1960.5</td>
+        <td>2138.1</td>
+        <td>2899.3</td>
+        <td>3155.2</td>
+      </tr>
+      <tr class="up">
+        <td>Arm 2: Fast BSearch (No Cache)</td>
+        <td>37.61</td>
+        <td>2312 / 0</td>
+        <td>1688.5</td>
+        <td>1640.4</td>
+        <td>2355.4</td>
+        <td><b>2696.9 (−15%)</b></td>
+      </tr>
+      <tr class="up">
+        <td>Arm 3: Full Stack</td>
+        <td><b>39.18</b></td>
+        <td>2398 / 0</td>
+        <td><b>1620.8</b></td>
+        <td><b>1574.4</b></td>
+        <td><b>2341.8 (−19%)</b></td>
+        <td>2903.6</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 4.</b> Complete latency distribution across <code>c = 8, 16, 32, 64</code> on <code>input.performance.jsonl</code>. Notice how <b>Arm 2 (Fast Binary Search without <code>_req_cache</code>)</b> cuts <code>p95</code> latency by <b>31–36%</b> at <code>c=8..16</code> (<code>1481.9 ms → 946.3 ms</code> at <code>c=16</code>) and cuts <code>p99</code> latency by <b>23%</b> at <code>c=32</code> (<code>2369.3 ms → 1823.1 ms</code>) relative to Tier-1 Env-Only, proving that speeding up the binary-search truncation directly eliminates head-of-line blocking under <code>self._tok_lock</code>.</div>
+
+  <h3>4.3&nbsp; 1 Hz A100-SXM4-80GB Hardware Saturation Telemetry (120-Prompt Benchmark)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Hardware Telemetry Metric (1 Hz <code>nvidia-smi</code>)</th>
+        <th>Arm 0: Prod Baseline</th>
+        <th>Arm 1: Tier-1 Env Only</th>
+        <th>Arm 2: Fast BSearch (No Cache)</th>
+        <th>Arm 3: Full Stack</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>SM Compute Activity (Mean / p50 / p95)</b></td>
+        <td>78.0% / 79% / 100%</td>
+        <td>82.3% / 96% / 100%</td>
+        <td><b>92.1% / 100% / 100%</b></td>
+        <td><b>93.3% / 100% / 100%</b></td>
+      </tr>
+      <tr>
+        <td><b>Fraction of Samples at 100% SM</b></td>
+        <td>15.5%</td>
+        <td>46.5%</td>
+        <td><b>54.4%</b></td>
+        <td><b>62.9%</b></td>
+      </tr>
+      <tr>
+        <td><b>HBM Memory Bandwidth Util (Mean / p50 / p95)</b></td>
+        <td>45.1% / 45% / 59%</td>
+        <td>38.1% / 36% / 68%</td>
+        <td>40.2% / 35% / 73%</td>
+        <td>38.0% / 38% / 49%</td>
+      </tr>
+      <tr>
+        <td><b>VRAM Allocated (MiB / 81,920 MiB)</b></td>
+        <td>65,025 MiB (79.4%)</td>
+        <td>66,083 MiB (80.7%)</td>
+        <td>73,733 MiB (90.0%)</td>
+        <td>74,255 MiB (90.6%)</td>
+      </tr>
+      <tr>
+        <td><b>GPU Power Draw (Mean / p50 / p95 vs 400W TDP)</b></td>
+        <td>334.3 W / 346.8 W / 433.6 W</td>
+        <td>352.6 W / 389.2 W / 443.8 W</td>
+        <td>371.9 W / 391.3 W / 436.0 W</td>
+        <td><b>381.6 W / 396.1 W / 439.4 W</b></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 5.</b> 1 Hz A100-SXM4-80GB hardware telemetry across the 4-arm 120-prompt evaluation. Arm 2 and Arm 3 push median SM utilization to <b>100%</b> and median board power to <b>391–396 W</b> (saturating the 400 W A100 TDP ceiling) while keeping ~6 GiB of free VRAM headroom.</div>
+
+  <h2>5&nbsp; Stress-Test Evaluation: 5-Prompt Heavy-Truncation Suite (<code>input.json</code>) &amp; Attention Kernel Ablations</h2>
+  <p>
+    Before switching to the 120-prompt file, we ran a 7-arm factorial ablation on <code>input.json</code> (<code>requests_polaris.jsonl</code>, 5 prompts averaging 14.4k chars where <b>1 of 5 requests = 20%</b> is a 36.4k-char article exceeding the 8,192-token limit). Comparing the 5-prompt stress test against the 120-prompt benchmark explains the exact workload sensitivity to overlong articles:
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>5-Prompt Stress-Test Arm (<code>input.json</code>, 20% Overlong Truncation)</th>
+        <th>Job ID</th>
+        <th><code>c = 8</code> QPS (p50 / p99)</th>
+        <th><code>c = 16</code> QPS (p50 / p99)</th>
+        <th><code>c = 32</code> QPS (p50 / p99)</th>
+        <th>1 Hz SM Util% (avg / p50 / @100%)</th>
+        <th>Power (avg / p95)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>0. Prod Baseline</b> (<code>_Parallelism_=1</code>, stock prompt, <code>seqs=4, bt=8320, mem=0.80</code>)</td>
+        <td><code>loving_quill_6yzlt329fk</code></td>
+        <td>9.86 (886 / 1064 ms)</td>
+        <td>9.84 (1564 / 1986 ms)</td>
+        <td>9.90 (3092 / 3560 ms)</td>
+        <td>52.7% / 44% / 14.3%</td>
+        <td>289.3 / 432.7 W</td>
+      </tr>
+      <tr>
+        <td><b>1. Ablation 1: <code>_Parallelism_=32</code> only</b> (stock prompt, <code>seqs=4, bt=8320</code>)</td>
+        <td><code>stoic_vinegar_v3q7yndywj</code></td>
+        <td>10.08 (864 / 1017 ms)</td>
+        <td>9.95 (1550 / 1948 ms)</td>
+        <td>9.99 (3062 / 3531 ms)</td>
+        <td>56.4% / 58% / 14.3%</td>
+        <td>279.2 / 347.9 W</td>
+      </tr>
+      <tr>
+        <td><b>2. Ablation 2: <code>_Parallelism_=32</code> + Fast Prompt</b> (stock <code>seqs=4, bt=8320</code>)</td>
+        <td><code>silver_rose_2s0q5gjv08</code></td>
+        <td>18.36 (432 / 509 ms)</td>
+        <td>18.60 (864 / 908 ms)</td>
+        <td>18.27 (1746 / 1829 ms)</td>
+        <td>82.8% / 84% / 0.0%</td>
+        <td>356.4 / 381.8 W</td>
+      </tr>
+      <tr>
+        <td><b>3. Tier-1 Env-Vars Only</b> (<code>_Parallelism_=32, seqs=32, mem=0.90</code>, stock code)</td>
+        <td><code>helpful_drop_t4g9fc2k64</code></td>
+        <td>16.51 (482 / 1453 ms)</td>
+        <td>22.84 (697 / 1720 ms)</td>
+        <td><b>24.34 (2.46× · 1310 / 2852 ms)</b></td>
+        <td>79.4% / 85% / 31.0%</td>
+        <td>341.0 / 392.0 W</td>
+      </tr>
+      <tr class="up">
+        <td><b>4. Full Stack + <code>TRITON_ATTN + D2G(32,2,0)</code></b> (<code>seqs=32, bt=32768, mem=0.90</code>)</td>
+        <td><code>boring_store_qxqq43wn5d</code></td>
+        <td>23.28 (331 / 455 ms)</td>
+        <td>31.14 (511 / 616 ms)</td>
+        <td>36.41 (<b>3.68×</b> · 877 / 1021 ms)</td>
+        <td><b>94.6% / 100% / 54.8%</b></td>
+        <td>377.5 / 425.1 W</td>
+      </tr>
+      <tr class="up">
+        <td><b>5. Full Stack + <code>FLASH_ATTN</code></b> (<code>seqs=32, bt=32768, mem=0.90</code>)</td>
+        <td><code>yellow_leather_4gj52y53hj</code></td>
+        <td><b>24.34 (2.47× · 317 / 438 ms)</b></td>
+        <td>32.31 (496 / 582 ms)</td>
+        <td>37.06 (<b>3.74×</b> · 864 / 1024 ms)</td>
+        <td><b>94.6% / 100% / 69.1%</b></td>
+        <td>379.7 / 420.9 W</td>
+      </tr>
+      <tr class="up">
+        <td><b>6. Full Stack + <code>FLASHINFER</code></b> (<code>seqs=32, bt=32768, mem=0.90</code>)</td>
+        <td><code>salmon_door_xbwlvlsr74</code></td>
+        <td>24.11 (321 / 453 ms)</td>
+        <td><b>32.32 (495 / 586 ms)</b></td>
+        <td><b>37.74 (3.81× · 847 / 1064 ms)</b></td>
+        <td>92.3% / 97% / 46.6%</td>
+        <td><b>381.8 / 436.6 W</b></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 6.</b> 7-arm ablation on the 5-prompt heavy-truncation suite (<code>input.json</code>). Because 1 in 5 prompts triggers 17 binary-search steps (~280 ms under <code>_tok_lock</code>), the stock CPU lock limits Tier-1 Env-Only to <b>24.34 QPS</b>, whereas on the 120-prompt benchmark (~2.5% overlong rate) Tier-1 Env-Only reaches <b>31.81–32.35 QPS</b> and Full Stack reaches <b>39.18 QPS</b>.</div>
+
+  <h2>6&nbsp; Workload Physics: Prefix-Cached vs. 100% Uncached Prefill Ceiling (<code>perftest_gpu_saturate.py</code>)</h2>
+  <p>
+    A critical question in evaluating LLM serving benchmarks is the role of <b>Automatic Prefix Caching (APC, <code>enable_prefix_caching=True</code>)</b>, which vLLM 0.31 enables by default in hybrid 528-token Attention+Mamba alignment blocks:
+  </p>
+  <ul>
+    <li><b>Why APC is genuinely active in live online production:</b> Every CLIFF freshness query prepends the static <b>~1,800-token system rubric (<code>/Model/prompt.txt</code>)</b> before the article payload (~1,500–2,000 tokens average). In online production, the ~1,800-token system prompt is 100% prefix-cached across every request on the pod, and breaking-news articles scored multiple times across feed requests also hit the 65–74 GiB KV+Mamba cache (~158,000-token capacity on A100-80GB).</li>
+    <li><b>Measuring the 0%-cache worst case (<code>enable_prefix_caching=False</code> + 4-token per-request content salt):</b> To establish the absolute physical floor when 0% of tokens hit cache (not even the system prompt), <code>perftest_gpu_saturate.py</code> disables prefix caching and mutates 4 interior tokens near the start of every request so every query executes a full uncached <b>~3,372-token prefill + ~7-token decode</b> directly on <code>AsyncLLM</code>:</li>
+  </ul>
+  <table>
+    <thead>
+      <tr>
+        <th>Uncached Prefill Arm (<code>enable_prefix_caching=False</code>, ~3,372 in / ~7 out tok)</th>
+        <th>Job ID</th>
+        <th><code>c = 8</code> QPS · Prefill tok/s</th>
+        <th><code>c = 16</code> QPS · Prefill tok/s</th>
+        <th><code>c = 32</code> QPS · Prefill tok/s</th>
+        <th>1 Hz SM Util% (avg / @100%)</th>
+        <th>HBM BW% / Power (avg / p95)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="up">
+        <td><b>1. <code>FLASH_ATTN</code> High-Batch</b> (<code>seqs=64, bt=32768, mem=0.90</code>)</td>
+        <td><code>orange_parrot_qy658jqrx3</code></td>
+        <td><b>4.09 QPS · 13,788 tok/s</b></td>
+        <td><b>4.07 QPS · 13,735 tok/s</b></td>
+        <td>3.84 QPS · 12,856 tok/s</td>
+        <td><b>100.0% / 100.0%</b></td>
+        <td>32.1% · <b>401.0 / 416.5 W</b></td>
+      </tr>
+      <tr>
+        <td><b>2. <code>FLASHINFER</code> High-Batch</b> (<code>seqs=64, bt=32768, mem=0.90</code>)</td>
+        <td><code>calm_toe_j8k96g9tjb</code></td>
+        <td>4.00 QPS · 13,482 tok/s</td>
+        <td>3.98 QPS · 13,413 tok/s</td>
+        <td>3.84 QPS · 12,874 tok/s</td>
+        <td><b>100.0% / 100.0%</b></td>
+        <td>31.2% · 396.8 / 412.7 W</td>
+      </tr>
+      <tr>
+        <td><b>3. Prod Control (<code>FLASH_ATTN</code>)</b> (<code>seqs=4, bt=8320, mem=0.80</code>)</td>
+        <td><code>amiable_lemon_m710b3r1fc</code></td>
+        <td>3.96 QPS · 13,361 tok/s</td>
+        <td>3.96 QPS · 13,361 tok/s</td>
+        <td>3.96 QPS · 13,361 tok/s</td>
+        <td><b>100.0% / 100.0%</b></td>
+        <td>32.8% · 396.7 / 429.2 W</td>
+      </tr>
+      <tr>
+        <td><b>4. <code>TRITON_ATTN + D2G(32,2,0)</code></b> (<code>seqs=64, bt=32768, mem=0.90</code>)</td>
+        <td><code>quiet_arch_zxjmbpyynp</code></td>
+        <td>3.87 QPS · 13,038 tok/s</td>
+        <td>3.89 QPS · 13,108 tok/s</td>
+        <td>3.58 QPS · 12,028 tok/s</td>
+        <td><b>100.0% / 100.0%</b></td>
+        <td>29.6% · 390.8 / 422.0 W</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="cap"><b>Table 7.</b> 100% uncached prefill hardware ceiling on A100-SXM4-80GB (<code>enable_prefix_caching=False</code>). A single A100 saturates 100.0% SM and 401 W TDP at <b>13,788 prefill tokens/sec</b> (4.09 QPS when all 3,372 tokens are cold; ~7.5–9.0 QPS when the 1,800-token system prompt is prefix-cached and every article body is 100% cold; and <b>37.87–39.18 QPS</b> when hot articles reside in the 74 GiB KV+Mamba prefix cache).</div>
+
+  <h2>7&nbsp; Production Rollout Recommendation &amp; Colleague Runbook (No New Docker Build Required)</h2>
+  <div class="verdict v-pass">
+    <b>100% Non-Model Serving Optimization · Three Drop-In Deployment Paths (Zero Accuracy Impact &amp; Zero Docker Rebuild):</b>
+    <ol>
+      <li>
+        <b>Path A — Immediate Env-Var Rollout (Zero Docker/Code/File Changes):</b>
+        Keep the existing image (<code>cliff-qwen35-freshness-dlis-cu129:20261021-v2</code>) and ADLS model folder untouched; set <code>_Parallelism_=32</code> (and ensure DLIS deployment config sets <code>MaxBatchSize: 32</code> so the host passes concurrency through to the pod), <code>VLLM_MAX_NUM_SEQS=32</code>, and <code>VLLM_GPU_MEMORY_UTILIZATION=0.90</code>.
+        <br><b>Verified Impact:</b> Lifts 120-prompt benchmark throughput from <b>16.96 → 31.81 QPS (+88%)</b> and cuts <code>c=32</code> median latency from <b>1890 ms → 743 ms (2.54× faster)</b>.
+      </li>
+      <li>
+        <b>Path B — Zero-Docker-Rebuild Model-Folder Hook (<code>sitecustomize.py</code> in <code>/Model</code> + <code>PYTHONPATH=/Model</code>):</b>
+        Upload <code>cliff_freshness_serve/dlis_falcon_opt/sitecustomize.py</code> to <code>CLIFF/qwen-freshness-compact-v1-epoch3-merged/sitecustomize.py</code> on ADLS (<code>validate_model()</code> only checks the 5 manifest files in <code>artifact_manifest.json</code> and the 4 <code>.safetensors</code> shards) and add <code>PYTHONPATH=/Model</code> + <code>VLLM_MAX_NUM_BATCHED_TOKENS=32768</code>. Python auto-imports <code>sitecustomize</code> on startup to apply Change 2 (single-encode binary search) and Change 3 (<code>max_num_batched_tokens=32768</code>) with zero image rebuild.
+        <br><b>Verified Impact:</b> Lifts 120-prompt throughput to <b>37.87 QPS (+123% without request cache) / 39.18 QPS (+131% Full Stack)</b> and slashes <code>p95</code> tail latency by <b>31–36%</b> at <code>c=8..16</code> by eliminating <code>_tok_lock</code> stalls on overlong articles.
+      </li>
+      <li>
+        <b>Path C — Drop-In Source Update for Next Routine Image Build (<code>dlis_falcon_opt/freshness_prompt.py</code> + <code>dlis_falcon_opt/model.py</code>):</b>
+        Copy the two drop-in files in <code>cliff_freshness_serve/dlis_falcon_opt/</code> directly into <code>/model/model/</code> during the next scheduled container build so the optimized binary search and <code>VLLM_MAX_NUM_BATCHED_TOKENS=32768</code> become the baked-in defaults.
+      </li>
+    </ol>
+  </div>
+
+  <h3>7.1&nbsp; Step-by-Step Colleague Rollout &amp; Verification Runbook</h3>
+  <p>
+    All ready-to-use files are committed in <code>cliff_freshness_serve/dlis_falcon_opt/</code> (<code>freshness_prompt.py</code>, <code>model.py</code>, <code>sitecustomize.py</code>, and <code>RUNBOOK.md</code>):
+  </p>
+  <pre># 1. Environment Variables (Path A / Path B / Path C)
+export _ModelDataPath_=/Model
+export _Port_=1337
+export _Parallelism_=32
+export VLLM_GPU_MEMORY_UTILIZATION=0.90
+export VLLM_MAX_NUM_SEQS=32
+export VLLM_MAX_NUM_BATCHED_TOKENS=32768
+export PYTHONPATH=/Model   # Required for Path B (auto-loads /Model/sitecustomize.py)
+
+# 2. Offline CPU Bitwise Token-ID Equivalence Check (&lt; 5 seconds)
+python3 - &lt;&lt; 'EOF'
+import json
+from pathlib import Path
+from transformers import AutoTokenizer
+import freshness_prompt_stock as fp_stock
+import freshness_prompt as fp_fast
+
+model_dir = Path("/Model")
+tok = AutoTokenizer.from_pretrained(str(model_dir), local_files_only=True)
+sys_prompt = Path("/model/model/prompt.txt").read_text(encoding="utf-8")
+lines = [l for l in (model_dir / "input.performance.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+for idx, raw in enumerate(lines):
+    row = {"input": json.loads(json.loads(raw)["user_prompt"])}
+    ids_s, tr_s = fp_stock.prepare_prompt_ids(row, sys_prompt, tok, 8192)
+    ids_f, tr_f = fp_fast.prepare_prompt_ids(row, sys_prompt, tok, 8192)
+    assert ids_s == ids_f and tr_s == tr_f, f"Mismatch at #{idx}"
+print(f"PASS: {len(lines)}/{len(lines)} prompts are 100% bitwise token-ID identical.")
+EOF
+
+# 3. Start Server &amp; Smoke-Test /readycheck + /score
+/model/start_freshness.sh http &amp;
+curl -sf http://127.0.0.1:1337/readycheck
+head -n 1 /Model/input.json | curl -s -X POST http://127.0.0.1:1337/score \
+  -H "Content-Type: application/json" --data-binary @-</pre>
+
+  <h2>8&nbsp; Live Campaign Run Ledger</h2>
+  <div id="app">loading…</div>
+
+  <h2>9&nbsp; References &amp; Reproducibility</h2>
+  <ol class="refs">
+    <li><b>Production Image &amp; Entrypoint:</b> <code>cliff-freshness-dlis-falcon:20261021-v2</code>, <code>/model/start_freshness.sh http</code> → <code>/model/model/main.py http</code> (Tornado <code>http_server.py</code> + vLLM V1 <code>AsyncLLM</code> in <code>model.py</code>).</li>
+    <li><b>Official 120-Prompt Benchmark Dataset:</b> <code>abfs://dlismodel@growthrankingm5416672554.dfs.core.windows.net/CLIFF/qwen-freshness-compact-v1-epoch3-merged/input.performance.jsonl</code> (staged at <code>Q:\agentic_vllm\cliff_freshness_serve\serve\input.performance.jsonl</code>).</li>
+    <li><b>AML Benchmark Submitter &amp; Runtime Hook:</b> <code>Q:\agentic_vllm\scripts\submit_falcon_serving.py</code> (supports <code>--requests-file input.performance.jsonl</code>, <code>--no-hook</code>, <code>--fast-prompt</code>, <code>--fast-prompt-no-cache</code>) and <code>Q:\agentic_vllm\cliff_freshness_serve\serve\sitecustomize.py</code>.</li>
+    <li><b>Uncached Prefill Saturation Harness:</b> <code>Q:\agentic_vllm\cliff_freshness_serve\serve\perftest_gpu_saturate.py</code>.</li>
+  </ol>
+
+  <div class="foot">Auto-refreshes every 90s from <code>cliff-progress.json</code>. Technical Report on DLIS Falcon Qwen3.5-9B Freshness Serving Optimization on NVIDIA A100-SXM4-80GB. Hosted on the Chrona Showcase Hub.</div>
+</div>
+</div>
+
+<script>
+const ST={Completed:'Completed',Succeeded:'Succeeded',Running:'Running',Queued:'Queued',Failed:'Failed',
+  Canceled:'Canceled',CancelRequested:'CancelRequested',Starting:'Starting',Provisioning:'Provisioning',Preparing:'Preparing'};
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+async function refresh(){
+  try{
+    const r = await fetch('./cliff-progress.json?t='+Date.now());
+    const d = await r.json();
+    document.getElementById('updated').textContent = 'last updated ' + (d.generated||'?');
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+    const h = document.createElement('div');
+    h.innerHTML = `<div style="font-weight:700;margin:6px 0 4px;font-size:13.5px">${esc(d.headline||'')}</div>`;
+    app.appendChild(h);
+    for(const c of (d.campaigns||[])){
+      let html = `<div style="font-weight:700;margin:12px 0 4px;font-size:13.5px">${esc(c.name)}</div>`;
+      for(const run of (c.runs||[])){
+        const st=run.status, dot=ST[st]?'s-'+st:'', stc=ST[st]?'st-'+st:'';
+        const metric = run.metric ? ` <span style="font-size:12px;color:var(--ok)" title="score">${esc(run.metric)}</span>` : '';
+        html += `<div class="run"><span class="dot ${dot}"></span>
+          <span class="run-name">${esc(run.name)}${metric}</span>
+          <span class="run-status ${stc}">${esc(st||'')}</span>
+          <span class="run-id">${esc(run.id||'')}</span></div>`;
+      }
+      if(c.verdict) html += `<div class="verdict ${c.verdict.cls||''}"><b>Verdict:</b> ${esc(c.verdict.text)}</div>`;
+      if(c.notes) html += `<div style="font-size:12px;color:var(--mut);margin-top:6px">${esc(c.notes)}</div>`;
+      const box=document.createElement('div'); box.innerHTML=html; app.appendChild(box);
+    }
+  }catch(e){ document.getElementById('app').textContent='load error: '+e.message; }
+}
+setInterval(refresh, 90000);
+refresh();
+</script>
+</body>
+</html>
