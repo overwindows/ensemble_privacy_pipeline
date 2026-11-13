@@ -222,22 +222,9 @@
     .metrics, .grid-2, .grid-3 { grid-template-columns:1fr; }
     .paper { padding:20px; }
   }
-
-  /* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
-  .fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
-  .fl-hub-inner{max-width:1360px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
-  .fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
-  .fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
-  .fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:6px;text-decoration:none;font-weight:500}
-  .fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
-  .fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
-  @media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
-  .fl-foot{max-width:1360px;margin:0 auto;padding:22px 20px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-  .fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}.fl-foot code{font-size:11.5px}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:var(--accent);text-decoration:none}
 a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
 h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
@@ -252,7 +239,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 .fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
 .fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
 .fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
-.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:6px;text-decoration:none;font-weight:500}
+.fl-hub-nav a{color:var(--mut);font-size:12px;padding:4px 8px;border-radius:6px;text-decoration:none;font-weight:500}
 .fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
 .fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
 @media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
@@ -263,10 +250,6 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
 </style>
 </head>
 <body>
-
-
-
-
 <header class="fl-hub">
   <div class="fl-hub-inner">
     <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
@@ -290,26 +273,24 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </nav>
   </div>
 </header>
-
-
-
-
 <div class="page-shell">
 
   <!-- ======================= STICKY SIDEBAR TOC ======================= -->
   <aside class="side-nav">
     <div class="sn-title">Part I · Developer Handbook</div>
     <a href="#top"><b>0.</b> Executive Summary &amp; KPIs</a>
-    <a href="#sec-diag"><b>1.</b> Diagnosis (3 Bottlenecks)</a>
-    <a href="#sec-changes"><b>2.</b> What Changed (3 Fixes)</a>
-    <a href="#sec-apply"><b>3.</b> Apply Guide (Path A / B / C)</a>
-    <a href="#sec-patch"><b>4.</b> Code Diffs &amp; <code>.patch</code></a>
-    <a href="#sec-verify"><b>5.</b> 3-Step Verification</a>
+    <a href="#sec-aml"><b>1.</b> AML Repro Settings &amp; Image</a>
+    <a href="#sec-datasets"><b>2.</b> All 4 ADLS Prompt Datasets</a>
+    <a href="#sec-diag"><b>3.</b> Diagnosis (3 Bottlenecks)</a>
+    <a href="#sec-changes"><b>4.</b> What Changed (3 Fixes)</a>
+    <a href="#sec-apply"><b>5.</b> Apply Guide (Path A / B / C)</a>
+    <a href="#sec-patch"><b>6.</b> Code Diffs &amp; <code>.patch</code></a>
+    <a href="#sec-verify"><b>7.</b> 3-Step Verification</a>
 
     <div class="sn-title">Part II · Appendices</div>
     <a href="#app-a"><b>App A.</b> Prod Stack Parity</a>
-    <a href="#app-b"><b>App B.</b> 120-Prompt Benchmark</a>
-    <a href="#app-c"><b>App C.</b> 5-Prompt Stress &amp; Kernels</a>
+    <a href="#app-b"><b>App B.</b> 120-Prompt Benchmarks (v1 &amp; v2)</a>
+    <a href="#app-c"><b>App C.</b> 11-Row Multilingual &amp; 5-Row</a>
     <a href="#app-d"><b>App D.</b> Cold Prefill Ceiling</a>
     <a href="#sec-ledger"><b>App E.</b> AML Run Ledger &amp; Files</a>
 
@@ -335,16 +316,170 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </div>
 
     <div class="metrics">
-      <div class="m green"><div class="v">16.96 → 39.18 QPS</div><div class="l">120-Prompt Official Benchmark</div><div class="d">2.31× (+131%) · c=32 p50 768ms</div></div>
-      <div class="m"><div class="v">16.96 → 31.81 QPS</div><div class="l">Path A: Env-Vars Only (0 Files)</div><div class="d">+88% (120p) / +146% (5p: 24.34 QPS)</div></div>
-      <div class="m green"><div class="v">−36% p95 Latency</div><div class="l">Path B/C: Fast BSearch (No Cache)</div><div class="d">37.87 QPS (+123%) · 37→19 tok passes</div></div>
-      <div class="m"><div class="v">100% Bitwise Exact</div><div class="l">Zero Accuracy Drift Guarantee</div><div class="d">0 weight changes · 93.3% mean SM</div></div>
+      <div class="m green"><div class="v">18.13 → 39.62 QPS</div><div class="l">120-Prompt Multilingual v2 Suite</div><div class="d">2.19× (+119%) · v1 120p: 16.96→39.18</div></div>
+      <div class="m green"><div class="v">13.80 → 36.65 QPS</div><div class="l">11-Prompt Multilingual (20261023-v1)</div><div class="d">2.66× (+166%) · 5p EN: 9.90→37.74 (3.81×)</div></div>
+      <div class="m"><div class="v">+30% to +146% QPS</div><div class="l">Path A: Env-Vars Only (0 Files)</div><div class="d">+88% (v1 120p) · +50% (v2 120p)</div></div>
+      <div class="m"><div class="v">100% Bitwise Exact</div><div class="l">Zero Accuracy Drift Across All 4 Sets</div><div class="d">0 token mismatches · 37→19 tok passes</div></div>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 1: DIAGNOSIS AT A GLANCE                                      -->
+    <!-- SECTION 1: AML REPRODUCTION SETTINGS & DOCKER IMAGE                   -->
     <!-- ===================================================================== -->
-    <h2 id="sec-diag"><span class="sec-num">Section 1</span> Diagnosis at a Glance: Why Stock Production Plateaus at 16.96 QPS</h2>
+    <h2 id="sec-aml"><span class="sec-num">Section 1</span> AML Reproduction Settings &amp; Docker Image (Reproduce on AML First)</h2>
+    <p>
+      To reproduce these exact benchmarks on Azure ML Singularity before rolling out to DLIS Falcon production, use the workspace ACR mirror image, registered AML environment, and 1-command launcher below:
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:24%">AML Setting / Parameter</th>
+            <th style="width:52%">Exact Value Used in All 26 AML Benchmark Jobs</th>
+            <th style="width:24%">Notes / Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>AML Workspace ACR Image (Pullable on Singularity)</b></td>
+            <td><code>f9309c3acdd842848c88032e1ec736d2.azurecr.io/cliff-qwen35-freshness-dlis-cu129:20261021-v2</code></td>
+            <td>1:1 mirror of DLIS prod image in workspace ACR (no cross-ACR auth needed)</td>
+          </tr>
+          <tr>
+            <td><b>DLIS Production ACR Image Tag</b></td>
+            <td><code>dlisfalconprodcontainerregistry.azurecr.io/cliff-freshness-dlis-falcon:20261021-v2</code></td>
+            <td>Digest <code>sha256:727bf6d9566e…</code> · vLLM <code>0.31.1rc1</code> · PyTorch <code>2.8.0+cu129</code></td>
+          </tr>
+          <tr>
+            <td><b>Registered AML Environment</b></td>
+            <td><code>cliff-freshness-dlis-falcon:20261021-v2</code></td>
+            <td>Pre-registered in <code>NewsFeedL2_AML</code></td>
+          </tr>
+          <tr>
+            <td><b>Subscription / RG / Workspace</b></td>
+            <td><code>b6dc87f3-c479-49c8-8cb5-7896da3ff895</code> / <code>AMLStudio</code> / <code>NewsFeedL2_AML</code></td>
+            <td>Auth via <code>aml_auth.get_client()</code></td>
+          </tr>
+          <tr>
+            <td><b>Singularity Virtual Cluster</b></td>
+            <td><code>/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourceGroups/rg-cs-ranking-ml-singularity/providers/Microsoft.MachineLearningServices/virtualClusters/ranking</code></td>
+            <td>Queue: <code>Singularity.ND12am_A100_v4</code> · Priority: <code>High</code> · Tier: <code>Premium</code> · <code>ukwest</code></td>
+          </tr>
+          <tr>
+            <td><b>Compute SKU (1× GPU Parity)</b></td>
+            <td><code>Singularity.ND12am_A100_v4</code> (<b>1× NVIDIA A100-SXM4-80GB</b>)</td>
+            <td>Matches <code>torch.cuda.device_count() == 1</code> check in <code>model.py:192</code></td>
+          </tr>
+          <tr>
+            <td><b>Managed Identity (UAI)</b></td>
+            <td><code>/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourceGroups/AMLStudio/providers/Microsoft.ManagedIdentity/userAssignedIdentities/rankfun_aml</code></td>
+            <td>Passed via <code>UserIdentityConfiguration</code> &amp; <code>_AZUREML_SINGULARITY_JOB_UAI</code></td>
+          </tr>
+          <tr>
+            <td><b>Mounted Model Store (<code>INPUT_model_store</code>)</b></td>
+            <td><code>azureml://datastores/copilotexplore_dtalake_id/paths/qwen-freshness-multilingual-compact-v2-epoch3-merged-20261022/</code></td>
+            <td>Mounted read-only; symlinked into <code>/Model</code> at container startup</td>
+          </tr>
+          <tr>
+            <td><b>ADLS Canonical Artifact Paths</b></td>
+            <td>• <code>abfs://dlismodel@growthrankingm5416672554.dfs.core.windows.net/CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/</code><br>• <code>abfs://dlismodel@growthrankingm5416672554.dfs.core.windows.net/CLIFF/qwen-freshness-compact-v1-epoch3-merged/</code></td>
+            <td>Both folders contain <code>input.json</code> and <code>input.performance.jsonl</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table 1.1.</b> Complete Azure ML Singularity configuration and Docker image tags for 1:1 reproduction of the DLIS Falcon serving benchmarks.</div>
+
+    <h3>Copy-Paste AML Reproduction Commands (From <code>Q:\agentic_vllm</code>)</h3>
+    <pre># 1. Reproduce on 20261023-v1/input.performance.jsonl (120 unique rows + 8,495 B multilingual v2 rubric):
+python scripts/submit_falcon_serving.py --name v2p120-arm1-stock \
+  --requests-file input_v2.performance.jsonl --use-model-prompt \
+  --parallelism 1 --max-num-seqs 4 --gpu-mem 0.80 --max-batched-tokens 8320 --no-hook --concurrencies 1,8,16,32
+
+python scripts/submit_falcon_serving.py --name v2p120-arm4-fullstack \
+  --requests-file input_v2.performance.jsonl --use-model-prompt \
+  --parallelism 32 --max-num-seqs 32 --gpu-mem 0.90 --max-batched-tokens 32768 --fast-prompt --concurrencies 1,8,16,32
+
+# 2. Reproduce on 20261023-v1/input.json (all 11 multilingual rows: 5 EN + 6 FR/DE/ES/HI/JA/AR):
+python scripts/submit_falcon_serving.py --name ml11-arm1-stock \
+  --requests-file input_multilingual_11.jsonl --use-model-prompt \
+  --parallelism 1 --max-num-seqs 4 --gpu-mem 0.80 --max-batched-tokens 8320 --no-hook --concurrencies 1,8,16,32
+
+python scripts/submit_falcon_serving.py --name ml11-arm4-fullstack \
+  --requests-file input_multilingual_11.jsonl --use-model-prompt \
+  --parallelism 32 --max-num-seqs 32 --gpu-mem 0.90 --max-batched-tokens 32768 --fast-prompt --concurrencies 1,8,16,32</pre>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 2: ALL-DATASET EVALUATION MATRIX                              -->
+    <!-- ===================================================================== -->
+    <h2 id="sec-datasets"><span class="sec-num">Section 2</span> Evaluation Across All 4 Prompt Datasets on ADLS (Where Do the Gains Come From?)</h2>
+    <p>
+      We evaluated all 4 prompt datasets stored across the two ADLS model folders under <code>abfs://dlismodel@growthrankingm5416672554.dfs.core.windows.net/CLIFF/</code>. Table 2.1 shows how <b>Change 1 (Concurrency &amp; KV Env Vars)</b> and <b>Changes 2+3 (Fast Single-Encode Binary Search + <code>bt=32768</code>)</b> contribute across every dataset at <code>c = 32</code> (60s per concurrency window, 0 HTTP errors, <b>0 token-ID mismatches across all prompts</b>):
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ADLS Dataset (<code>abfs://dlismodel@…/CLIFF/</code>)</th>
+            <th>Prompts &amp; Token Profile</th>
+            <th>Arm 1: Stock Prod<br><code>seqs=4, mem=0.80, P=1</code></th>
+            <th>Arm 2: Path A (Env-Only)<br><code>seqs=32, mem=0.90, P=32</code></th>
+            <th>Arm 3: +Fast BSearch<br><code>NO _req_cache, bt=32768</code></th>
+            <th>Arm 4: Full Stack<br><code>Fast BSearch + Cache + bt=32768</code></th>
+            <th>Bitwise Token-ID Parity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>1. <code>20261023-v1/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Multilingual <code>compact-v2</code> rubric (8,495 B)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>3,737</code> tok (max <code>8,189</code>)<br>3 rows &gt;8,192 tok (2.5%)</td>
+            <td><b>18.13 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1740ms · p95 1963ms</span></td>
+            <td><b>27.26 QPS (+50.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 760ms · p95 2406ms</span></td>
+            <td class="up"><b>33.64 QPS (+85.5%)</b><br><span style="font-size:11.2px">p50 746ms · p95 1585ms</span></td>
+            <td class="up"><b>39.62 QPS (2.19× / +119%)</b><br><span style="font-size:11.2px">p50 727ms · <b>p95 1364ms (−31%)</b></span></td>
+            <td class="yes">120 / 120<br>(0 mismatches)</td>
+          </tr>
+          <tr>
+            <td><b>2. <code>v1-epoch3-merged/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Container <code>compact-v1</code> rubric (4,405 B)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>2,906</code> tok (max <code>8,189</code>)<br>3 rows &gt;8,192 tok (2.5%)</td>
+            <td><b>16.96 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1890ms · p95 2092ms</span></td>
+            <td><b>31.81 QPS (+87.6%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 743ms · p95 1811ms</span></td>
+            <td class="up"><b>37.87 QPS (+123.3%)</b><br><span style="font-size:11.2px">p50 741ms · <b>p95 1491ms</b></span></td>
+            <td class="up"><b>39.10 QPS @ c=32 / 39.18 @ c=64 (2.31× / +131%)</b><br><span style="font-size:11.2px">p50 768ms · p95 1551ms</span></td>
+            <td class="yes">120 / 120<br>(0 mismatches)</td>
+          </tr>
+          <tr>
+            <td><b>3. <code>20261023-v1/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">All 11 multilingual rows (5 EN + 6 FR/DE/ES/HI/JA/AR)</span></td>
+            <td><b>11 multilingual rows</b><br>avg <code>3,657</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (9.1%)</td>
+            <td><b>13.80 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 2243ms · p95 2613ms</span></td>
+            <td><b>18.00 QPS (+30.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1813ms · p95 2278ms</span></td>
+            <td class="up"><b>33.59 QPS (2.43× / +143%)</b><br><span style="font-size:11.2px">p50 936ms · <b>p95 1841ms (−30%)</b></span></td>
+            <td class="up"><b>36.65 QPS (2.66× / +166%)</b><br><span style="font-size:11.2px"><b>p50 878ms (−61%)</b> · p95 2098ms</span></td>
+            <td class="yes">11 / 11<br>(0 mismatches)</td>
+          </tr>
+          <tr>
+            <td><b>4. <code>v1-epoch3-merged/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">5-row English smoke test (heavy truncation)</span></td>
+            <td><b>5 English rows</b><br>avg <code>3,372</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (20.0%)</td>
+            <td><b>9.90 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 3092ms · p99 3560ms</span></td>
+            <td><b>24.34 QPS (2.46× / +146%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1310ms · p99 2852ms</span></td>
+            <td class="up">—<br><span style="font-size:11.2px">Validated via Ablation 2 (18.60 QPS @ seqs=4)</span></td>
+            <td class="up"><b>37.74 QPS (3.81× / +281%)</b><br><span style="font-size:11.2px"><b>p50 847ms (−73%) · p99 1064ms</b></span></td>
+            <td class="yes">5 / 5<br>(0 mismatches)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table 2.1.</b> Complete 4-dataset × 4-arm evaluation matrix at <code>c = 32</code> on 1× NVIDIA A100-SXM4-80GB. Every dataset achieves <b>36.65–39.62 QPS (2.19×–3.81×)</b> under the full stack with 0 errors and 0 token-ID mismatches.</div>
+
+    <div class="note-ok">
+      <b>Key Takeaway — How Much Comes from Concurrency/KV Env Vars vs. Fast Binary Search + <code>bt=32768</code>?</b><br>
+      1. <b>On 120-prompt suites (2.5% overlong truncation):</b> Env vars alone (<b>Change 1</b>) provide the largest initial jump (<b><code>+50.4%</code></b> on <code>v2</code> 120p and <b><code>+87.6%</code></b> on <code>v1</code> 120p), while <b>Changes 2+3</b> (Fast Single-Encode Binary Search + <code>bt=32768</code>) add another <b><code>+35% to +68%</code></b> over stock—bringing total throughput to <b><code>33.64–37.87 QPS</code> with cache disabled</b> and <b><code>39.18–39.62 QPS</code> (2.19×–2.31×) with full stack</b>, while cutting p95 tail latency by <b>31%–36%</b>.<br>
+      2. <b>On multilingual &amp; truncation-heavy suites (<code>20261023-v1/input.json</code> 11 rows &amp; <code>v1/input.json</code> 5 rows):</b> Non-English scripts (HI/JA/AR/FR/DE/ES) and 9.1%–20% overlong binary-search rows hold <code>self._tok_lock</code> for ~280 ms per truncated article. There, Env-Only stalls at <code>18.00 QPS (+30.4%)</code> on the 11-row multilingual set, whereas adding <b>Change 2 (Fast Single-Encode Binary Search, NO cache)</b> immediately unlocks <b><code>33.59 QPS (2.43×)</code></b> and Full Stack reaches <b><code>36.65 QPS (2.66×)</code></b>. Both layers are required to eliminate host-CPU lock stalls under multilingual bursts.
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 3: DIAGNOSIS AT A GLANCE                                      -->
+    <!-- ===================================================================== -->
+    <h2 id="sec-diag"><span class="sec-num">Section 3</span> Diagnosis at a Glance: Why Stock Production Plateaus at 13.8–18.1 QPS</h2>
     <p>
       Inspecting <code>/model/model/</code> inside <code>cliff-freshness-dlis-falcon:20261021-v2</code> alongside 1 Hz <code>nvidia-smi</code> telemetry proves that the A100 GPU sits idle 22%–47% of the time waiting on host admission and CPU tokenization:
     </p>
@@ -388,9 +523,9 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 2: WHAT WE CHANGED                                            -->
+    <!-- SECTION 4: WHAT WE CHANGED                                            -->
     <!-- ===================================================================== -->
-    <h2 id="sec-changes"><span class="sec-num">Section 2</span> Summary of the 3 Non-Model Optimizations (0% Accuracy Impact)</h2>
+    <h2 id="sec-changes"><span class="sec-num">Section 4</span> Summary of the 3 Non-Model Optimizations (0% Accuracy Impact)</h2>
     <div class="table-wrap">
       <table>
         <thead>
@@ -429,9 +564,9 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 3: STEP-BY-STEP DEVELOPER APPLY GUIDE                         -->
+    <!-- SECTION 5: STEP-BY-STEP DEVELOPER APPLY GUIDE                         -->
     <!-- ===================================================================== -->
-    <h2 id="sec-apply"><span class="sec-num">Section 3</span> Step-by-Step Developer Apply Guide (Pick Path A, Path B, or Path C)</h2>
+    <h2 id="sec-apply"><span class="sec-num">Section 5</span> Step-by-Step Developer Apply Guide (Pick Path A, Path B, or Path C)</h2>
     <p>
       All ready-to-use files are committed in <code>Q:\agentic_vllm\cliff_freshness_serve\dlis_falcon_opt\</code> (<code>cliff_dlis_falcon_serving_opt.patch</code>, <code>freshness_prompt.py</code>, <code>model.py</code>, <code>sitecustomize.py</code>, and <code>RUNBOOK.md</code>). Choose the rollout option that fits your deployment workflow:
     </p>
@@ -486,9 +621,9 @@ export VLLM_MAX_NUM_BATCHED_TOKENS=32768
 export PYTHONPATH=/Model</pre>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 4: EXACT CODE DIFFS & PATCH FILE                              -->
+    <!-- SECTION 6: EXACT CODE DIFFS & PATCH FILE                              -->
     <!-- ===================================================================== -->
-    <h2 id="sec-patch"><span class="sec-num">Section 4</span> Exact Code Diffs in <code>cliff_dlis_falcon_serving_opt.patch</code></h2>
+    <h2 id="sec-patch"><span class="sec-num">Section 6</span> Exact Code Diffs in <code>cliff_dlis_falcon_serving_opt.patch</code></h2>
     <p>
       Below are the exact side-by-side diffs for both patched files (<a href="patches/cliff_dlis_falcon_serving_opt.patch" download><b>Download <code>cliff_dlis_falcon_serving_opt.patch</code></b></a>):
     </p>
@@ -570,9 +705,9 @@ export PYTHONPATH=/Model</pre>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 5: 3-STEP VERIFICATION & REPRODUCTION                         -->
+    <!-- SECTION 7: 3-STEP VERIFICATION & REPRODUCTION                         -->
     <!-- ===================================================================== -->
-    <h2 id="sec-verify"><span class="sec-num">Section 5</span> 3-Step Verification &amp; Reproduction Checklist</h2>
+    <h2 id="sec-verify"><span class="sec-num">Section 7</span> 3-Step Verification &amp; Reproduction Checklist</h2>
 
     <div class="grid-2">
       <div class="card-box">
@@ -679,12 +814,68 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
     <div class="cap"><b>Table A.1.</b> 1:1 parity between online DLIS Falcon production pods and the AML benchmark harness on <code>Singularity.ND12am_A100_v4</code>.</div>
 
     <!-- APPENDIX B -->
-    <h2 id="app-b"><span class="sec-num app">Appendix B</span> Primary Benchmark: Official 120-Prompt Suite (<code>input.performance.jsonl</code>)</h2>
+    <h2 id="app-b"><span class="sec-num app">Appendix B</span> Primary Benchmarks: Official 120-Prompt Suites (<code>20261023-v1</code> &amp; <code>v1-epoch3-merged</code>)</h2>
     <p>
-      <code>CLIFF/qwen-freshness-compact-v1-epoch3-merged/input.performance.jsonl</code> (1.46 MB; 100% identical <code>user_prompt</code> payloads to <code>input_v2.performance.jsonl</code>) contains <b>120 unique real-world articles (0 duplicates)</b> ranging from 287 to 32,378 chars (mean 7,396 chars; 13 articles &gt;15k chars; 3 articles &gt;25k chars).
+      Both ADLS folders ship an identical 120-article <code>input.performance.jsonl</code> payload (<b>120 unique real-world articles, 0 duplicates</b>, 287 to 32,378 chars, 3 articles &gt;8,192 tokens), paired with either the 8,495-byte multilingual <code>compact-v2</code> system prompt (<code>20261023-v1</code>, avg <code>3,736.8</code> tokens) or the 4,405-byte <code>compact-v1</code> container prompt (<code>v1-epoch3-merged</code>, avg <code>2,906.0</code> tokens).
     </p>
 
-    <h3>B.1&nbsp; 4-Arm End-to-End QPS Progression Across Concurrency (120 Unique Prompts)</h3>
+    <h3>B.0&nbsp; 4-Arm Progression on <code>20261023-v1/input.performance.jsonl</code> (120 Unique Prompts + Multilingual v2 Rubric)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Evaluation Arm (<code>20261023-v1/input.performance.jsonl</code>, 120 Rows, v2 Rubric)</th>
+            <th>AML Job ID</th>
+            <th><code>c = 1</code> QPS (p50)</th>
+            <th><code>c = 8</code> QPS (p50 / p95)</th>
+            <th><code>c = 16</code> QPS (p50 / p95)</th>
+            <th><code>c = 32</code> QPS (p50 / p95 / p99)</th>
+            <th>Speedup vs Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Arm 1: Stock Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, MAX_SEQS=4, MEM=0.80, bt=8320</code>, stock code</span></td>
+            <td><code>hungry_grass_dnnph6z11x</code></td>
+            <td>3.87 (220.4ms)</td>
+            <td>15.60 (425.4 / 976.3ms)</td>
+            <td>15.50 (889.3 / 1185.0ms)</td>
+            <td><b>18.13</b> (1740.3 / 1963.1 / 2100.8ms)</td>
+            <td><code>1.00×</code> (baseline)</td>
+          </tr>
+          <tr>
+            <td><b>Arm 2: Path A / Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, MAX_SEQS=32, MEM=0.90, bt=8320</code>, stock code</span></td>
+            <td><code>purple_chicken_2sbs8p2cr1</code></td>
+            <td>3.91 (225.9ms)</td>
+            <td>18.90 (309.5 / 1207.8ms)</td>
+            <td>23.77 (458.3 / 1609.0ms)</td>
+            <td><b>27.26 (+50.4%)</b> (760.0 / 2406.1 / 2881.1ms)</td>
+            <td><b><code>1.50×</code> (0 code change)</b></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch + <code>bt=32768</code>, cache disabled</span></td>
+            <td><code>witty_yak_gs0j9777l6</code></td>
+            <td>3.91 (222.7ms)</td>
+            <td>21.96 (308.0 / 618.2ms)</td>
+            <td>28.80 (451.1 / 927.5ms)</td>
+            <td><b>33.64 (+85.5%)</b> (746.2 / <b>1584.9</b> / 2049.1ms)</td>
+            <td><b><code>1.86×</code> (100% live tok)</b></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
+            <td><code>strong_clock_0k341tgq4t</code></td>
+            <td>3.90 (222.7ms)</td>
+            <td><b>24.17</b> (300.0 / 596.3ms)</td>
+            <td><b>32.80</b> (450.6 / 901.7ms)</td>
+            <td><b>39.62 (+118.5%)</b> (<b>727.3 / 1364.0 [−31%] / 1861.6ms</b>)</td>
+            <td><b><code>2.19×</code> (Full Stack)</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table B.0.</b> 4-arm throughput and latency progression on <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.performance.jsonl</code> (120 unique rows with 8,495 B multilingual v2 prompt, <code>mismatches=0</code>).</div>
+
+    <h3>B.1&nbsp; 4-Arm End-to-End QPS Progression on <code>v1-epoch3-merged/input.performance.jsonl</code> (120 Unique Prompts)</h3>
     <div class="table-wrap">
       <table>
         <thead>
@@ -968,7 +1159,68 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
     <div class="cap"><b>Table B.3.</b> 1 Hz A100-SXM4-80GB hardware telemetry across the 4-arm 120-prompt evaluation.</div>
 
     <!-- APPENDIX C -->
-    <h2 id="app-c"><span class="sec-num app">Appendix C</span> 5-Prompt Heavy-Truncation Suite (<code>input.json</code>) &amp; Attention Kernel Ablations</h2>
+    <h2 id="app-c"><span class="sec-num app">Appendix C</span> 11-Prompt Multilingual Suite (<code>20261023-v1/input.json</code>) &amp; 5-Prompt Heavy-Truncation Suite (<code>v1/input.json</code>)</h2>
+    <p>
+      <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.json</code> contains <b>11 rows total</b>: the 5 English rows from <code>v1-epoch3-merged/input.json</code> plus <b>6 non-English multilingual rows (French, German, Spanish, Hindi, Japanese, Arabic)</b> (avg <code>3,656.8</code> tokens, max <code>8,189</code> tokens, 1 overlong row &gt;8,192 tokens [9.1%], <code>mismatches=0</code> across all 11 rows).
+    </p>
+
+    <h3>C.1&nbsp; 4-Arm Progression on All 11 Multilingual Prompts (<code>20261023-v1/input.json</code>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Evaluation Arm (All 11 Multilingual Rows in <code>20261023-v1/input.json</code>)</th>
+            <th>AML Job ID</th>
+            <th><code>c = 1</code> QPS (p50)</th>
+            <th><code>c = 8</code> QPS (p50 / p95)</th>
+            <th><code>c = 16</code> QPS (p50 / p95)</th>
+            <th><code>c = 32</code> QPS (p50 / p95 / p99)</th>
+            <th>Speedup vs Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Arm 1: Stock Prod Baseline</b> (<code>_Parallelism_=1, seqs=4, mem=0.80, bt=8320</code>)</td>
+            <td><code>mango_town_vg7zl821yd</code></td>
+            <td>3.82 (213.0ms)</td>
+            <td>12.76 (638.5 / 806.4ms)</td>
+            <td>14.24 (1060.2 / 1455.3ms)</td>
+            <td><b>13.80</b> (2243.0 / 2612.9 / 2656.6ms)</td>
+            <td><code>1.00×</code> (baseline)</td>
+          </tr>
+          <tr>
+            <td><b>Arm 2: Path A / Env-Vars Only</b> (<code>_Parallelism_=32, seqs=32, mem=0.90</code>, stock code)</td>
+            <td><code>happy_ghost_dplzs53b0t</code></td>
+            <td>3.79 (216.2ms)</td>
+            <td>11.37 (767.9 / 1180.7ms)</td>
+            <td>18.02 (871.5 / 1455.2ms)</td>
+            <td><b>18.00 (+30.4%)</b> (1812.7 / 2278.4 / 2385.7ms)</td>
+            <td><code>1.30×</code> (locked on CPU tok)</td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b> (<code>bt=32768</code>)</td>
+            <td><code>tough_yam_vq9z70h8n3</code></td>
+            <td>4.18 (215.8ms)</td>
+            <td>15.93 (508.5 / 862.5ms)</td>
+            <td>25.29 (543.4 / 1054.5ms)</td>
+            <td><b>33.59 (2.43× / +143.4%)</b> (936.1 / <b>1840.8 [−30%] / 1898.8ms</b>)</td>
+            <td><b><code>2.43×</code> (100% live tok)</b></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b></td>
+            <td><code>hungry_carrot_l00gp98hrr</code></td>
+            <td><b>4.61</b> (214.0ms)</td>
+            <td><b>19.37</b> (361.5 / 728.6ms)</td>
+            <td><b>27.44</b> (548.6 / 1039.8ms)</td>
+            <td><b>36.65 (2.66× / +165.6%)</b> (<b>878.2 [−61%]</b> / 2098.0 / 2125.9ms)</td>
+            <td><b><code>2.66×</code> (Full Stack)</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table C.1.</b> 4-arm evaluation on all 11 multilingual rows of <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.json</code> (5 EN + 6 FR/DE/ES/HI/JA/AR rows, 0 errors, <code>mismatches=0</code>).</div>
+
+    <h3>C.2&nbsp; 7-Arm Factorial &amp; Attention Kernel Ablation on 5-Prompt Heavy-Truncation Suite (<code>v1-epoch3-merged/input.json</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
