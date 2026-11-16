@@ -116,8 +116,10 @@ To guarantee that any engineer can independently reproduce the exact `3,879.50 o
   - **Dataset Invariants:** Exactly `2,000` JSONL rows, `5,871,663` total prompt tokens (`mean_input_tokens = 2,935.83`), `max_tokens = 8,192`.
   - **Critical Note on Row Temperature:** Each row in `l1_v2_gpt56_test.jsonl` contains `"temperature": 0.2`. For strict greedy reproduction (`3,879.50 tok/s` and `3,843.12 tok/s`), the evaluator overrides each request payload to `"temperature": 0.0, "top_p": 1.0` (the default behavior of `reproduce_qwen35_3879tps_eval.py`). Pass `--temperature -1` to preserve the dataset's `"temperature": 0.2` (`3,827.28 tok/s`).
 
-### 3.2 Artifact SHA-256 Checksums
-Download all files from `https://privacypshowcase12114.z13.web.core.windows.net/patches/` and verify their SHA-256 digests:
+### 3.2 GitHub Repositories & Artifact SHA-256 Checksums
+All patches, serving launchers, standalone evaluation scripts, and AzureML submission pipelines are committed and pushed to GitHub (and hosted directly at `https://privacypshowcase12114.z13.web.core.windows.net/patches/`):
+- **Benchmark & AML Submission Repo (`agentic_vllm`):** `https://github.com/xinyizou_microsoft/agentic_vllm.git` (branch `gemma4-optimization`, commit `72193fd`, directory `benchmarks/qwen35_posted_eval/` and `patches/attention/`)
+- **Showcase & Standalone Patch Bundle Repo (`ensemble_privacy_pipeline`):** `https://github.com/overwindows/ensemble_privacy_pipeline.git` (branch `main`, directory `showcase/patches/`)
 
 | Artifact Filename | SHA-256 Checksum | Role |
 |---|---|---|
@@ -129,9 +131,12 @@ Download all files from `https://privacypshowcase12114.z13.web.core.windows.net/
 | `reproduce_qwen35_3879tps_eval.py` | `5c46cad4f05f7b31a4c2ab14b7717a680ae56ddef95325c69fd704898fe054da` | Standalone 2,000-request online HTTP `/v1/chat/completions` benchmark harness |
 
 ### 3.3 Option A — Turnkey Single-Command Reproduction on Any 1× A100-80GB Machine
-In an environment with `vllm==0.31.0` (`pip install vllm==0.31.0 aiohttp`), place the 4 `.patch` files, `serve_qwen35_v031_optimized.sh`, and `reproduce_qwen35_3879tps_eval.py` in the same directory and run:
+Clone `agentic_vllm` (or download the 6 files from `https://privacypshowcase12114.z13.web.core.windows.net/patches/`) in an environment with `vllm==0.31.0` (`pip install vllm==0.31.0 aiohttp`) and run:
 
 ```bash
+git clone -b gemma4-optimization https://github.com/xinyizou_microsoft/agentic_vllm.git
+cd agentic_vllm/benchmarks/qwen35_posted_eval
+
 # 1) Reproduce the 3,879.50 output tok/s Wave-6g 4-Patch Greedy Champion:
 python3 reproduce_qwen35_3879tps_eval.py \
     --launch-server ./serve_qwen35_v031_optimized.sh \
@@ -154,10 +159,14 @@ VLLM_APPLY_PATCHES=false python3 reproduce_qwen35_3879tps_eval.py \
 4. Writes `summary.json` and verifies `successful_requests == 2000`, `prompt_tokens == 5871663`, `json_parseable == 2000`, `greedy_decoding_verified == true`, and `mtp_engagement_verified == true` (`draft_acceptance_rate >= 0.765`).
 
 ### 3.4 Option B — Reproduce on AzureML / Singularity (`aml-ranking-uksouth`)
-To reproduce the exact AML jobs (`magenta_book_0g0hp7t2cy` / `frank_jelly_p13140lkhv` / `hungry_cat_jqbhqqvz0z`) from the `agentic_vllm` repo:
+To reproduce the exact AML jobs (`magenta_book_0g0hp7t2cy` / `frank_jelly_p13140lkhv` / `hungry_cat_jqbhqqvz0z`) from the committed `agentic_vllm` repository:
 
 ```bash
-python Q:/agentic_vllm/experiments/submit_qwen35_v031_http_online.py \
+git clone -b gemma4-optimization https://github.com/xinyizou_microsoft/agentic_vllm.git
+cd agentic_vllm
+pip install -e .
+
+python experiments/submit_qwen35_v031_http_online.py --submit \
     --only HTTP_V031_WAVE6G_GREEDY_MINIMAL_STACK_K3 \
            HTTP_V031_WAVE6G_GREEDY_EAGLE_FULLCG_SAMPLE_K3 \
            HTTP_V031_WAVE6F_GREEDY_R9_CTRL

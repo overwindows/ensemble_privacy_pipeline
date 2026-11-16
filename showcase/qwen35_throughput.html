@@ -187,7 +187,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
   <div class="paperhead">
     <div class="kicker">Technical Report · vLLM throughput on NVIDIA A100 (sm_80)</div>
     <h1>Qwen3.5-4B Speculative-Decode Throughput on 1× A100-80GB:<br>New Baseline 3,786.84 → Target 4,000+ output tok/s</h1>
-    <div class="authors">Chen Wu · <code>Q:\CodeGuru\knowledgebase\24_QWEN_VLLM_ARCHIVE.md</code> · last update 2026-11-16</div>
+    <div class="authors">Chen Wu · <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm@73a4e81</code></a> · last update 2026-11-17</div>
   </div>
 
   <div class="abstract">
@@ -446,7 +446,7 @@ Result:       output_tps = 3786.84   (reference 3776.67  → +0.27%)   [NEW BASE
   <h3>4.7&nbsp; Forensic Root-Cause Analysis: Why `run_config.py` Read ~2,731 vs `r9` = 3,786.84</h3>
   <p>Although both full-2000 arms in Table&nbsp;5 completed 2,000/2,000 prompts cleanly, their absolute throughput (~2,698–2,731
   tok/s) sat 28% below the mandatory <code>r9 = 3,786.84</code> baseline. Recovering the exact <code>r9</code> harness from the
-  sibling worktree and archive ledger into <code>Q:\agentic_vllm\benchmarks\qwen35_posted_eval\</code>
+  sibling worktree and archive ledger into <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>agentic_vllm/benchmarks/qwen35_posted_eval/</code></a>
   (<code>run_qwen_posted_eval.py</code>, <code>benchmark.py</code>, <code>sitecustomize.py</code>,
   <code>r9_reference_summary.json</code>) identified <b>five concrete cross-harness discrepancies</b>:</p>
   <div class="cap">Table 6 — Five root causes of the cross-harness gap between `r9` (`run_qwen_posted_eval`) and `run_config.py`.</div>
@@ -492,8 +492,8 @@ Result:       output_tps = 3786.84   (reference 3776.67  → +0.27%)   [NEW BASE
   </table>
 
   <h3>4.8&nbsp; Phase-2e `r9`-Parity Greedy Full-2000 Calibration + D2G A/B — COMPLETED (2026-11-12)</h3>
-  <p><span class="tag t-ok">COMPLETED</span> We patched <code>Q:\agentic_vllm\src\agentic_vllm\submit\aml.py</code> and
-  <code>Q:\agentic_vllm\experiments\qwen35-4b-d2g-full2000-a100.yaml</code> to enforce full <code>r9</code> config parity inside the
+  <p><span class="tag t-ok">COMPLETED</span> We patched <code>agentic_vllm/src/agentic_vllm/submit/aml.py</code> and
+  <code>agentic_vllm/experiments/qwen35-4b-d2g-full2000-a100.yaml</code> to enforce full <code>r9</code> config parity inside the
   offline runner: forwarding <code>enable_thinking: false</code> into <code>tokenizer.apply_chat_template(...)</code>, greedy
   <code>temperature=0.0 / top_p=1.0</code>, <code>attention_backend="FLASHINFER"</code>,
   <code>speculative_config.attention_backend="TRITON_ATTN"</code>, <code>mamba_ssm_cache_dtype="bfloat16"</code>,
@@ -612,16 +612,16 @@ Result:       output_tps = 3786.84   (reference 3776.67  → +0.27%)   [NEW BASE
       (<code>triton_unified_attention.py</code>, where <code>D2G_TILE=32 / D2G_STAGES=2</code> lives) is only invoked by the
       single-layer <code>Qwen3_5MTP</code> draft head. Consequently, D2G touches only 1 of 33 layers on this profile and measures
       within run-to-run variance (<code>3,829.15</code> vs <code>3,853.40</code>, <code>-0.63%</code>).</li>
-    <li><b>The offline `agentic_vllm` harness is now a calibrated 3,853 tok/s measuring stick, and Phase-2g extends it to online HTTP `/v1/chat/completions`:</b> Every optimization can be tested in ~15 minutes via <code>vllm_install_mode: pip_isolated</code> (no 90-minute C++ source compile), both offline (<code>LLM.generate</code>) and online via <code>_agentic_http_online: true</code> (spawning <code>vllm.entrypoints.openai.api_server</code> with the exact <code>Q:\qwen35-dlis-v031-working-copy\serve.sh</code> flags and firing 2,000 concurrent <code>aiohttp</code> requests to <code>/v1/chat/completions</code>).</li>
+    <li><b>The offline `agentic_vllm` harness is now a calibrated 3,853 tok/s measuring stick, and Phase-2g extends it to online HTTP `/v1/chat/completions`:</b> Every optimization can be tested in ~15 minutes via <code>vllm_install_mode: pip_isolated</code> (no 90-minute C++ source compile), both offline (<code>LLM.generate</code>) and online via <code>_agentic_http_online: true</code> (spawning <code>vllm.entrypoints.openai.api_server</code> with the exact DLIS <code>serve.sh</code> flags and firing 2,000 concurrent <code>aiohttp</code> requests to <code>/v1/chat/completions</code>).</li>
   </ol>
 
   <h3>4.10&nbsp; Phase-2g Online HTTP `/v1/chat/completions` Service Optimization (`serve.sh` / DLIS Parity) — COMPLETED (2026-11-13)</h3>
   <p><span class="tag t-ok">COMPLETED · 3,793.23 tok/s ONLINE HTTP REPRODUCTION (+0.17% vs r9)</span> Because the production DLIS
-  deployment (<code>Q:\qwen35-dlis-v031-working-copy\serve.sh</code> &amp; <code>deployment-params.yml</code>) serves online traffic
+  deployment (<code>serve.sh</code> &amp; <code>deployment-params.yml</code>) serves online traffic
   over HTTP <code>/v1/chat/completions</code> (<code>vllm serve</code> on port <code>8100</code> with
   <code>--reasoning-parser qwen3</code>, <code>--default-chat-template-kwargs '{"enable_thinking": false}'</code>, and 2,000
   concurrent requests), we wired an opt-in <code>_agentic_http_online</code> mode into
-  <code>Q:\agentic_vllm\src\agentic_vllm\submit\aml.py</code> that spawns <code>python -m vllm.entrypoints.openai.api_server</code>,
+  <code>agentic_vllm/src/agentic_vllm/submit/aml.py</code> that spawns <code>python -m vllm.entrypoints.openai.api_server</code>,
   runs <code>r9</code>'s exact 2,000-request <code>l1_v2_gpt56_test.jsonl</code> evaluation over <code>aiohttp</code> POST
   <code>/v1/chat/completions</code>, and scrapes <code>/metrics</code> for <code>vllm:spec_decode_*</code> acceptance counters.
   Comparing Arm&nbsp;A offline (<code>3,853.40 tok/s</code>, <code>668.00s</code>) against <code>r9</code> online HTTP
@@ -1380,9 +1380,15 @@ exec vllm serve "$MODEL_PATH" \
     </li>
   </ol>
 
-  <h3>4.9.5&nbsp; Step 4 — End-to-End 2,000-Request Benchmark Reproduction (Provenance, Checksums &amp; Single-Command Harness)</h3>
-  <p>To ensure any engineer or teammate can independently reproduce both the <b>3,879.50 output tok/s</b> Wave-6g 4-patch greedy champion (<code>magenta_book_0g0hp7t2cy</code>) and the <b>3,843.12 output tok/s</b> zero-patch stock greedy control (<code>hungry_cat_jqbhqqvz0z</code>), we package the standalone benchmark harness (<a href="patches/reproduce_qwen35_3879tps_eval.py" download="reproduce_qwen35_3879tps_eval.py"><code>reproduce_qwen35_3879tps_eval.py</code></a>), exact dataset/checkpoint URIs, and SHA-256 verification digests below.</p>
+  <h3>4.9.5&nbsp; Step 4 — End-to-End 2,000-Request Benchmark Reproduction (GitHub Provenance, Checksums &amp; Single-Command Harness)</h3>
+  <p>To ensure any engineer or teammate can independently reproduce both the <b>3,879.50 output tok/s</b> Wave-6g 4-patch greedy champion (<code>magenta_book_0g0hp7t2cy</code>) and the <b>3,843.12 output tok/s</b> zero-patch stock greedy control (<code>hungry_cat_jqbhqqvz0z</code>) without relying on any local machine state, all patches, launchers, standalone benchmark harnesses, and AzureML submission scripts are committed and pushed to GitHub and packaged directly on this page:</p>
   <ul>
+    <li><b>Remote GitHub Repositories (Committed &amp; Pushed):</b>
+      <ul>
+        <li><b>Benchmark Harness, Patches &amp; AzureML Submission Repo:</b> <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>https://github.com/xinyizou_microsoft/agentic_vllm.git</code></a> (branch <code>gemma4-optimization</code>, commit <code>73a4e81</code>; standalone kit in <code>benchmarks/qwen35_posted_eval/</code>, patch manifests in <code>patches/attention/</code>, and AML specs in <code>experiments/qwen35-4b-v031-http-online-full2000-a100.yaml</code>).</li>
+        <li><b>Showcase Report &amp; Downloadable Patch Mirror Repo:</b> <a href="https://github.com/overwindows/ensemble_privacy_pipeline/tree/main/showcase/patches"><code>https://github.com/overwindows/ensemble_privacy_pipeline.git</code></a> (branch <code>main</code>, folder <code>showcase/patches/</code>).</li>
+      </ul>
+    </li>
     <li><b>Runtime &amp; Container Environment:</b> 1&times; NVIDIA A100-SXM4-80GB (<code>sm_80</code>), <code>vLLM 0.31.0</code> (<code>pip install vllm==0.31.0 aiohttp</code>), <code>torch 2.13.0+cu130</code>, FlashInfer + Triton (AzureML environment <code>azureml:vllm_gemma4:9</code>).</li>
     <li><b>Model Checkpoint (<code>Qwen3_5ForConditionalGeneration</code>, BF16, 24&times;GDN + 8&times;Full-Attention + 1-layer MTP):</b>
       <ul>
@@ -1442,7 +1448,11 @@ exec vllm serve "$MODEL_PATH" \
     </tbody>
   </table>
 
-  <pre><code># Option A — Single-command local reproduction on any 1x A100-80GB machine (spawns server + runs 2,000-request benchmark):
+  <pre><code># Clone the committed reproduction repository (contains all patches, launcher, and evaluator):
+git clone -b gemma4-optimization https://github.com/xinyizou_microsoft/agentic_vllm.git
+cd agentic_vllm/benchmarks/qwen35_posted_eval
+
+# Option A — Single-command reproduction of the 3,879.50 output tok/s Wave-6g 4-Patch Greedy Champion on any 1x A100-80GB machine:
 python3 reproduce_qwen35_3879tps_eval.py \
     --launch-server ./serve_qwen35_v031_optimized.sh \
     --model-path "$MODEL_PATH" \
@@ -1456,8 +1466,9 @@ VLLM_APPLY_PATCHES=false python3 reproduce_qwen35_3879tps_eval.py \
     --data-path "$DATA_PATH/l1_v2_gpt56_test.jsonl" \
     --output-dir ./repro_wave6f_stock_greedy_3843tps
 
-# Option C — Submit the exact AzureML / Singularity benchmark jobs (aml-ranking-uksouth):
-python Q:/agentic_vllm/experiments/submit_qwen35_v031_http_online.py \
+# Option C — Submit the exact AzureML / Singularity benchmark jobs from the repo root:
+cd ../.. && pip install -e .
+python experiments/submit_qwen35_v031_http_online.py --submit \
     --only HTTP_V031_WAVE6G_GREEDY_MINIMAL_STACK_K3 \
            HTTP_V031_WAVE6G_GREEDY_EAGLE_FULLCG_SAMPLE_K3 \
            HTTP_V031_WAVE6F_GREEDY_R9_CTRL</code></pre>
@@ -1488,17 +1499,16 @@ python Q:/agentic_vllm/experiments/submit_qwen35_v031_http_online.py \
 
   <h2>7&nbsp; References</h2>
   <ol class="refs">
-    <li>r8/r9 AML runs, Phase-2c/2d/2e ledger &amp; 5-point harness parity analysis — <code>Q:\CodeGuru\knowledgebase\24_QWEN_VLLM_ARCHIVE.md</code>.</li>
-    <li>Recreated <code>r9</code> baseline harness artifact — <code>Q:\agentic_vllm\benchmarks\qwen35_posted_eval\</code>.</li>
-    <li>Campaign memory: <code>project_qwen35_dlis_opt.md</code> (CodeGuru memory).</li>
+    <li>Committed Qwen3.5-4B <code>3,879.50 tok/s</code> reproduction kit, patches &amp; AML runner — <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm</code> (branch <code>gemma4-optimization</code>, commit <code>73a4e81</code>)</a>.</li>
+    <li>Showcase patch bundle &amp; runbook mirror — <a href="https://github.com/overwindows/ensemble_privacy_pipeline/tree/main/showcase/patches"><code>overwindows/ensemble_privacy_pipeline/showcase/patches/</code></a>.</li>
+    <li>Campaign memory: <code>project_qwen35_dlis_opt.md</code>.</li>
     <li>DFlash regresses at high concurrency — <a href="https://github.com/vllm-project/vllm/issues/42505">vLLM #42505</a>.</li>
     <li>DFlash block-diffusion spec-decode (15&times; are latency wins) — <a href="https://www.lmsys.org/blog/2026-06-15-next-generation-speculative-decoding-dflash-v2/">LMSYS post</a>.</li>
     <li>S2 / D2G decode-2D geometry proven significant on gemma4-26B — <code>project_vllm_gemma4_opt.md</code> (2026-09-27 ROUND-25).</li>
   </ol>
 
-  <p class="foot">Qwen3.5 throughput campaign · maintained in
-  <code>Q:\CodeGuru\knowledgebase\24_QWEN_VLLM_ARCHIVE.md</code> · recreated <code>r9</code> harness in
-  <code>Q:\agentic_vllm\benchmarks\qwen35_posted_eval\</code> · baseline 3,786.84 → target 4,000+ (stretch 5,000).</p>
+  <p class="foot">Qwen3.5 throughput campaign · reproduction kit &amp; patches in
+  <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm/benchmarks/qwen35_posted_eval/</code></a> · baseline 3,786.84 → champion 3,879.50 output tok/s (+92.66 tok/s / +2.45%).</p>
 </div></div>
 </body>
 </html>
