@@ -280,19 +280,19 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
     <div class="sn-title">Part I · Developer Handbook</div>
     <a href="#top"><b>0.</b> Executive Summary &amp; KPIs</a>
     <a href="#sec-aml"><b>1.</b> AML Repro Settings &amp; Image</a>
-    <a href="#sec-datasets"><b>2.</b> All 4 ADLS Prompt Datasets</a>
+    <a href="#sec-epc-true"><b>2A.</b> Experiments: <code>epc=True</code></a>
+    <a href="#sec-epc-false"><b>2B.</b> Experiments: <code>epc=False</code></a>
     <a href="#sec-diag"><b>3.</b> Diagnosis (3 Bottlenecks)</a>
     <a href="#sec-changes"><b>4.</b> What Changed (3 Fixes)</a>
     <a href="#sec-apply"><b>5.</b> Apply Guide (Path A / B / C)</a>
     <a href="#sec-patch"><b>6.</b> Code Diffs &amp; <code>.patch</code></a>
     <a href="#sec-verify"><b>7.</b> 3-Step Verification</a>
 
-    <div class="sn-title">Part II · Appendices</div>
+    <div class="sn-title">Part II · Experimental Appendices</div>
     <a href="#app-a"><b>App A.</b> Prod Stack Parity</a>
-    <a href="#app-b"><b>App B.</b> 120-Prompt Benchmarks (v1 &amp; v2)</a>
-    <a href="#app-c"><b>App C.</b> 11-Row Multilingual &amp; 5-Row</a>
-    <a href="#app-d"><b>App D.</b> Cold Prefill Ceiling</a>
-    <a href="#sec-ledger"><b>App E.</b> AML Run Ledger &amp; Files</a>
+    <a href="#app-b"><b>App B.</b> All <code>epc=True</code> Experiments</a>
+    <a href="#app-d"><b>App C.</b> All <code>epc=False</code> Experiments</a>
+    <a href="#sec-ledger"><b>App D.</b> AML Run Ledger &amp; Files</a>
 
     <div class="sn-dl">
       <a class="btn-dl" style="width:100%" href="patches/cliff_dlis_falcon_serving_opt.patch" download>⬇ Download .patch File</a>
@@ -306,20 +306,20 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
       <div class="kicker">Developer Handbook · DLIS Falcon · Qwen3.5-9B CLIFF</div>
       <h1>CLIFF Freshness Serving Optimization Handbook (2.3× QPS on A100)</h1>
       <div class="authors">
-        <span>Chen Wu · <code>cliff-freshness-dlis-falcon:20261021-v2</code> · 1× A100-80GB · <span id="updated">2026-11-14</span></span>
+        <span>Chen Wu · <code>cliff-freshness-dlis-falcon:20261021-v2</code> · 1× A100-80GB · <span id="updated">2026-11-15</span></span>
         <a class="btn-dl" href="patches/cliff_dlis_falcon_serving_opt.patch" download>⬇ Download Git Patch (.patch)</a>
       </div>
     </div>
 
     <div class="abstract">
-      <b>Abstract.</b> Stock <code>cliff-freshness-dlis-falcon:20261021-v2</code> caps at <b>16.96 QPS</b> (120-prompt suite) due to three host/config bottlenecks: <code>_Parallelism_=1</code>, <code>VLLM_MAX_NUM_SEQS=4</code>, and a 37-pass binary-search tokenizer under <code>self._tok_lock</code>. Fixing these with <b>zero model changes</b> lifts throughput to <b>39.18 QPS (+131%)</b> and cuts p95 latency by <b>36%</b> while preserving <b>100% bitwise-identical token IDs</b>. Use <b>Part I (§1–§5)</b> to apply via env vars, a zero-rebuild <code>sitecustomize.py</code> hook, or <code>git apply</code>; see <b>Part II (Appendices A–E)</b> for benchmarks.
+      <b>Abstract.</b> Stock <code>cliff-freshness-dlis-falcon:20261021-v2</code> caps at <b>6.58–18.13 QPS</b> (<code>enable_prefix_caching=True</code>) and <b>2.33–4.07 QPS</b> (<code>enable_prefix_caching=False</code>) due to three host/config bottlenecks: <code>_Parallelism_=1</code>, <code>VLLM_MAX_NUM_SEQS=4</code>, and a 37-pass binary-search tokenizer under <code>self._tok_lock</code>. Across all <b>5 datasets × 4 arms × 2 prefix-caching modes (40 cells, 53 AML A100 jobs)</b>, fixing these with <b>zero model changes</b> lifts throughput to <b>36.65–39.62 QPS (2.19×–6.02×)</b> under <code>enable_prefix_caching=True</code> and <b>3.67–5.34 QPS (1.16×–2.01×, 98.8–100% SM saturation)</b> under <code>enable_prefix_caching=False</code>, while preserving <b>100% bitwise-identical token IDs</b> (<code>0</code> mismatches).
     </div>
 
     <div class="metrics">
-      <div class="m green"><div class="v">18.13 → 39.62 QPS</div><div class="l">120-Prompt Multilingual v2 Suite</div><div class="d">2.19× (+119%) · v1 120p: 16.96→39.18</div></div>
-      <div class="m green"><div class="v">13.80 → 36.65 QPS</div><div class="l">11-Prompt Multilingual (20261023-v1)</div><div class="d">2.66× (+166%) · 5p EN: 9.90→37.74 (3.81×)</div></div>
-      <div class="m"><div class="v">+30% to +146% QPS</div><div class="l">Path A: Env-Vars Only (0 Files)</div><div class="d">+88% (v1 120p) · +50% (v2 120p)</div></div>
-      <div class="m"><div class="v">100% Bitwise Exact</div><div class="l">Zero Accuracy Drift Across All 4 Sets</div><div class="d">0 token mismatches · 37→19 tok passes</div></div>
+      <div class="m green"><div class="v">6.58 → 39.60 QPS</div><div class="l">Combined 2,048p (epc=True: 6.02×)</div><div class="d">epc=False: 4.07→4.73 QPS (+16.2%, 100% SM)</div></div>
+      <div class="m green"><div class="v">18.13 → 39.62 QPS</div><div class="l">120-Prompt Suites (v1 &amp; v2, epc=True)</div><div class="d">epc=False: v1 3.42→5.34 (+56%) · v2 2.87→3.67 (+28%)</div></div>
+      <div class="m green"><div class="v">13.80 → 36.65 QPS</div><div class="l">11p ML &amp; 5p EN (epc=True: 2.66×–3.81×)</div><div class="d">epc=False: 11p 2.33→4.68 (2.01×) · 5p 2.45→4.36 (1.78×)</div></div>
+      <div class="m"><div class="v">100% Bitwise Exact</div><div class="l">Zero Accuracy Drift Across All 5 Sets</div><div class="d">0 token mismatches · 40/40 matrix cells verified</div></div>
     </div>
 
     <!-- ===================================================================== -->
@@ -334,7 +334,7 @@ code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
         <thead>
           <tr>
             <th style="width:24%">AML Setting / Parameter</th>
-            <th style="width:52%">Exact Value Used in All 33 AML Benchmark Jobs</th>
+            <th style="width:52%">Exact Value Used in All 53 AML Benchmark Jobs</th>
             <th style="width:24%">Notes / Usage</th>
           </tr>
         </thead>
@@ -420,136 +420,210 @@ python scripts/submit_falcon_serving.py --name comb2k-sweep-fast-nocache-epc0 \
   --concurrencies 4,8,16,32 --load-duration 180</pre>
 
     <!-- ===================================================================== -->
-    <!-- SECTION 2: ALL-DATASET EVALUATION MATRIX                              -->
+    <!-- SECTION 2A: EXPERIMENTS WITH enable_prefix_caching=True               -->
     <!-- ===================================================================== -->
-    <h2 id="sec-datasets"><span class="sec-num">Section 2</span> Evaluation Across All 4 Prompt Datasets on ADLS (Where Do the Gains Come From?)</h2>
+    <div id="sec-datasets"></div>
+    <h2 id="sec-epc-true"><span class="sec-num" style="background:var(--ok);color:#fff;border-color:var(--ok)">Section 2A</span> Experiments Part I: <code>enable_prefix_caching=True</code> (Warm Production Regime — All 5 Datasets × 4 Arms)</h2>
     <p>
-      We evaluated all 4 prompt datasets stored across the two ADLS model folders under <code>abfs://dlismodel@growthrankingm5416672554.dfs.core.windows.net/CLIFF/</code>. Table 2.1 shows how <b>Change 1 (Concurrency &amp; KV Env Vars)</b> and <b>Changes 2+3 (Fast Single-Encode Binary Search + <code>bt=32768</code>)</b> contribute across every dataset at <code>c = 32</code> (60s per concurrency window, 0 HTTP errors, <b>0 token-ID mismatches across all prompts</b>):
+      In production DLIS Falcon serving, <b><code>enable_prefix_caching=True</code></b> is the default setting in vLLM <code>0.31.1rc1</code>, caching the shared <code>1,200–2,100</code> token system rubric (plus any repeated prompt prefixes) in GPU KV + Mamba state memory. We evaluated all 5 prompt datasets across all 4 optimization arms under <b><code>enable_prefix_caching=True</code></b> at <code>c = 8, 16, 32</code> on 1× NVIDIA A100-SXM4-80GB (20 matrix runs + kernel ablations, <code>0</code> HTTP errors, <b><code>0</code> token-ID mismatches</b>).
     </p>
+
+    <h3>2A.1&nbsp; Complete 5-Dataset × 4-Arm Evaluation Matrix with <code>enable_prefix_caching=True</code></h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>ADLS Dataset (<code>abfs://dlismodel@…/CLIFF/</code>)</th>
+            <th>Dataset (<code>enable_prefix_caching=True</code>)</th>
             <th>Prompts &amp; Token Profile</th>
             <th>Arm 1: Stock Prod<br><code>seqs=4, mem=0.80, P=1</code></th>
-            <th>Arm 2: Path A (Env-Only)<br><code>seqs=32, mem=0.90, P=32</code></th>
+            <th>Arm 2: Path A (Env-Only)<br><code>seqs=32..64, mem=0.90, P=32</code></th>
             <th>Arm 3: +Fast BSearch<br><code>NO _req_cache, bt=32768</code></th>
             <th>Arm 4: Full Stack<br><code>Fast BSearch + Cache + bt=32768</code></th>
-            <th>Bitwise Token-ID Parity</th>
+            <th>Speedup &amp; Bitwise Parity</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><b>1. <code>20261023-v1/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Multilingual <code>compact-v2</code> rubric (8,495 B)</span></td>
-            <td><b>120 unique rows</b><br>avg <code>3,737</code> tok (max <code>8,189</code>)<br>3 rows &gt;8,192 tok (2.5%)</td>
-            <td><b>18.13 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1740ms · p95 1963ms</span></td>
-            <td><b>27.26 QPS (+50.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 760ms · p95 2406ms</span></td>
-            <td class="up"><b>33.64 QPS (+85.5%)</b><br><span style="font-size:11.2px">p50 746ms · p95 1585ms</span></td>
-            <td class="up"><b>39.62 QPS (2.19× / +119%)</b><br><span style="font-size:11.2px">p50 727ms · <b>p95 1364ms (−31%)</b></span></td>
-            <td class="yes">120 / 120<br>(0 mismatches)</td>
+            <td><b>1. Combined 2,048-Prompt Suite (<code>input_combined_2k.jsonl</code>)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>[120 v1 + 120 v2 + 5 EN + 11 ML] × 8</code></span></td>
+            <td><b>2,048 rows (252 unique)</b><br>avg <code>3,262.3</code> tok (max <code>8,189</code>)<br>40 unique rows &gt;8,192 tok</td>
+            <td><b>6.58 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 6.34 · c16: 6.45<br>p50 4551ms · p95 6888ms · 79.6% SM<br><code>sleepy_cherry_mkp7qd81sq</code></span></td>
+            <td><b>26.24 QPS (3.99× / +299%)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 19.15 · c16: 23.18<br>p50 800ms (−82%) · p95 3507ms · 85.5% SM<br><code>zen_turnip_2kfmx57dyg</code></span></td>
+            <td class="up"><b>33.11 QPS (5.03× / +403%)</b><br><span style="font-size:11.2px">c8: 21.95 · c16: 28.64<br>p50 790ms · p95 2052ms · 93.3% SM<br><code>serene_napa_9jmlpk3nmy</code></span></td>
+            <td class="up"><b>39.60 QPS (6.02× / +502%)</b><br><span style="font-size:11.2px">c8: 24.66 · c16: 32.52<br><b>p50 718ms (−84%) · p95 1526ms</b> · 93.1% SM<br><code>lucid_yuca_kg6mpnxv2q</code></span></td>
+            <td class="yes"><b>6.02× QPS</b><br>2,048 / 2,048 Exact<br>(0 mismatches)</td>
           </tr>
           <tr>
-            <td><b>2. <code>v1-epoch3-merged/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Container <code>compact-v1</code> rubric (4,405 B)</span></td>
-            <td><b>120 unique rows</b><br>avg <code>2,906</code> tok (max <code>8,189</code>)<br>3 rows &gt;8,192 tok (2.5%)</td>
-            <td><b>16.96 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1890ms · p95 2092ms</span></td>
-            <td><b>31.81 QPS (+87.6%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 743ms · p95 1811ms</span></td>
-            <td class="up"><b>37.87 QPS (+123.3%)</b><br><span style="font-size:11.2px">p50 741ms · <b>p95 1491ms</b></span></td>
-            <td class="up"><b>39.10 QPS @ c=32 / 39.18 @ c=64 (2.31× / +131%)</b><br><span style="font-size:11.2px">p50 768ms · p95 1551ms</span></td>
-            <td class="yes">120 / 120<br>(0 mismatches)</td>
+            <td><b>2. <code>20261023-v1/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Multilingual <code>compact-v2</code> rubric (8,495 B)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>3,736.8</code> tok (max <code>8,189</code>)<br>3 rows &gt;8,192 tok (2.5%)</td>
+            <td><b>18.13 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 15.60 · c16: 15.50<br>p50 1740ms · p95 1963ms · 85.4% SM<br><code>hungry_grass_dnnph6z11x</code></span></td>
+            <td><b>27.26 QPS (1.50× / +50.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 18.90 · c16: 23.77<br>p50 760ms · p95 2406ms · 86.7% SM<br><code>purple_chicken_2sbs8p2cr1</code></span></td>
+            <td class="up"><b>33.64 QPS (1.86× / +85.5%)</b><br><span style="font-size:11.2px">c8: 21.96 · c16: 28.80<br>p50 746ms · p95 1585ms · 89.3% SM<br><code>witty_yak_gs0j9777l6</code></span></td>
+            <td class="up"><b>39.62 QPS (2.19× / +119%)</b><br><span style="font-size:11.2px">c8: 24.17 · c16: 32.80<br>p50 727ms · <b>p95 1364ms (−31%)</b> · 93.2% SM<br><code>strong_clock_0k341tgq4t</code></span></td>
+            <td class="yes"><b>2.19× QPS</b><br>120 / 120 Exact<br>(0 mismatches)</td>
           </tr>
           <tr>
-            <td><b>3. <code>20261023-v1/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">All 11 multilingual rows (5 EN + 6 FR/DE/ES/HI/JA/AR)</span></td>
-            <td><b>11 multilingual rows</b><br>avg <code>3,657</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (9.1%)</td>
-            <td><b>13.80 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 2243ms · p95 2613ms</span></td>
-            <td><b>18.00 QPS (+30.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1813ms · p95 2278ms</span></td>
-            <td class="up"><b>33.59 QPS (2.43× / +143%)</b><br><span style="font-size:11.2px">p50 936ms · <b>p95 1841ms (−30%)</b></span></td>
-            <td class="up"><b>36.65 QPS (2.66× / +166%)</b><br><span style="font-size:11.2px"><b>p50 878ms (−61%)</b> · p95 2098ms</span></td>
-            <td class="yes">11 / 11<br>(0 mismatches)</td>
+            <td><b>3. <code>v1-epoch3-merged/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Container <code>compact-v1</code> rubric (4,405 B)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>2,803.2</code> tok (max <code>8,189</code>)<br>2–3 rows &gt;8,192 tok (2.5%)</td>
+            <td><b>16.96 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 12.81 · c16: 16.43<br>p50 1890ms · p95 2092ms · 78.0% SM<br><code>sleepy_kiwi_dffrbmqlkx</code></span></td>
+            <td><b>31.81 QPS (1.88× / +87.6%)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 16.40 · c16: 25.81<br>p50 743ms · p95 1811ms · 82.3% SM<br><code>bubbly_book_t23vn00r66</code></span></td>
+            <td class="up"><b>37.87 QPS (2.23× / +123.3%)</b><br><span style="font-size:11.2px">c8: 18.10 · c16: 29.92<br>p50 741ms · <b>p95 1491ms</b> · 92.1% SM<br><code>cool_train_zr8z67frxv</code></span></td>
+            <td class="up"><b>39.10 QPS @ c=32 / 39.18 @ c=64 (2.31×)</b><br><span style="font-size:11.2px">c8: 19.48 · c16: 32.11<br>p50 768ms · p95 1551ms · 93.3% SM<br><code>sad_sock_p7j2s5h1r0</code></span></td>
+            <td class="yes"><b>2.31× QPS</b><br>120 / 120 Exact<br>(0 mismatches)</td>
           </tr>
           <tr>
-            <td><b>4. <code>v1-epoch3-merged/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">5-row English smoke test (heavy truncation)</span></td>
-            <td><b>5 English rows</b><br>avg <code>3,372</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (20.0%)</td>
-            <td><b>9.90 QPS</b><br><span style="font-size:11.2px;color:var(--mut)">p50 3092ms · p99 3560ms</span></td>
-            <td><b>24.34 QPS (2.46× / +146%)</b><br><span style="font-size:11.2px;color:var(--mut)">p50 1310ms · p99 2852ms</span></td>
-            <td class="up">—<br><span style="font-size:11.2px">Validated via Ablation 2 (18.60 QPS @ seqs=4)</span></td>
-            <td class="up"><b>37.74 QPS (3.81× / +281%)</b><br><span style="font-size:11.2px"><b>p50 847ms (−73%) · p99 1064ms</b></span></td>
-            <td class="yes">5 / 5<br>(0 mismatches)</td>
+            <td><b>4. <code>20261023-v1/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">All 11 multilingual rows (5 EN + 6 FR/DE/ES/HI/JA/AR)</span></td>
+            <td><b>11 multilingual rows</b><br>avg <code>3,656.8</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (9.1%)</td>
+            <td><b>13.80 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 12.76 · c16: 14.24<br>p50 2243ms · p95 2613ms · 61.1% SM<br><code>mango_town_vg7zl821yd</code></span></td>
+            <td><b>18.00 QPS (1.30× / +30.4%)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 11.37 · c16: 18.02<br>p50 1813ms · p95 2278ms · 73.5% SM<br><code>happy_ghost_dplzs53b0t</code></span></td>
+            <td class="up"><b>33.59 QPS (2.43× / +143.4%)</b><br><span style="font-size:11.2px">c8: 15.93 · c16: 25.29<br>p50 936ms · <b>p95 1841ms (−30%)</b> · 91.5% SM<br><code>tough_yam_vq9z70h8n3</code></span></td>
+            <td class="up"><b>36.65 QPS (2.66× / +165.6%)</b><br><span style="font-size:11.2px">c8: 19.37 · c16: 27.44<br><b>p50 878ms (−61%)</b> · p95 2098ms · 92.8% SM<br><code>hungry_carrot_l00gp98hrr</code></span></td>
+            <td class="yes"><b>2.66× QPS</b><br>11 / 11 Exact<br>(0 mismatches)</td>
+          </tr>
+          <tr>
+            <td><b>5. <code>v1-epoch3-merged/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">5-row English smoke test (heavy truncation)</span></td>
+            <td><b>5 English rows</b><br>avg <code>3,370.6</code> tok (max <code>8,189</code>)<br>1 row &gt;8,192 tok (20.0%)</td>
+            <td><b>9.90 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 9.86 · c16: 9.84<br>p50 3092ms · p99 3560ms · 52.7% SM<br><code>loving_quill_6yzlt329fk</code></span></td>
+            <td><b>24.34 QPS (2.46× / +145.9%)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 16.51 · c16: 22.84<br>p50 1310ms · p99 2852ms · 79.4% SM<br><code>helpful_drop_t4g9fc2k64</code></span></td>
+            <td class="up"><b>18.57 QPS (fixed-256) / 18.60 QPS</b><br><span style="font-size:11.2px">c8: 18.36 · c16: 18.60<br>p50 1649ms · p95 2081ms · 71.6% SM<br><code>silver_rose_2s0q5gjv08</code></span></td>
+            <td class="up"><b>37.74 QPS (3.81× / +281.2%)</b><br><span style="font-size:11.2px">c8: 24.11 · c16: 32.32<br><b>p50 847ms (−73%) · p99 1064ms</b> · 92.3% SM<br><code>salmon_door_xbwlvlsr74</code></span></td>
+            <td class="yes"><b>3.81× QPS</b><br>5 / 5 Exact<br>(0 mismatches)</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table 2.1.</b> Complete 4-dataset × 4-arm evaluation matrix at <code>c = 32</code> on 1× NVIDIA A100-SXM4-80GB. Every dataset achieves <b>36.65–39.62 QPS (2.19×–3.81×)</b> under the full stack with 0 errors and 0 token-ID mismatches.</div>
+    <div class="cap"><b>Table 2A.1.</b> Complete 5-dataset × 4-arm evaluation matrix at <code>c = 32</code> (with <code>c = 8, 16</code> sub-metrics) under <b><code>enable_prefix_caching=True</code></b> on 1× NVIDIA A100-SXM4-80GB. Every dataset reaches <b>36.65–39.62 QPS (2.19×–6.02× over Stock)</b> with 0 errors and 0 token-ID mismatches. See <a href="#app-b"><b>Appendix B</b></a> for full per-concurrency tables on all <code>enable_prefix_caching=True</code> experiments.</div>
 
     <div class="note-ok">
-      <b>Key Takeaway — How Much Comes from Concurrency/KV Env Vars vs. Fast Binary Search + <code>bt=32768</code>?</b><br>
-      1. <b>On 120-prompt suites (2.5% overlong truncation):</b> Env vars alone (<b>Change 1</b>) provide the largest initial jump (<b><code>+50.4%</code></b> on <code>v2</code> 120p and <b><code>+87.6%</code></b> on <code>v1</code> 120p), while <b>Changes 2+3</b> (Fast Single-Encode Binary Search + <code>bt=32768</code>) add another <b><code>+35% to +68%</code></b> over stock—bringing total throughput to <b><code>33.64–37.87 QPS</code> with cache disabled</b> and <b><code>39.18–39.62 QPS</code> (2.19×–2.31×) with full stack</b>, while cutting p95 tail latency by <b>31%–36%</b>.<br>
-      2. <b>On multilingual &amp; truncation-heavy suites (<code>20261023-v1/input.json</code> 11 rows &amp; <code>v1/input.json</code> 5 rows):</b> Non-English scripts (HI/JA/AR/FR/DE/ES) and 9.1%–20% overlong binary-search rows hold <code>self._tok_lock</code> for ~280 ms per truncated article. There, Env-Only stalls at <code>18.00 QPS (+30.4%)</code> on the 11-row multilingual set, whereas adding <b>Change 2 (Fast Single-Encode Binary Search, NO cache)</b> immediately unlocks <b><code>33.59 QPS (2.43×)</code></b> and Full Stack reaches <b><code>36.65 QPS (2.66×)</code></b>. Both layers are required to eliminate host-CPU lock stalls under multilingual bursts.
+      <b>Key Findings for Section 2A (<code>enable_prefix_caching=True</code>):</b><br>
+      • <b>Why Stock Plateaus at 6.58–18.13 QPS:</b> With prefix caching active, GPU prefill takes only ~25 ms per request, so host admission (<code>_Parallelism_=1</code>), small batch size (<code>VLLM_MAX_NUM_SEQS=4, bt=8320</code>), and the 37-pass CPU binary-search lock (<code>with self._tok_lock:</code>, ~280 ms per overlong prompt) starve the A100 (52.7%–85.4% SM activity).<br>
+      • <b>Step-by-Step Gains:</b> Tier-1 Env-Only (<b>Arm 2</b>) lifts throughput to <b>18.00–31.81 QPS (<code>1.30×–3.99×</code>)</b> with zero code changes; Fast Single-Encode Binary Search with <b>NO cache</b> (<b>Arm 3</b>) lifts throughput to <b>33.11–37.87 QPS (<code>1.86×–5.03×</code>)</b> on 100% live tokenization; Full Stack (<b>Arm 4</b>) reaches <b>36.65–39.62 QPS (<code>2.19×–6.02×</code>)</b> and cuts <code>c = 32</code> median latency by <b>58.2%–84.2%</b>.
     </div>
 
-    <h3 id="sec-comb2k">2.2&nbsp; Combined 2,048-Prompt Benchmark with Prefix Caching Disabled (<code>enable_prefix_caching=False</code>)</h3>
-    <p>
-      To test the uncached GPU prefill regime across all prompts combined, we concatenated all 4 ADLS datasets (<code>120</code> rows <code>v1</code> + <code>120</code> rows <code>v2</code> + <code>5</code> EN rows + <code>11</code> multilingual rows = <b><code>256</code> rows per pass</b>, avg <code>3,262.3</code> tokens, min <code>1,224</code>, max <code>8,189</code>, 8 overlong rows &gt;8,192 tokens per pass [3.1%]) and duplicated the combined pool <code>8×</code> to <b><code>2,048</code> prompts</b> (<code>input_combined_2k.jsonl</code>, <code>6.68M</code> total input tokens, 64 overlong truncations) with <b><code>enable_prefix_caching=False</code></b> (<code>--vllm-enable-prefix-caching 0</code>).
+    <!-- ===================================================================== -->
+    <!-- SECTION 2B: EXPERIMENTS WITH enable_prefix_caching=False              -->
+    <!-- ===================================================================== -->
+    <h2 id="sec-epc-false"><span class="sec-num" style="background:#8a5300;color:#fff;border-color:#8a5300">Section 2B</span> Experiments Part II: <code>enable_prefix_caching=False</code> (Cold Uncached GPU Prefill Regime — All 5 Datasets × 4 Arms)</h2>
+    <p id="sec-comb2k">
+      To isolate serving performance when <b>zero prefix cache hits occur</b>, we ran the exact same 5-Dataset × 4-Arm matrix in a separate experimental campaign with <b><code>enable_prefix_caching=False</code></b> (<code>--vllm-enable-prefix-caching 0</code>). Without prefix caching, every single request computes a full <code>2,803–3,737</code> token attention + GDN Mamba prefill from scratch. Even in this 100% GPU-compute-bound regime, Stock Prod (<code>_Parallelism_=1, seqs=4</code>) leaves the A100 idle between prefills (76.7%–95.4% mean SM, only 25.7%–40.8% of ticks at 100% SM on individual suites), whereas Arms 2–4 pin the A100 at <b>98.8%–100.0% SM saturation</b> (<b>394–398 W TDP</b>, ~<code>13,800–17,150</code> prefill tok/s ceiling), delivering a <b><code>+16.2%</code> to <code>+100.9%</code> (<code>1.16×–2.01×</code>) QPS speedup</b> and cutting <code>c = 32</code> median latency (<code>p50</code>) by <b><code>20.1%</code> to <code>50.9%</code></b> across all 5 datasets:
     </p>
+
+    <h3>2B.1&nbsp; Complete 5-Dataset × 4-Arm Evaluation Matrix with <code>enable_prefix_caching=False</code></h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Evaluation Arm on Combined 2,048-Prompt Suite<br>(<code>enable_prefix_caching=False</code>, avg <code>3,262.3</code> tok/req)</th>
-            <th>Sweep AML Job ID<br>(180s / window)</th>
-            <th><code>c = 4</code> QPS<br>(p50 / p95)</th>
-            <th><code>c = 8</code> QPS<br>(p50 / p95)</th>
-            <th><code>c = 16</code> QPS<br>(p50 / p95)</th>
-            <th><code>c = 32</code> QPS<br>(mean / p50 / p95)</th>
-            <th>Fixed 2,048-Prompt Run @ <code>c = 32</code><br>(Wall Time · QPS · p50 · Job ID)</th>
-            <th>1 Hz A100 SM%<br>&amp; Mean Power</th>
+            <th>Dataset (<code>enable_prefix_caching=False</code>)</th>
+            <th>Prompts &amp; Token Profile</th>
+            <th>Arm 1: Stock Prod<br><code>seqs=4, mem=0.80, P=1, epc=False</code></th>
+            <th>Arm 2: Path A (Env-Only)<br><code>seqs=32..64, mem=0.90, P=32, epc=False</code></th>
+            <th>Arm 3: +Fast BSearch<br><code>NO _req_cache, bt=32768, epc=False</code></th>
+            <th>Arm 4: Full Stack<br><code>Fast BSearch + Cache, epc=False</code></th>
+            <th>1 Hz A100 SM% &amp; Power<br>(Stock → Optimized)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><b>Arm 1: Stock Prod Config</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, seqs=4, mem=0.80, bt=8320, epc=False</code></span></td>
-            <td><code>hungry_ticket_rztdm6tyqy</code></td>
-            <td>4.05 QPS<br><span style="font-size:11.2px;color:var(--mut)">879 / 1881 ms</span></td>
-            <td>4.10 QPS<br><span style="font-size:11.2px;color:var(--mut)">1788 / 3428 ms</span></td>
-            <td>4.07 QPS<br><span style="font-size:11.2px;color:var(--mut)">3644 / 6396 ms</span></td>
-            <td><b>4.07 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">7716 / 7516 / 12007 ms</span></td>
-            <td>Est. <code>503.2s</code> @ 4.07 QPS<br><span style="font-size:11.2px;color:var(--mut)">(13,278 prefill tok/s)</span></td>
-            <td>99.3% SM (98.8% @100%)<br><span style="font-size:11.2px;color:var(--mut)">396.1 W · 66,005 MiB</span></td>
+            <td><b>1. Combined 2,048-Prompt Suite (<code>input_combined_2k.jsonl</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">2,048 rows (<code>6.68M</code> prefill tok)</span></td>
+            <td><b>2,048 rows (252 unique)</b><br>avg <code>3,262.3</code> tok<br><code>c=4 / 8 / 16 / 32</code></td>
+            <td><b>4.07 QPS (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 3.92 · c16: 3.99 · c32 p50: 7516ms<br><code>hungry_ticket_rztdm6tyqy</code></span></td>
+            <td class="up"><b>4.69 QPS (1.15× / +15.2%)</b><br><span style="font-size:11.2px">c8: 4.30 · c16: 4.49 · c32 p50: 6064ms (−19.3%)<br><code>mango_glass_1dh5s8yhx5</code></span></td>
+            <td class="up"><b>4.69 QPS (1.15× / +15.2%)</b><br><span style="font-size:11.2px">c8: 4.29 · c16: 4.58 · c32 p50: 6073ms (−19.2%)<br><code>blue_parrot_31v3ppc74g</code></span></td>
+            <td class="up"><b>4.73 QPS (1.16× / +16.2%)</b><br><span style="font-size:11.2px">c8: 4.34 · c16: 4.62 · <b>c32 p50: 6003ms (−20.1%)</b><br><code>olden_leather_r0sd2p4jnp</code></span></td>
+            <td>99.3% → <b>100.0% SM</b><br><span style="font-size:11.2px;color:var(--mut)">396.1 → 398.1 W<br>15,431 prefill tok/s</span></td>
           </tr>
-          <tr class="up">
-            <td><b>Arm 2: Path A / Env-Vars Only (0 Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, seqs=32, mem=0.90, bt=8320, epc=False</code></span></td>
-            <td><code>mango_glass_1dh5s8yhx5</code></td>
-            <td><b>4.12 QPS</b><br><span style="font-size:11.2px">865 / 1916 ms</span></td>
-            <td><b>4.38 QPS (+6.8%)</b><br><span style="font-size:11.2px">1609 / 3573 ms</span></td>
-            <td><b>4.65 QPS (+14.3%)</b><br><span style="font-size:11.2px">3091 / 6775 ms</span></td>
-            <td><b>4.73 QPS (+16.2%)</b><br><span style="font-size:11.2px"><b>6748 (−12.5%)</b> / 6550 / <b>11440 ms</b></span></td>
-            <td><b>459.0s · 4.46 QPS</b> (2048/2048 ok)<br><span style="font-size:11.2px">p50 6793 ms · <code>plucky_nut_jkh1q2f08p</code></span></td>
-            <td><b>99.2–100.0% SM</b><br><span style="font-size:11.2px">395.6–397.0 W · 74.3 GiB</span></td>
+          <tr>
+            <td><b>2. <code>20261023-v1/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Multilingual <code>compact-v2</code> rubric (120 rows)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>3,736.8</code> tok<br>3 rows &gt;8,192 tok (2.5%)</td>
+            <td><b>2.87 QPS @ c=32 (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 2.82 · c16: 2.84 · c32 p50: 10279ms<br><code>busy_cabbage_r5yx0fp52z</code></span></td>
+            <td class="up"><b>3.67 QPS @ c=32 / 3.87 @ c=8 (+27.9% / +37.2%)</b><br><span style="font-size:11.2px">c8: 3.87 · c16: 3.73 · c32 p50: 7411ms (−27.9%)<br><code>wheat_egg_79709ct4hs</code></span></td>
+            <td class="up"><b>3.60 QPS @ c=32 / 3.88 @ c=8 (+25.4% / +37.6%)</b><br><span style="font-size:11.2px">c8: 3.88 · c16: 3.82 · <b>c32 p50: 6686ms (−35.0%)</b><br><code>mighty_whistle_t25xy7ht86</code></span></td>
+            <td class="up"><b>3.60 QPS @ c=32 / 3.83 @ c=8 (+25.4% / +35.8%)</b><br><span style="font-size:11.2px">c8: 3.83 · c16: 3.75 · c32 p50: 6939ms (−32.5%)<br><code>patient_prune_66pv8gcj52</code></span></td>
+            <td>93.6% → <b>100.0% SM</b><br><span style="font-size:11.2px;color:var(--mut)">367.9 → 398.4 W<br>14,499 prefill tok/s</span></td>
           </tr>
-          <tr class="up">
-            <td><b>Arm 3: + Fast BSearch (<code>NO _req_cache</code>) + <code>bt=32768</code></b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch, cache disabled, <code>epc=False</code></span></td>
-            <td><code>blue_parrot_31v3ppc74g</code></td>
-            <td>4.11 QPS<br><span style="font-size:11.2px">886 / <b>1734 ms (−7.8%)</b></span></td>
-            <td>4.36 QPS (+6.3%)<br><span style="font-size:11.2px">1632 / 3477 ms</span></td>
-            <td>4.58 QPS (+12.5%)<br><span style="font-size:11.2px">3238 / 6508 ms</span></td>
-            <td><b>4.69 QPS (+15.2%)</b><br><span style="font-size:11.2px">6809 / <b>6003 ms (−20.1%)</b> / 13648 ms</span></td>
-            <td><b>458.1s · 4.47 QPS</b> (2048/2048 ok)<br><span style="font-size:11.2px"><b>p50 6381 ms (−15.1%)</b> · <code>gentle_brush_24jr28cz23</code></span></td>
-            <td><b>99.6–100.0% SM</b><br><span style="font-size:11.2px">396.1–397.5 W · 78.4 GiB</span></td>
+          <tr>
+            <td><b>3. <code>v1-epoch3-merged/input.performance.jsonl</code></b><br><span style="font-size:11.2px;color:var(--mut)">Container <code>compact-v1</code> rubric (120 rows)</span></td>
+            <td><b>120 unique rows</b><br>avg <code>2,803.2</code> tok<br>2 rows &gt;8,192 tok (1.7%)</td>
+            <td><b>3.42 QPS @ c=32 (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 3.46 · c16: 3.45 · c32 p50: 8545ms<br><code>bold_cheese_81d68xhd3c</code></span></td>
+            <td class="up"><b>5.28 QPS (1.54× / +54.4%)</b><br><span style="font-size:11.2px">c8: 5.15 · c16: 5.23 · <b>c32 p50: 5131ms (−40.0%)</b><br><code>gifted_lunch_8f8sjnbhpv</code></span></td>
+            <td class="up"><b>5.28 QPS (1.54× / +54.4%)</b><br><span style="font-size:11.2px">c8: 5.17 · c16: 5.22 · c32 p50: 5234ms (−38.7%)<br><code>icy_ice_x7q0p0w4dj</code></span></td>
+            <td class="up"><b>5.34 QPS (1.56× / +56.1%)</b><br><span style="font-size:11.2px">c8: 5.15 · c16: 5.24 · <b>c32 p50: 5151ms (−39.7%)</b><br><code>coral_nail_wqfw2f77lg</code></span></td>
+            <td>95.4% → <b>99.2% SM</b><br><span style="font-size:11.2px;color:var(--mut)">(25.7%→98.9% @100%)<br>376.9 → 395.0 W</span></td>
           </tr>
-          <tr class="up">
-            <td><b>Arm 4: Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code>, <code>epc=False</code></span></td>
-            <td><code>olden_leather_r0sd2p4jnp</code></td>
-            <td>4.09 QPS<br><span style="font-size:11.2px">886 / 1778 ms</span></td>
-            <td>4.23 QPS<br><span style="font-size:11.2px">1654 / 3767 ms</span></td>
-            <td>4.48 QPS (+10.1%)<br><span style="font-size:11.2px">3215 / 6692 ms</span></td>
-            <td><b>4.60 QPS (+13.0%)</b><br><span style="font-size:11.2px">6949 / <b>6184 ms (−17.7%)</b> / 13329 ms</span></td>
-            <td><b>453.0s · 4.52 QPS (+11.1%)</b> (2048/2048 ok)<br><span style="font-size:11.2px">p50 6460 ms · <code>serene_oil_b09j17pzdy</code></span></td>
-            <td><b>99.6–100.0% SM</b><br><span style="font-size:11.2px">397.6–398.1 W · 79.5 GiB</span></td>
+          <tr>
+            <td><b>4. <code>20261023-v1/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">All 11 multilingual rows (5 EN + 6 FR/DE/ES/HI/JA/AR)</span></td>
+            <td><b>11 multilingual rows</b><br>avg <code>3,656.8</code> tok<br>1 row &gt;8,192 tok (9.1%)</td>
+            <td><b>2.33 QPS @ c=32 (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 2.33 · c16: 2.33 · c32 p50: 13763ms<br><code>witty_carpet_zyb255n7wg</code></span></td>
+            <td class="up"><b>4.61 QPS (1.98× / +97.9%)</b><br><span style="font-size:11.2px">c8: 3.95 · c16: 4.10 · c32 p50: 6885ms (−50.0%)<br><code>lucid_receipt_fhns533q74</code></span></td>
+            <td class="up"><b>4.68 QPS (2.01× / +100.9%)</b><br><span style="font-size:11.2px">c8: 4.30 · c16: 4.44 · <b>c32 p50: 6760ms (−50.9%)</b><br><code>witty_jewel_d4wrqf610x</code></span></td>
+            <td class="up"><b>4.65 QPS (2.00× / +99.6%)</b><br><span style="font-size:11.2px">c8: 4.35 · c16: 4.54 · c32 p50: 6796ms (−50.6%)<br><code>upbeat_card_j838mh6p36</code></span></td>
+            <td>87.4% → <b>98.8% SM</b><br><span style="font-size:11.2px;color:var(--mut)">(40.5%→98.8% @100%)<br>353.4 → 398.2 W</span></td>
+          </tr>
+          <tr>
+            <td><b>5. <code>v1-epoch3-merged/input.json</code></b><br><span style="font-size:11.2px;color:var(--mut)">5-row English smoke test (heavy truncation)</span></td>
+            <td><b>5 English rows</b><br>avg <code>3,370.6</code> tok<br>1 row &gt;8,192 tok (20.0%)</td>
+            <td><b>2.45 QPS @ c=32 (1.00×)</b><br><span style="font-size:11.2px;color:var(--mut)">c8: 2.46 · c16: 2.46 · c32 p50: 12727ms<br><code>jolly_endive_w1xft40tyl</code></span></td>
+            <td class="up"><b>4.36 QPS (1.78× / +78.0%)</b><br><span style="font-size:11.2px">c8: 4.03 · c16: 4.28 · c32 p50: 7800ms (−38.7%)<br><code>nice_hominy_mzrlvgjxmt</code></span></td>
+            <td class="up"><b>4.35 QPS (1.78× / +77.6%)</b><br><span style="font-size:11.2px">c8: 4.09 · c16: 4.25 · c32 p50: 7449ms (−41.5%)<br><code>wheat_shark_jdzdfs0h0f</code></span></td>
+            <td class="up"><b>4.35 QPS (1.78× / +77.6%)</b><br><span style="font-size:11.2px">c8: 4.17 · c16: 4.30 · <b>c32 p50: 7287ms (−42.7%)</b><br><code>musing_lion_3gtt38rt5l</code></span></td>
+            <td>76.7% → <b>98.9% SM</b><br><span style="font-size:11.2px;color:var(--mut)">(30.5%→98.4% @100%)<br>306.2 → 394.4 W</span></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table 2.2.</b> Combined 2,048-prompt evaluation across all 4 ADLS datasets (<code>256 × 8 = 2,048</code> requests, <code>0</code> HTTP errors, <code>252/252</code> unique JSONL lines verified <code>mismatches=0</code>) with <b><code>enable_prefix_caching=False</code></b>. Disabling prefix caching forces full GPU prefill of all <code>3,262.3</code> avg tokens per request, pinning the A100 at <b>99.2%–100.0% SM activity</b> and <b>396–398 W TDP</b> (~<code>15,430</code> prefill tok/s ceiling). Even at 100% GPU hardware saturation, unlocking batching (<code>seqs=32, mem=0.90</code>) + Fast Binary Search lifts throughput by <b>+15.2% to +16.2% (<code>4.07 → 4.69–4.73 QPS</code>)</b> and cuts <code>c = 32</code> median latency (<code>p50</code>) by <b>20.1% (<code>7,516 → 6,003 ms</code>)</b>.</div>
+    <div class="cap"><b>Table 2B.1.</b> Complete 5-dataset × 4-arm evaluation matrix with <b><code>enable_prefix_caching=False</code></b> (cold uncached prefill on every request, <code>0</code> HTTP errors, <code>0</code> token-ID mismatches across all 20 runs). See <a href="#app-d"><b>Appendix C</b></a> for full per-concurrency latency percentiles and hardware telemetry across all <code>enable_prefix_caching=False</code> experiments.</div>
+
+    <h3>2B.2&nbsp; Cross-Regime Summary: Section 2A (<code>enable_prefix_caching=True</code>) vs. Section 2B (<code>enable_prefix_caching=False</code>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Section 2A: <code>enable_prefix_caching=True</code><br>(Stock → Arm 4 QPS &amp; Speedup)</th>
+            <th>Section 2B: <code>enable_prefix_caching=False</code><br>(Stock → Arm 4 QPS &amp; Speedup)</th>
+            <th>Prefix-Cache Amplification<br>(Arm 4 <code>True</code> vs <code>False</code>)</th>
+            <th>Token-ID &amp; Score Parity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="up">
+            <td><b>1. Combined 2,048-Prompt Suite</b> (<code>input_combined_2k.jsonl</code>)</td>
+            <td><code>6.58</code> → <b>39.60 QPS</b> (<b><code>6.02×</code> / +501.8%</b>, p50 <code>−84.2%</code>)</td>
+            <td><code>4.07</code> → <b>4.73 QPS</b> (<b><code>1.16×</code> / +16.2%</b>, p50 <code>−20.1%</code>)</td>
+            <td><b>8.37×</b> higher QPS with prefix cache</td>
+            <td class="yes">2,048 / 2,048 Exact (0 diff)</td>
+          </tr>
+          <tr class="up">
+            <td><b>2. <code>20261023-v1 / input.performance.jsonl</code></b> (120 v2)</td>
+            <td><code>18.13</code> → <b>39.62 QPS</b> (<b><code>2.19×</code> / +118.5%</b>, p50 <code>−58.2%</code>)</td>
+            <td><code>2.87</code> → <b>3.60 QPS @c32 / 3.88 @c8</b> (<b><code>+25.4% / +37.6%</code></b>, p50 <code>−32.5%</code>)</td>
+            <td><b>11.01×</b> higher QPS with prefix cache</td>
+            <td class="yes">120 / 120 Exact (0 diff)</td>
+          </tr>
+          <tr class="up">
+            <td><b>3. <code>v1-epoch3-merged / input.performance.jsonl</code></b> (120 v1)</td>
+            <td><code>16.96</code> → <b>39.10 QPS</b> (<b><code>2.31×</code> / +130.5%</b>, p50 <code>−59.4%</code>)</td>
+            <td><code>3.42</code> → <b>5.34 QPS</b> (<b><code>1.56×</code> / +56.1%</b>, p50 <code>−39.7%</code>)</td>
+            <td><b>7.32×</b> higher QPS with prefix cache</td>
+            <td class="yes">120 / 120 Exact (0 diff)</td>
+          </tr>
+          <tr class="up">
+            <td><b>4. <code>20261023-v1 / input.json</code></b> (11 Multilingual)</td>
+            <td><code>13.80</code> → <b>36.65 QPS</b> (<b><code>2.66×</code> / +165.6%</b>, p50 <code>−60.9%</code>)</td>
+            <td><code>2.33</code> → <b>4.65 QPS (4.68 Arm 3)</b> (<b><code>2.01×</code> / +100.9%</b>, p50 <code>−50.9%</code>)</td>
+            <td><b>7.88×</b> higher QPS with prefix cache</td>
+            <td class="yes">11 / 11 Exact (0 diff)</td>
+          </tr>
+          <tr class="up">
+            <td><b>5. <code>v1-epoch3-merged / input.json</code></b> (5 English)</td>
+            <td><code>9.90</code> → <b>37.74 QPS</b> (<b><code>3.81×</code> / +281.2%</b>, p50 <code>−72.6%</code>)</td>
+            <td><code>2.45</code> → <b>4.35 QPS (4.36 Arm 2)</b> (<b><code>1.78×</code> / +78.0%</b>, p50 <code>−42.7%</code>)</td>
+            <td><b>8.68×</b> higher QPS with prefix cache</td>
+            <td class="yes">5 / 5 Exact (0 diff)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table 2B.2.</b> Cross-regime summary comparing Section 2A (<code>enable_prefix_caching=True</code>) and Section 2B (<code>enable_prefix_caching=False</code>) across all 5 datasets.</div>
 
     <!-- ===================================================================== -->
     <!-- SECTION 3: DIAGNOSIS AT A GLANCE                                      -->
@@ -618,21 +692,21 @@ python scripts/submit_falcon_serving.py --name comb2k-sweep-fast-nocache-epc0 \
             <td><span class="badge-pill b-tier1">Tier 1 · Env Only</span><br><span style="font-size:11px;color:var(--ok)">0 files changed</span></td>
             <td>Read by stock <code>http_server.py</code> &amp; <code>model.py:224–225</code></td>
             <td>Set <code>_Parallelism_=32</code> (stock <code>1</code>), <code>VLLM_MAX_NUM_SEQS=32</code> (stock <code>4</code>), and <code>VLLM_GPU_MEMORY_UTILIZATION=0.90</code> (stock <code>0.80</code>, adding +8.6 GiB KV+Mamba cache).</td>
-            <td class="up"><b>16.96 → 31.81 QPS (+88%)</b> on 120p<br><b>9.90 → 24.34 QPS (+146%)</b> on 5p</td>
+            <td class="up"><b><code>epc=True</code>:</b> 16.96→31.81 QPS (<b>+88%</b>) on 120p · 6.58→26.24 (<b>3.99×</b>) on 2,048p · 9.90→24.34 (<b>+146%</b>) on 5p<br><b><code>epc=False</code>:</b> 3.42→5.28 QPS (<b>+54%</b>) on 120p-v1 · 2.33→4.61 (<b>+98%</b>) on 11p · 2.45→4.36 (<b>+78%</b>) on 5p</td>
           </tr>
           <tr>
             <td><b>Change 2</b><br>Fast Single-Encode Binary Search</td>
             <td><span class="badge-pill b-tier2">Tier 2 · Code Patch</span><br><span style="font-size:11px;color:var(--ok)">No Docker rebuild</span></td>
             <td><code>freshness_prompt.py</code> (or <code>/Model/sitecustomize.py</code>)</td>
             <td>Keeps exact <code>kept_chars ∈ [0, len(content)]</code> (<code>75% head + 25% tail</code>) binary search, but caches constant 5-token assistant delta (<code>extra = 5</code>) once and runs <b>1</b> Jinja + <b>1</b> tokenizer pass per probe instead of <code>2 + 2</code>, reusing <code>best_pids</code> after loop (<b>37 → 19 passes</b>) + 512-entry <code>_REQ_CACHE</code>.</td>
-            <td class="up"><b>37.87 QPS (+123% vs stock, NO cache)</b><br><b>−36% p95 tail latency</b><br>100% identical token IDs</td>
+            <td class="up"><b><code>epc=True</code>:</b> <b>37.87 QPS (+123%, NO cache)</b> on 120p-v1 · <b>33.11 QPS (5.03×)</b> on 2,048p · <b>33.59 QPS (2.43×)</b> on 11p<br><b><code>epc=False</code>:</b> <b>4.68 QPS (2.01×, −51% p50)</b> on 11p · <b>3.88 QPS (+38% @c=8)</b> on 120p-v2 · 100% identical token IDs</td>
           </tr>
           <tr>
             <td><b>Change 3</b><br>Prefill Token Budget</td>
             <td><span class="badge-pill b-tier2">Tier 2 · 1-Line Patch</span><br><span style="font-size:11px;color:var(--ok)">No Docker rebuild</span></td>
             <td><code>model.py:234</code> (or <code>/Model/sitecustomize.py</code>)</td>
             <td>Replaces hardcoded <code>max_num_batched_tokens=8320</code> with <code>int(os.environ.get("VLLM_MAX_NUM_BATCHED_TOKENS", "32768"))</code> so vLLM batches 4–8 prefills + decodes per step.</td>
-            <td class="up"><b>39.18 QPS (+131% Full Stack)</b> on 120p<br><b>37.74 QPS (3.81×)</b> on 5p</td>
+            <td class="up"><b><code>epc=True</code>:</b> <b>39.60 QPS (6.02×)</b> on 2,048p · <b>39.62 QPS (2.19×)</b> on 120p-v2 · <b>39.18 QPS (2.31×)</b> on 120p-v1 · <b>37.74 QPS (3.81×)</b> on 5p<br><b><code>epc=False</code>:</b> <b>4.73 QPS (+16.2%)</b> on 2,048p · <b>5.34 QPS (+56.1%)</b> on 120p-v1 · <b>98.8–100% SM saturation</b></td>
           </tr>
         </tbody>
       </table>
@@ -824,11 +898,19 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
     </div>
 
     <div class="note-ok">
-      <b>Summary of Expected Benchmark Results on 1× NVIDIA A100-SXM4-80GB (<code>c = 32</code>, 0 Errors Across All Runs):</b><br>
-      • <b>Arm 0 (Stock Prod Baseline):</b> <code>16.96 QPS</code> (<code>p50 = 1,889.7 ms</code>, <code>p95 = 2,092.0 ms</code>, <code>78.0% mean SM</code>) on 120 prompts · <code>9.90 QPS</code> on 5 prompts.<br>
-      • <b>Arm 1 (Path A — Env-Vars Only):</b> <code>31.81 QPS (+88%)</code> (<code>p50 = 742.9 ms</code>, <b>2.54× faster median latency</b>) on 120 prompts · <code>24.34 QPS (+146%)</code> on 5 prompts.<br>
-      • <b>Arm 2 (Fast BSearch, No Cache):</b> <code>37.87 QPS (+123%)</code> (<code>p50 = 740.9 ms</code>, <code>p95 = 1,490.8 ms</code>, <b>−36% p95 at c=16</b>, <code>100% median SM</code>) on 120 prompts.<br>
-      • <b>Arm 3 (Path B/C — Full Stack):</b> <code>39.10 QPS @ c=32 / 39.18 QPS @ c=64 (+131%)</code> on 120 prompts · <code>37.74 QPS (3.81×)</code> on 5 prompts.
+      <b>Summary of Expected Benchmark Results on 1× NVIDIA A100-SXM4-80GB (<code>c = 32</code>, Both <code>enable_prefix_caching=True</code> &amp; <code>enable_prefix_caching=False</code>, 0 Errors Across All Runs):</b><br>
+      • <b>Arm 1 (Stock Prod Baseline):</b><br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=True</code>: <b><code>6.58 QPS</code></b> (2,048p) · <b><code>18.13 QPS</code></b> (120p-v2) · <b><code>16.96 QPS</code></b> (120p-v1, <code>78.0% SM</code>) · <b><code>13.80 QPS</code></b> (11p-ML) · <b><code>9.90 QPS</code></b> (5p-EN).<br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=False</code>: <b><code>4.07 QPS</code></b> (2,048p) · <b><code>2.87 QPS</code></b> (120p-v2) · <b><code>3.42 QPS</code></b> (120p-v1) · <b><code>2.33 QPS</code></b> (11p-ML) · <b><code>2.45 QPS</code></b> (5p-EN).<br>
+      • <b>Arm 2 (Path A — Env-Vars Only, 0 Code Change):</b><br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=True</code>: <b><code>26.24 QPS (3.99×)</code></b> (2,048p) · <b><code>27.26 QPS (+50%)</code></b> (120p-v2) · <b><code>31.81 QPS (+88%)</code></b> (120p-v1) · <b><code>18.00 QPS (+30%)</code></b> (11p-ML) · <b><code>24.34 QPS (+146%)</code></b> (5p-EN).<br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=False</code>: <b><code>4.69 QPS (+15.2%)</code></b> (2,048p) · <b><code>3.67 QPS (+27.9% / 3.87@c8 +37.2%)</code></b> (120p-v2) · <b><code>5.28 QPS (+54.4%)</code></b> (120p-v1) · <b><code>4.61 QPS (+97.9%)</code></b> (11p-ML) · <b><code>4.36 QPS (+78.0%)</code></b> (5p-EN).<br>
+      • <b>Arm 3 (Fast BSearch, No Cache — 100% Live Tokenization):</b><br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=True</code>: <b><code>33.11 QPS (5.03×)</code></b> (2,048p) · <b><code>33.64 QPS (+86%)</code></b> (120p-v2) · <b><code>37.87 QPS (+123%)</code></b> (120p-v1) · <b><code>33.59 QPS (2.43×)</code></b> (11p-ML) · <b><code>18.60 QPS</code></b> (5p-EN).<br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=False</code>: <b><code>4.69 QPS (+15.2%)</code></b> (2,048p) · <b><code>3.60 QPS (+25.4% / 3.88@c8 +37.6%)</code></b> (120p-v2) · <b><code>5.28 QPS (+54.4%)</code></b> (120p-v1) · <b><code>4.68 QPS (2.01× / +100.9%)</code></b> (11p-ML) · <b><code>4.35 QPS (+77.6%)</code></b> (5p-EN).<br>
+      • <b>Arm 4 (Path B/C — Full Stack: Fast BSearch + Cache + <code>bt=32768</code>):</b><br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=True</code>: <b><code>39.60 QPS (6.02×)</code></b> (2,048p) · <b><code>39.62 QPS (2.19×)</code></b> (120p-v2) · <b><code>39.10 QPS @c=32 / 39.18 @c=64 (2.31×)</code></b> (120p-v1) · <b><code>36.65 QPS (2.66×)</code></b> (11p-ML) · <b><code>37.74 QPS (3.81×)</code></b> (5p-EN).<br>
+      &nbsp;&nbsp;– <code>enable_prefix_caching=False</code>: <b><code>4.73 QPS (+16.2%, p50 −20.1%)</code></b> (2,048p) · <b><code>3.60 QPS (+25.4%, p50 −32.5%)</code></b> (120p-v2) · <b><code>5.34 QPS (+56.1%, p50 −39.7%)</code></b> (120p-v1) · <b><code>4.65 QPS (+99.6%, p50 −50.6%)</code></b> (11p-ML) · <b><code>4.35 QPS (+77.6%, p50 −42.7%)</code></b> (5p-EN) — <b>98.8%–100.0% A100 SM saturation</b>.
     </div>
 
     <!-- ===================================================================== -->
@@ -837,7 +919,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
     <div class="appendix-banner">
       <div class="ab-kicker">Part II · Technical Report Appendices (A–E)</div>
       <h2>Detailed Experimental Results, Latency Distributions, Kernel Ablations &amp; Hardware Telemetry</h2>
-      <p>Complete empirical tables across all 18 AML A100 jobs supporting the Developer Handbook above.</p>
+      <p>Complete empirical tables across all 53 AML A100 jobs (40 matrix cells + kernel ablations) supporting the Developer Handbook above.</p>
     </div>
 
     <!-- APPENDIX A -->
@@ -889,17 +971,78 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
     <div class="cap"><b>Table A.1.</b> 1:1 parity between online DLIS Falcon production pods and the AML benchmark harness on <code>Singularity.ND12am_A100_v4</code>.</div>
 
     <!-- APPENDIX B -->
-    <h2 id="app-b"><span class="sec-num app">Appendix B</span> Primary Benchmarks: Official 120-Prompt Suites (<code>20261023-v1</code> &amp; <code>v1-epoch3-merged</code>)</h2>
+    <h2 id="app-b"><span class="sec-num app">Appendix B</span> Detailed Benchmarks — Part I: All <code>enable_prefix_caching=True</code> Experiments (5 Datasets × 4 Arms)</h2>
     <p>
-      Both ADLS folders ship an identical 120-article <code>input.performance.jsonl</code> payload (<b>120 unique real-world articles, 0 duplicates</b>, 287 to 32,378 chars, 3 articles &gt;8,192 tokens), paired with either the 8,495-byte multilingual <code>compact-v2</code> system prompt (<code>20261023-v1</code>, avg <code>3,736.8</code> tokens) or the 4,405-byte <code>compact-v1</code> container prompt (<code>v1-epoch3-merged</code>, avg <code>2,906.0</code> tokens).
+      Below are the complete per-concurrency breakdowns (<code>c = 1 / 4 / 8 / 16 / 32 / 64</code>), latency percentiles (<code>mean / p50 / p95 / p99</code>), attention-kernel ablations, and 1 Hz <code>nvidia-smi</code> hardware telemetry for <b><code>enable_prefix_caching=True</code></b> across all 5 evaluation datasets (Combined 2,048p, <code>20261023-v1</code> 120p, <code>v1-epoch3-merged</code> 120p, <code>20261023-v1</code> 11p Multilingual, and <code>v1-epoch3-merged</code> 5p English).
     </p>
 
-    <h3>B.0&nbsp; 4-Arm Progression on <code>20261023-v1/input.performance.jsonl</code> (120 Unique Prompts + Multilingual v2 Rubric)</h3>
+    <h3>B.1&nbsp; Combined 2,048-Prompt Suite (<code>input_combined_2k.jsonl</code> — <code>enable_prefix_caching=True</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Evaluation Arm (<code>20261023-v1/input.performance.jsonl</code>, 120 Rows, v2 Rubric)</th>
+            <th>Evaluation Arm (<code>input_combined_2k.jsonl</code>, 2,048 Rows, <code>epc=True</code>)</th>
+            <th>AML Job ID</th>
+            <th><code>c = 4</code> QPS (p50)</th>
+            <th><code>c = 8</code> QPS (p50 / p95)</th>
+            <th><code>c = 16</code> QPS (p50 / p95)</th>
+            <th><code>c = 32</code> QPS (mean / p50 / p95 / p99)</th>
+            <th>1 Hz SM% (Mean / @100%) · HBM% · VRAM · Power</th>
+            <th>Speedup vs Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Arm 1: Stock Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, MAX_SEQS=4, MEM=0.80, bt=8320</code>, stock code</span></td>
+            <td><code>sleepy_cherry_mkp7qd81sq</code></td>
+            <td>6.18 (641ms)</td>
+            <td>6.34 (1256 / 1995ms)</td>
+            <td>6.45 (2476 / 3826ms)</td>
+            <td><b>6.58</b> (4842 / 4551 / 6888 / 8149ms)</td>
+            <td>79.6% (18.4% @100%) · 44.2% HBM · 65,120 MiB · 338.5 W</td>
+            <td><code>1.00×</code> (baseline)</td>
+          </tr>
+          <tr>
+            <td><b>Arm 2: Path A / Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, MAX_SEQS=32, MEM=0.90, bt=8320</code>, stock code</span></td>
+            <td><code>zen_turnip_2kfmx57dyg</code></td>
+            <td>11.98 (312ms)</td>
+            <td>19.15 (310 / 1214ms)</td>
+            <td>23.18 (462 / 1950ms)</td>
+            <td><b>26.24 (+298.8%)</b> (1216 / 800 / 3507 / 4120ms)</td>
+            <td>85.5% (48.2% @100%) · 39.1% HBM · 74,112 MiB · 358.2 W</td>
+            <td><b><code>3.99×</code> (0 code change)</b></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch + <code>bt=32768</code>, cache disabled</span></td>
+            <td><code>serene_napa_9jmlpk3nmy</code></td>
+            <td>12.70 (305ms)</td>
+            <td>21.95 (308 / 650ms)</td>
+            <td>28.64 (454 / 1012ms)</td>
+            <td><b>33.11 (+403.2%)</b> (964 / 790 / <b>2052</b> / 2610ms)</td>
+            <td><b>93.3% (58.0% @100%)</b> · 40.5% HBM · 74,450 MiB · 376.4 W</td>
+            <td><b><code>5.03×</code> (100% live tok)</b></td>
+          </tr>
+          <tr class="up">
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
+            <td><code>lucid_yuca_kg6mpnxv2q</code></td>
+            <td><b>13.66</b> (291ms)</td>
+            <td><b>24.66</b> (298 / 580ms)</td>
+            <td><b>32.52</b> (448 / 895ms)</td>
+            <td><b>39.60 (+501.8%)</b> (806 / <b>718 [−84.2%] / 1526</b> / 1940ms)</td>
+            <td><b>93.1% (61.5% @100%)</b> · 38.4% HBM · 74,450 MiB · <b>382.1 W</b></td>
+            <td><b><code>6.02×</code> (Full Stack)</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table B.1.</b> 4-arm throughput and latency progression on the 2,048-prompt combined benchmark (<code>input_combined_2k.jsonl</code>, 252 unique prompts across all 4 ADLS suites, avg <code>3,262.3</code> tokens, 0 errors, <code>mismatches=0</code>) under <b><code>enable_prefix_caching=True</code></b>.</div>
+
+    <h3>B.2&nbsp; <code>20261023-v1/input.performance.jsonl</code> (120 Unique Prompts + Multilingual v2 Rubric — <code>enable_prefix_caching=True</code>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Evaluation Arm (<code>20261023-v1/input.performance.jsonl</code>, 120 Rows, <code>epc=True</code>)</th>
             <th>AML Job ID</th>
             <th><code>c = 1</code> QPS (p50)</th>
             <th><code>c = 8</code> QPS (p50 / p95)</th>
@@ -910,7 +1053,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </thead>
         <tbody>
           <tr>
-            <td><b>Arm 1: Stock Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, MAX_SEQS=4, MEM=0.80, bt=8320</code>, stock code</span></td>
+            <td><b>Arm 1: Stock Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1, MAX_SEQS=4, MEM=0.80, bt=8320</code>, stock code (85.4% SM)</span></td>
             <td><code>hungry_grass_dnnph6z11x</code></td>
             <td>3.87 (220.4ms)</td>
             <td>15.60 (425.4 / 976.3ms)</td>
@@ -919,7 +1062,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><code>1.00×</code> (baseline)</td>
           </tr>
           <tr>
-            <td><b>Arm 2: Path A / Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, MAX_SEQS=32, MEM=0.90, bt=8320</code>, stock code</span></td>
+            <td><b>Arm 2: Path A / Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32, MAX_SEQS=32, MEM=0.90, bt=8320</code>, stock code (86.7% SM)</span></td>
             <td><code>purple_chicken_2sbs8p2cr1</code></td>
             <td>3.91 (225.9ms)</td>
             <td>18.90 (309.5 / 1207.8ms)</td>
@@ -928,7 +1071,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><b><code>1.50×</code> (0 code change)</b></td>
           </tr>
           <tr class="up">
-            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch + <code>bt=32768</code>, cache disabled</span></td>
+            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode BSearch + <code>bt=32768</code>, cache disabled (89.3% SM)</span></td>
             <td><code>witty_yak_gs0j9777l6</code></td>
             <td>3.91 (222.7ms)</td>
             <td>21.96 (308.0 / 618.2ms)</td>
@@ -937,7 +1080,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><b><code>1.86×</code> (100% live tok)</b></td>
           </tr>
           <tr class="up">
-            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code> (93.2% SM)</span></td>
             <td><code>strong_clock_0k341tgq4t</code></td>
             <td>3.90 (222.7ms)</td>
             <td><b>24.17</b> (300.0 / 596.3ms)</td>
@@ -948,74 +1091,74 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table B.0.</b> 4-arm throughput and latency progression on <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.performance.jsonl</code> (120 unique rows with 8,495 B multilingual v2 prompt, <code>mismatches=0</code>).</div>
+    <div class="cap"><b>Table B.2.</b> 4-arm throughput and latency progression on <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.performance.jsonl</code> (120 unique rows with 8,495 B multilingual v2 prompt, <code>mismatches=0</code>) under <b><code>enable_prefix_caching=True</code></b>.</div>
 
-    <h3>B.1&nbsp; 4-Arm End-to-End QPS Progression on <code>v1-epoch3-merged/input.performance.jsonl</code> (120 Unique Prompts)</h3>
+    <h3>B.3&nbsp; <code>v1-epoch3-merged/input.performance.jsonl</code> (120 Unique Prompts + v1 Rubric — <code>enable_prefix_caching=True</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Evaluation Arm (120-Prompt <code>input.performance.jsonl</code>)</th>
+            <th>Evaluation Arm (120-Prompt <code>v1-epoch3-merged/input.performance.jsonl</code>, <code>epc=True</code>)</th>
             <th>AML Job ID</th>
             <th><code>c = 8</code> QPS</th>
             <th><code>c = 16</code> QPS</th>
-            <th><code>c = 32</code> QPS</th>
+            <th><code>c = 32</code> QPS (p50)</th>
             <th><code>c = 64</code> QPS</th>
             <th>Peak Speedup vs Prod</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><b>Arm 0: Unmodified Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1</code>, <code>MAX_SEQS=4</code>, <code>MEM=0.80</code>, <code>bt=8320</code>, stock code</span></td>
+            <td><b>Arm 1: Unmodified Prod Baseline</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=1</code>, <code>MAX_SEQS=4</code>, <code>MEM=0.80</code>, <code>bt=8320</code>, stock code</span></td>
             <td><code>sleepy_kiwi_dffrbmqlkx</code></td>
             <td>12.81</td>
             <td>16.43</td>
-            <td>16.96</td>
+            <td><b>16.96</b> (1889.7ms)</td>
             <td>17.22</td>
             <td><code>1.00×</code> (baseline)</td>
           </tr>
           <tr>
-            <td><b>Arm 1: Path A / Tier-1 Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32</code>, <code>MAX_SEQS=32</code>, <code>MEM=0.90</code>, stock code</span></td>
+            <td><b>Arm 2: Path A / Tier-1 Env-Vars Only (Zero Code Change)</b><br><span style="font-size:11.2px;color:var(--mut)"><code>_Parallelism_=32</code>, <code>MAX_SEQS=32</code>, <code>MEM=0.90</code>, stock code</span></td>
             <td><code>bubbly_book_t23vn00r66</code></td>
             <td>16.40 (<b>+28%</b>)</td>
             <td>25.81 (<b>+57%</b>)</td>
-            <td>31.81 (<b>+88%</b>)</td>
+            <td><b>31.81 (+88%)</b> (742.9ms)</td>
             <td>32.35 (<b>+88%</b>)</td>
             <td><b><code>1.88×</code> (0 code change)</b></td>
           </tr>
           <tr class="up">
-            <td><b>Arm 2: Tier-1 + Fast Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 1 + single-encode binary search in <code>freshness_prompt.py</code>, zero cache</span></td>
+            <td><b>Arm 3: Tier-1 + Fast Binary Search (<code>NO _req_cache</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + single-encode binary search in <code>freshness_prompt.py</code>, zero cache</span></td>
             <td><code>cool_train_zr8z67frxv</code></td>
             <td>18.10 (<b>+41%</b>)</td>
             <td>29.92 (<b>+82%</b>)</td>
-            <td><b>37.87 (+123%)</b></td>
+            <td><b>37.87 (+123%)</b> (740.9ms)</td>
             <td>37.61 (<b>+118%</b>)</td>
             <td><b><code>2.23×</code> (100% live tok)</b></td>
           </tr>
           <tr class="up">
-            <td><b>Arm 3: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 2 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b><br><span style="font-size:11.2px;color:var(--mut)">Arm 3 + <code>_req_cache(512)</code> + <code>max_num_batched_tokens=32768</code></span></td>
             <td><code>sad_sock_p7j2s5h1r0</code></td>
             <td><b>19.48 (+52%)</b></td>
             <td><b>32.11 (+95%)</b></td>
-            <td><b>39.10 (+131%)</b></td>
+            <td><b>39.10 (+131%)</b> (767.6ms)</td>
             <td><b>39.18 (+128%)</b></td>
             <td><b><code>2.31×</code> (Full Stack)</b></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table B.1.</b> 4-arm throughput progression on the official 120-prompt <code>input.performance.jsonl</code> benchmark (60s per window, 0 failed requests).</div>
+    <div class="cap"><b>Table B.3.</b> 4-arm throughput progression on the official 120-prompt <code>v1-epoch3-merged/input.performance.jsonl</code> benchmark under <b><code>enable_prefix_caching=True</code></b> (0 failed requests).</div>
 
-    <h3>B.2&nbsp; 16-Window Latency Distribution (Mean / p50 / p95 / p99 on 120 Prompts)</h3>
+    <h3>B.4&nbsp; 16-Window Latency Distribution on 120 Prompts (<code>enable_prefix_caching=True</code>)</h3>
     <details class="fold" open>
-      <summary>Table B.2 — Full 16-Window Latency Breakdown Across Concurrency c = 8, 16, 32, 64</summary>
+      <summary>Table B.4 — Full 16-Window Latency Breakdown Across Concurrency c = 8, 16, 32, 64 (epc=True)</summary>
       <div class="fold-body">
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Concurrency</th>
-                <th>Arm</th>
+                <th>Arm (<code>epc=True</code>)</th>
                 <th>QPS</th>
                 <th>Completed (ok / err)</th>
                 <th>Mean (ms)</th>
@@ -1027,7 +1170,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <tbody>
               <tr>
                 <td rowspan="4"><b><code>c = 8</code></b></td>
-                <td>Arm 0: Prod Baseline</td>
+                <td>Arm 1: Prod Baseline</td>
                 <td>12.81</td>
                 <td>774 / 0</td>
                 <td>622.5</td>
@@ -1036,7 +1179,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>2421.6</td>
               </tr>
               <tr>
-                <td>Arm 1: Tier-1 Env Only</td>
+                <td>Arm 2: Tier-1 Env Only</td>
                 <td>16.40</td>
                 <td>988 / 0</td>
                 <td>487.0</td>
@@ -1045,7 +1188,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>2255.4</td>
               </tr>
               <tr class="up">
-                <td>Arm 2: Fast BSearch (No Cache)</td>
+                <td>Arm 3: Fast BSearch (No Cache)</td>
                 <td>18.10</td>
                 <td>1087 / 0</td>
                 <td>441.9</td>
@@ -1054,7 +1197,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>2200.2</td>
               </tr>
               <tr class="up">
-                <td>Arm 3: Full Stack</td>
+                <td>Arm 4: Full Stack</td>
                 <td><b>19.48</b></td>
                 <td>1172 / 0</td>
                 <td><b>410.4</b></td>
@@ -1064,7 +1207,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
               </tr>
               <tr>
                 <td rowspan="4"><b><code>c = 16</code></b></td>
-                <td>Arm 0: Prod Baseline</td>
+                <td>Arm 1: Prod Baseline</td>
                 <td>16.43</td>
                 <td>999 / 0</td>
                 <td>968.2</td>
@@ -1073,7 +1216,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>1358.0</td>
               </tr>
               <tr>
-                <td>Arm 1: Tier-1 Env Only</td>
+                <td>Arm 2: Tier-1 Env Only</td>
                 <td>25.81</td>
                 <td>1561 / 0</td>
                 <td>618.6</td>
@@ -1082,7 +1225,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>1588.4</td>
               </tr>
               <tr class="up">
-                <td>Arm 2: Fast BSearch (No Cache)</td>
+                <td>Arm 3: Fast BSearch (No Cache)</td>
                 <td>29.92</td>
                 <td>1808 / 0</td>
                 <td>533.8</td>
@@ -1091,7 +1234,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td><b>1263.9 (−20%)</b></td>
               </tr>
               <tr class="up">
-                <td>Arm 3: Full Stack</td>
+                <td>Arm 4: Full Stack</td>
                 <td><b>32.11</b></td>
                 <td>1933 / 0</td>
                 <td><b>497.4</b></td>
@@ -1101,7 +1244,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
               </tr>
               <tr>
                 <td rowspan="4"><b><code>c = 32</code></b></td>
-                <td>Arm 0: Prod Baseline</td>
+                <td>Arm 1: Prod Baseline</td>
                 <td>16.96</td>
                 <td>1046 / 0</td>
                 <td>1862.7</td>
@@ -1110,7 +1253,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>2254.6</td>
               </tr>
               <tr>
-                <td>Arm 1: Tier-1 Env Only</td>
+                <td>Arm 2: Tier-1 Env Only</td>
                 <td>31.81</td>
                 <td>1922 / 0</td>
                 <td>1003.7</td>
@@ -1119,7 +1262,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>2369.3</td>
               </tr>
               <tr class="up">
-                <td>Arm 2: Fast BSearch (No Cache)</td>
+                <td>Arm 3: Fast BSearch (No Cache)</td>
                 <td>37.87</td>
                 <td>2296 / 0</td>
                 <td>843.1</td>
@@ -1128,7 +1271,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td><b>1823.1 (−23%)</b></td>
               </tr>
               <tr class="up">
-                <td>Arm 3: Full Stack</td>
+                <td>Arm 4: Full Stack</td>
                 <td><b>39.10</b></td>
                 <td>2358 / 0</td>
                 <td><b>816.2</b></td>
@@ -1138,7 +1281,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
               </tr>
               <tr>
                 <td rowspan="4"><b><code>c = 64</code></b></td>
-                <td>Arm 0: Prod Baseline</td>
+                <td>Arm 1: Prod Baseline</td>
                 <td>17.22</td>
                 <td>1097 / 0</td>
                 <td>3606.0</td>
@@ -1147,7 +1290,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>4053.5</td>
               </tr>
               <tr>
-                <td>Arm 1: Tier-1 Env Only</td>
+                <td>Arm 2: Tier-1 Env Only</td>
                 <td>32.35</td>
                 <td>1978 / 0</td>
                 <td>1960.5</td>
@@ -1156,7 +1299,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td>3155.2</td>
               </tr>
               <tr class="up">
-                <td>Arm 2: Fast BSearch (No Cache)</td>
+                <td>Arm 3: Fast BSearch (No Cache)</td>
                 <td>37.61</td>
                 <td>2312 / 0</td>
                 <td>1688.5</td>
@@ -1165,7 +1308,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
                 <td><b>2696.9 (−15%)</b></td>
               </tr>
               <tr class="up">
-                <td>Arm 3: Full Stack</td>
+                <td>Arm 4: Full Stack</td>
                 <td><b>39.18</b></td>
                 <td>2398 / 0</td>
                 <td><b>1620.8</b></td>
@@ -1176,20 +1319,20 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             </tbody>
           </table>
         </div>
-        <div class="cap"><b>Table B.2.</b> Complete latency distribution across <code>c = 8, 16, 32, 64</code> on <code>input.performance.jsonl</code>.</div>
+        <div class="cap"><b>Table B.4.</b> Complete latency distribution across <code>c = 8, 16, 32, 64</code> on <code>v1-epoch3-merged/input.performance.jsonl</code> under <code>enable_prefix_caching=True</code>.</div>
       </div>
     </details>
 
-    <h3>B.3&nbsp; 1 Hz A100-SXM4-80GB Hardware Saturation Telemetry (120-Prompt Benchmark)</h3>
+    <h3>B.5&nbsp; 1 Hz A100-SXM4-80GB Hardware Saturation Telemetry (120-Prompt Benchmark — <code>enable_prefix_caching=True</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Hardware Telemetry Metric (1 Hz <code>nvidia-smi</code>)</th>
-            <th>Arm 0: Prod Baseline</th>
-            <th>Arm 1: Tier-1 Env Only</th>
-            <th>Arm 2: Fast BSearch (No Cache)</th>
-            <th>Arm 3: Full Stack</th>
+            <th>Hardware Telemetry Metric (1 Hz <code>nvidia-smi</code>, <code>epc=True</code>)</th>
+            <th>Arm 1: Prod Baseline</th>
+            <th>Arm 2: Tier-1 Env Only</th>
+            <th>Arm 3: Fast BSearch (No Cache)</th>
+            <th>Arm 4: Full Stack</th>
           </tr>
         </thead>
         <tbody>
@@ -1231,20 +1374,14 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table B.3.</b> 1 Hz A100-SXM4-80GB hardware telemetry across the 4-arm 120-prompt evaluation.</div>
+    <div class="cap"><b>Table B.5.</b> 1 Hz A100-SXM4-80GB hardware telemetry across the 4-arm 120-prompt evaluation under <b><code>enable_prefix_caching=True</code></b>.</div>
 
-    <!-- APPENDIX C -->
-    <h2 id="app-c"><span class="sec-num app">Appendix C</span> 11-Prompt Multilingual Suite (<code>20261023-v1/input.json</code>) &amp; 5-Prompt Heavy-Truncation Suite (<code>v1/input.json</code>)</h2>
-    <p>
-      <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.json</code> contains <b>11 rows total</b>: the 5 English rows from <code>v1-epoch3-merged/input.json</code> plus <b>6 non-English multilingual rows (French, German, Spanish, Hindi, Japanese, Arabic)</b> (avg <code>3,656.8</code> tokens, max <code>8,189</code> tokens, 1 overlong row &gt;8,192 tokens [9.1%], <code>mismatches=0</code> across all 11 rows).
-    </p>
-
-    <h3>C.1&nbsp; 4-Arm Progression on All 11 Multilingual Prompts (<code>20261023-v1/input.json</code>)</h3>
+    <h3>B.6&nbsp; 11-Prompt Multilingual Suite (<code>20261023-v1/input.json</code> — <code>enable_prefix_caching=True</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Evaluation Arm (All 11 Multilingual Rows in <code>20261023-v1/input.json</code>)</th>
+            <th>Evaluation Arm (All 11 Multilingual Rows in <code>20261023-v1/input.json</code>, <code>epc=True</code>)</th>
             <th>AML Job ID</th>
             <th><code>c = 1</code> QPS (p50)</th>
             <th><code>c = 8</code> QPS (p50 / p95)</th>
@@ -1255,7 +1392,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </thead>
         <tbody>
           <tr>
-            <td><b>Arm 1: Stock Prod Baseline</b> (<code>_Parallelism_=1, seqs=4, mem=0.80, bt=8320</code>)</td>
+            <td><b>Arm 1: Stock Prod Baseline</b> (<code>_Parallelism_=1, seqs=4, mem=0.80, bt=8320</code>, 61.1% SM)</td>
             <td><code>mango_town_vg7zl821yd</code></td>
             <td>3.82 (213.0ms)</td>
             <td>12.76 (638.5 / 806.4ms)</td>
@@ -1264,7 +1401,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><code>1.00×</code> (baseline)</td>
           </tr>
           <tr>
-            <td><b>Arm 2: Path A / Env-Vars Only</b> (<code>_Parallelism_=32, seqs=32, mem=0.90</code>, stock code)</td>
+            <td><b>Arm 2: Path A / Env-Vars Only</b> (<code>_Parallelism_=32, seqs=32, mem=0.90</code>, stock code, 73.5% SM)</td>
             <td><code>happy_ghost_dplzs53b0t</code></td>
             <td>3.79 (216.2ms)</td>
             <td>11.37 (767.9 / 1180.7ms)</td>
@@ -1273,7 +1410,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><code>1.30×</code> (locked on CPU tok)</td>
           </tr>
           <tr class="up">
-            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b> (<code>bt=32768</code>)</td>
+            <td><b>Arm 3: + Fast Single-Encode Binary Search (<code>NO _req_cache</code>)</b> (<code>bt=32768</code>, 91.5% SM)</td>
             <td><code>tough_yam_vq9z70h8n3</code></td>
             <td>4.18 (215.8ms)</td>
             <td>15.93 (508.5 / 862.5ms)</td>
@@ -1282,7 +1419,7 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
             <td><b><code>2.43×</code> (100% live tok)</b></td>
           </tr>
           <tr class="up">
-            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b></td>
+            <td><b>Arm 4: Path B/C Full Stack (Fast BSearch + <code>_req_cache</code> + <code>bt=32768</code>)</b> (92.8% SM)</td>
             <td><code>hungry_carrot_l00gp98hrr</code></td>
             <td><b>4.61</b> (214.0ms)</td>
             <td><b>19.37</b> (361.5 / 728.6ms)</td>
@@ -1293,14 +1430,14 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table C.1.</b> 4-arm evaluation on all 11 multilingual rows of <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.json</code> (5 EN + 6 FR/DE/ES/HI/JA/AR rows, 0 errors, <code>mismatches=0</code>).</div>
+    <div class="cap"><b>Table B.6.</b> 4-arm evaluation on all 11 multilingual rows of <code>CLIFF/qwen35-9b-freshness-multilingual-polaris-20261023-v1/input.json</code> (5 EN + 6 FR/DE/ES/HI/JA/AR rows, 0 errors, <code>mismatches=0</code>) under <b><code>enable_prefix_caching=True</code></b>.</div>
 
-    <h3>C.2&nbsp; 7-Arm Factorial &amp; Attention Kernel Ablation on 5-Prompt Heavy-Truncation Suite (<code>v1-epoch3-merged/input.json</code>)</h3>
+    <h3>B.7&nbsp; Factorial &amp; Attention Kernel Ablation on 5-Prompt Heavy-Truncation Suite (<code>v1-epoch3-merged/input.json</code> — <code>enable_prefix_caching=True</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>5-Prompt Stress-Test Arm (<code>input.json</code>, 20% Overlong Truncation)</th>
+            <th>5-Prompt Stress-Test Arm (<code>input.json</code>, 20% Overlong Truncation, <code>epc=True</code>)</th>
             <th>Job ID</th>
             <th><code>c = 8</code> QPS (p50 / p99)</th>
             <th><code>c = 16</code> QPS (p50 / p99)</th>
@@ -1376,10 +1513,257 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table C.1.</b> 7-arm factorial ablation on the 5-prompt heavy-truncation suite (<code>input.json</code>, where 1 in 5 prompts exceeds 8,192 tokens).</div>
+    <div class="cap"><b>Table B.7.</b> Complete factorial and attention-kernel ablation on the 5-prompt heavy-truncation suite (<code>v1-epoch3-merged/input.json</code>, where 1 in 5 prompts exceeds 8,192 tokens) under <b><code>enable_prefix_caching=True</code></b>.</div>
 
-    <!-- APPENDIX D -->
-    <h2 id="app-d"><span class="sec-num app">Appendix D</span> Workload Physics: Prefix-Cached vs. 100% Uncached Prefill Ceiling</h2>
+    <!-- APPENDIX C -->
+    <h2 id="app-d"><span class="sec-num app">Appendix C</span> Detailed Benchmarks — Part II: All <code>enable_prefix_caching=False</code> Experiments (5 Datasets × 4 Arms)</h2>
+    <p>
+      Below is the complete per-concurrency breakdown (<code>c = 4 / 8 / 16 / 32</code>), latency percentiles (<code>mean / p50 / p95 / p99</code>), and 1 Hz <code>nvidia-smi</code> hardware telemetry across all 20 <b><code>enable_prefix_caching=False</code></b> jobs (5 datasets × 4 arms), plus the 4-kernel attention ablation on 100% uncached prefill:
+    </p>
+
+    <h3>C.1&nbsp; Full 20-Run Uncached Prefill Matrix (<code>enable_prefix_caching=False</code> Across All 5 Datasets × 4 Arms)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Dataset (<code>epc=False</code>)</th>
+            <th>Arm</th>
+            <th>AML Job ID</th>
+            <th><code>c = 8</code> QPS (p50 / p95)</th>
+            <th><code>c = 16</code> QPS (p50 / p95)</th>
+            <th><code>c = 32</code> QPS (mean / p50 / p95 / p99)</th>
+            <th>1 Hz SM% (Mean / @100%) · HBM% · VRAM · Power</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="4"><b>1. Combined 2,048p</b><br><span style="font-size:11px;color:var(--mut)"><code>input_combined_2k.jsonl</code><br>avg 3,262.3 tok<br>(c=4: 3.74 / 3.85 / 3.91 / 3.87)</span></td>
+            <td>Arm 1: Stock (P=1, seqs=4)</td>
+            <td><code>hungry_ticket_rztdm6tyqy</code></td>
+            <td>3.92 (1813 / 3655ms)</td>
+            <td>3.99 (3646 / 6397ms)</td>
+            <td><b>4.07</b> (7650 / 7516 / 12519 / 14686ms)</td>
+            <td>99.3% (88.2% @100%) · 46.5% HBM · 66,579 MiB · 396.1 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 2: Env Only (P=32, seqs=64)</td>
+            <td><code>mango_glass_1dh5s8yhx5</code></td>
+            <td>4.30 (1691 / 3209ms)</td>
+            <td>4.49 (3275 / 6099ms)</td>
+            <td><b>4.69 (+15.2%)</b> (6675 / 6064 / 11536 / 13864ms)</td>
+            <td><b>100.0% (99.6% @100%)</b> · 30.8% HBM · 76,553 MiB · 398.1 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 3: + Fast BSearch (No Cache)</td>
+            <td><code>blue_parrot_31v3ppc74g</code></td>
+            <td>4.29 (1707 / 3233ms)</td>
+            <td>4.58 (3174 / 5870ms)</td>
+            <td><b>4.69 (+15.2%)</b> (6674 / 6073 / 11297 / 13441ms)</td>
+            <td><b>100.0% (99.6% @100%)</b> · 30.8% HBM · 76,553 MiB · 397.9 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 4: Full Stack (+ Cache)</td>
+            <td><code>olden_leather_r0sd2p4jnp</code></td>
+            <td><b>4.34</b> (1668 / 3201ms)</td>
+            <td><b>4.62</b> (3173 / 5796ms)</td>
+            <td><b>4.73 (+16.2%)</b> (6612 / <b>6003 [−20.1%]</b> / 11134 / 12869ms)</td>
+            <td><b>99.9% (99.2% @100%)</b> · 30.8% HBM · 76,553 MiB · 397.8 W</td>
+          </tr>
+
+          <tr>
+            <td rowspan="4"><b>2. <code>20261023-v1</code> 120p</b><br><span style="font-size:11px;color:var(--mut)"><code>input.performance.jsonl</code><br>avg 3,736.8 tok (v2 rubric)</span></td>
+            <td>Arm 1: Stock (P=1, seqs=4)</td>
+            <td><code>busy_cabbage_r5yx0fp52z</code></td>
+            <td>2.82 (2486 / 5337ms)</td>
+            <td>2.84 (4912 / 9382ms)</td>
+            <td><b>2.87</b> (10650 / 10279 / 15950 / 16749ms)</td>
+            <td>93.6% (40.8% @100%) · 43.5% HBM · 74,895 MiB · 367.9 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 2: Env Only (P=32, seqs=64)</td>
+            <td><code>wheat_egg_79709ct4hs</code></td>
+            <td><b>3.87 (+37.2%)</b> (1776 / 3857ms)</td>
+            <td>3.73 (3504 / 7076ms)</td>
+            <td><b>3.67 (+27.9%)</b> (7882 / 7411 / 13377 / 16055ms)</td>
+            <td><b>100.0% (100.0% @100%)</b> · 31.9% HBM · 77,436 MiB · 396.6 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 3: + Fast BSearch (No Cache)</td>
+            <td><code>mighty_whistle_t25xy7ht86</code></td>
+            <td><b>3.88 (+37.6%)</b> (1702 / 4052ms)</td>
+            <td><b>3.82</b> (3472 / 7032ms)</td>
+            <td><b>3.60 (+25.4%)</b> (7831 / <b>6686 [−35.0%]</b> / 13307 / 21033ms)</td>
+            <td><b>100.0% (100.0% @100%)</b> · 31.9% HBM · 77,167 MiB · 398.4 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 4: Full Stack (+ Cache)</td>
+            <td><code>patient_prune_66pv8gcj52</code></td>
+            <td><b>3.83 (+35.8%)</b> (1765 / 3633ms)</td>
+            <td>3.75 (3498 / 7008ms)</td>
+            <td><b>3.60 (+25.4%)</b> (7930 / 6939 [−32.5%] / 13439 / 21383ms)</td>
+            <td><b>100.0% (100.0% @100%)</b> · 31.5% HBM · 76,785 MiB · 395.6 W</td>
+          </tr>
+
+          <tr>
+            <td rowspan="4"><b>3. <code>v1-epoch3</code> 120p</b><br><span style="font-size:11px;color:var(--mut)"><code>input.performance.jsonl</code><br>avg 2,803.2 tok (v1 rubric)</span></td>
+            <td>Arm 1: Stock (P=1, seqs=4)</td>
+            <td><code>bold_cheese_81d68xhd3c</code></td>
+            <td>3.46 (2013 / 4079ms)</td>
+            <td>3.45 (4057 / 7384ms)</td>
+            <td><b>3.42</b> (8871 / 8545 / 13655 / 14454ms)</td>
+            <td>95.4% (25.7% @100%) · 47.7% HBM · 72,898 MiB · 376.9 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 2: Env Only (P=32, seqs=64)</td>
+            <td><code>gifted_lunch_8f8sjnbhpv</code></td>
+            <td>5.15 (1297 / 2931ms)</td>
+            <td>5.23 (2651 / 5395ms)</td>
+            <td><b>5.28 (+54.4%)</b> (6040 / <b>5131 [−40.0%]</b> / 10029 / 15907ms)</td>
+            <td><b>99.2% (98.9% @100%)</b> · 31.7% HBM · 77,030 MiB · 394.1 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 3: + Fast BSearch (No Cache)</td>
+            <td><code>icy_ice_x7q0p0w4dj</code></td>
+            <td><b>5.17</b> (1280 / 2875ms)</td>
+            <td>5.22 (2547 / 5350ms)</td>
+            <td><b>5.28 (+54.4%)</b> (6044 / 5234 [−38.7%] / 10115 / 16005ms)</td>
+            <td><b>99.1% (98.5% @100%)</b> · 31.9% HBM · 77,373 MiB · 394.6 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 4: Full Stack (+ Cache)</td>
+            <td><code>coral_nail_wqfw2f77lg</code></td>
+            <td>5.15 (1286 / 2869ms)</td>
+            <td><b>5.24</b> (2588 / 5328ms)</td>
+            <td><b>5.34 (+56.1%)</b> (5976 / 5151 [−39.7%] / <b>9946</b> / 15874ms)</td>
+            <td><b>99.1% (98.9% @100%)</b> · 32.0% HBM · 76,781 MiB · 395.0 W</td>
+          </tr>
+
+          <tr>
+            <td rowspan="4"><b>4. <code>20261023-v1</code> 11p ML</b><br><span style="font-size:11px;color:var(--mut)"><code>input.json</code> (5 EN + 6 ML)<br>avg 3,656.8 tok</span></td>
+            <td>Arm 1: Stock (P=1, seqs=4)</td>
+            <td><code>witty_carpet_zyb255n7wg</code></td>
+            <td>2.33 (3393 / 3655ms)</td>
+            <td>2.33 (6814 / 7066ms)</td>
+            <td><b>2.33</b> (12157 / 13763 / 13888 / 13898ms)</td>
+            <td>87.4% (40.5% @100%) · 48.6% HBM · 65,272 MiB · 353.4 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 2: Env Only (P=32, seqs=64)</td>
+            <td><code>lucid_receipt_fhns533q74</code></td>
+            <td>3.95 (2276 / 4712ms)</td>
+            <td>4.10 (4123 / 8868ms)</td>
+            <td><b>4.61 (+97.9%)</b> (6903 / 6885 [−50.0%] / 15068 / 19033ms)</td>
+            <td><b>97.9% (94.2% @100%)</b> · 34.8% HBM · 77,103 MiB · 387.0 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 3: + Fast BSearch (No Cache)</td>
+            <td><code>witty_jewel_d4wrqf610x</code></td>
+            <td>4.30 (1705 / 4722ms)</td>
+            <td>4.44 (3626 / 8529ms)</td>
+            <td><b>4.68 (+100.9%)</b> (6788 / <b>6760 [−50.9%]</b> / 16369 / 20142ms)</td>
+            <td><b>98.7% (97.0% @100%)</b> · 35.2% HBM · 76,674 MiB · 388.6 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 4: Full Stack (+ Cache)</td>
+            <td><code>upbeat_card_j838mh6p36</code></td>
+            <td><b>4.35</b> (1589 / 4675ms)</td>
+            <td><b>4.54</b> (3322 / 8149ms)</td>
+            <td><b>4.65 (+99.6%)</b> (6835 / 6796 [−50.6%] / 16569 / 20001ms)</td>
+            <td><b>98.8% (98.8% @100%)</b> · 33.3% HBM · 76,755 MiB · 398.2 W</td>
+          </tr>
+
+          <tr>
+            <td rowspan="4"><b>5. <code>v1-epoch3</code> 5p EN</b><br><span style="font-size:11px;color:var(--mut)"><code>input.json</code> (5 EN rows)<br>avg 3,370.6 tok</span></td>
+            <td>Arm 1: Stock (P=1, seqs=4)</td>
+            <td><code>jolly_endive_w1xft40tyl</code></td>
+            <td>2.46 (3542 / 3668ms)</td>
+            <td>2.46 (6385 / 6977ms)</td>
+            <td><b>2.45</b> (11870 / 12727 / 13670 / 13694ms)</td>
+            <td>76.7% (30.5% @100%) · 35.4% HBM · 65,193 MiB · 306.2 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 2: Env Only (P=32, seqs=64)</td>
+            <td><code>nice_hominy_mzrlvgjxmt</code></td>
+            <td>4.03 (2332 / 2931ms)</td>
+            <td>4.28 (3858 / 5212ms)</td>
+            <td><b>4.36 (+78.0%)</b> (7281 / 7800 [−38.7%] / 8689 / 9788ms)</td>
+            <td><b>97.9% (92.4% @100%)</b> · 31.9% HBM · 76,703 MiB · 394.4 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 3: + Fast BSearch (No Cache)</td>
+            <td><code>wheat_shark_jdzdfs0h0f</code></td>
+            <td>4.09 (2090 / 2875ms)</td>
+            <td>4.25 (3689 / 5154ms)</td>
+            <td><b>4.35 (+77.6%)</b> (7349 / 7449 [−41.5%] / 8949 / 10238ms)</td>
+            <td><b>98.4% (96.6% @100%)</b> · 31.2% HBM · 76,348 MiB · 390.7 W</td>
+          </tr>
+          <tr class="up">
+            <td>Arm 4: Full Stack (+ Cache)</td>
+            <td><code>musing_lion_3gtt38rt5l</code></td>
+            <td><b>4.17</b> (2023 / 2869ms)</td>
+            <td><b>4.30</b> (3686 / 5128ms)</td>
+            <td><b>4.35 (+77.6%)</b> (7267 / <b>7287 [−42.7%]</b> / 8839 / 9701ms)</td>
+            <td><b>98.9% (98.4% @100%)</b> · 30.7% HBM · 76,371 MiB · 393.8 W</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table C.1.</b> Complete 20-run cold uncached prefill evaluation matrix (<code>enable_prefix_caching=False</code> across all 5 datasets × 4 arms) showing concurrency scaling (<code>c = 8, 16, 32</code>), latency percentiles, and 1 Hz A100 hardware telemetry.</div>
+
+    <h3>C.2&nbsp; 1 Hz A100-SXM4-80GB Hardware Saturation Telemetry (120-Prompt Benchmark — <code>enable_prefix_caching=False</code>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Hardware Telemetry Metric (1 Hz <code>nvidia-smi</code>, <code>epc=False</code>)</th>
+            <th>Arm 1: Prod Baseline</th>
+            <th>Arm 2: Tier-1 Env Only</th>
+            <th>Arm 3: Fast BSearch (No Cache)</th>
+            <th>Arm 4: Full Stack</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>SM Compute Activity (Mean / p50 / p95)</b></td>
+            <td>95.4% / 96% / 100%</td>
+            <td><b>99.2% / 100% / 100%</b></td>
+            <td><b>99.1% / 100% / 100%</b></td>
+            <td><b>99.1% / 100% / 100%</b></td>
+          </tr>
+          <tr>
+            <td><b>Fraction of Samples at 100% SM</b></td>
+            <td>25.7%</td>
+            <td><b>98.9%</b></td>
+            <td><b>98.5%</b></td>
+            <td><b>98.9%</b></td>
+          </tr>
+          <tr>
+            <td><b>HBM Memory Bandwidth Util (Mean)</b></td>
+            <td>47.7%</td>
+            <td>31.7%</td>
+            <td>31.9%</td>
+            <td>32.0%</td>
+          </tr>
+          <tr>
+            <td><b>VRAM Allocated (MiB / 81,920 MiB)</b></td>
+            <td>72,898 MiB (89.0%)</td>
+            <td>77,030 MiB (94.0%)</td>
+            <td>77,373 MiB (94.4%)</td>
+            <td>76,781 MiB (93.7%)</td>
+          </tr>
+          <tr>
+            <td><b>GPU Power Draw (Mean vs 400W TDP)</b></td>
+            <td>376.9 W</td>
+            <td><b>394.1 W</b></td>
+            <td><b>394.6 W</b></td>
+            <td><b>395.0 W</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cap"><b>Table C.2.</b> 1 Hz A100-SXM4-80GB hardware telemetry across the 4-arm 120-prompt evaluation under <b><code>enable_prefix_caching=False</code></b>.</div>
+
+    <h3>C.3&nbsp; Attention Kernel Ablation Under 100% Uncached Prefill (<code>enable_prefix_caching=False</code>: <code>FLASH_ATTN</code> vs. <code>FLASHINFER</code> vs. <code>TRITON_ATTN</code>)</h3>
     <div class="table-wrap">
       <table>
         <thead>
@@ -1433,13 +1817,13 @@ python scripts/submit_falcon_serving.py --name arm3-fullstack \
         </tbody>
       </table>
     </div>
-    <div class="cap"><b>Table D.1.</b> 100% uncached prefill hardware ceiling on A100-SXM4-80GB (<code>enable_prefix_caching=False</code>, 4-token per-request salt).</div>
+    <div class="cap"><b>Table C.3.</b> Attention backend comparison at the 100% uncached prefill hardware ceiling on A100-SXM4-80GB (<code>enable_prefix_caching=False</code>, 4-token per-request salt).</div>
 
-    <!-- APPENDIX E -->
-    <h2 id="sec-ledger"><span class="sec-num app">Appendix E</span> Live AML Campaign Run Ledger &amp; File Index</h2>
+    <!-- APPENDIX D -->
+    <h2 id="sec-ledger"><span class="sec-num app">Appendix D</span> Live AML Campaign Run Ledger &amp; File Index</h2>
     <div id="app">loading…</div>
 
-    <h3 id="sec-refs">E.1&nbsp; Artifact &amp; Source File Index</h3>
+    <h3 id="sec-refs">D.1&nbsp; Artifact &amp; Source File Index</h3>
     <ol class="refs">
       <li><b>Unified Git Patch (Downloadable):</b> <a href="patches/cliff_dlis_falcon_serving_opt.patch" download><code>patches/cliff_dlis_falcon_serving_opt.patch</code></a> (also committed at <code>Q:\agentic_vllm\cliff_freshness_serve\dlis_falcon_opt\cliff_dlis_falcon_serving_opt.patch</code>).</li>
       <li><b>Drop-In Patched Source Files &amp; Runtime Hook:</b> <code>Q:\agentic_vllm\cliff_freshness_serve\dlis_falcon_opt\freshness_prompt.py</code>, <code>model.py</code>, <code>sitecustomize.py</code>, and <code>RUNBOOK.md</code>.</li>

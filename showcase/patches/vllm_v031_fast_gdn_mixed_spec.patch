@@ -1,0 +1,383 @@
+diff --git a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+index 9d5bcc8..a6997a7 100644
+--- a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
++++ b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+@@ -914,7 +914,7 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+             and self.norm.weight.dtype in (torch.bfloat16, torch.float32)
+         )
+         if use_fused_gdn_decode:
+-            core_attn_out = torch.zeros(
++            core_attn_out = torch.empty(
+                 (num_tokens, self.num_v_heads // self.tp_size, self.head_v_dim),
+                 dtype=hidden_states.dtype,
+                 device=hidden_states.device,
+@@ -1163,6 +1163,40 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+                 T,
+                 self.prefix,
+             )
++            try:
++                conv_dim = qkv_or_qkvz.shape[-1] - v_dim
++                conv_w = self.conv1d.weight.view(
++                    self.conv1d.weight.size(0), self.conv1d.weight.size(2)
++                )
++                conv_state_dtype, _ = self.get_state_dtype()
++                dummy_conv_state = torch.zeros(
++                    2,
++                    conv_dim,
++                    self.conv_kernel_size - 1,
++                    device=device,
++                    dtype=conv_state_dtype,
++                )
++                dummy_conv_indices = torch.tensor([0], device=device, dtype=torch.int32)
++                dummy_acc = torch.tensor([1], device=device, dtype=torch.int32)
++                dummy_qsl = torch.tensor([0, 4], device=device, dtype=torch.int32)
++                causal_conv1d_update(
++                    dummy_mixed_qkv[:4],
++                    dummy_conv_state,
++                    conv_w,
++                    self.conv1d.bias,
++                    self.activation,
++                    conv_state_indices=dummy_conv_indices,
++                    num_accepted_tokens=dummy_acc,
++                    query_start_loc=dummy_qsl,
++                    max_query_len=4,
++                    validate_data=False,
++                )
++                del dummy_conv_state, dummy_conv_indices, dummy_acc, dummy_qsl
++            except Exception:
++                logger.debug(
++                    "GDN causal_conv1d_update warmup skipped for layer %s",
++                    self.prefix,
++                )
+         finally:
+             del (
+                 dummy_mixed_qkv,
+@@ -1801,7 +1835,6 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+         state_indices = attn_metadata.spec_state_indices_tensor
+         return (
+             attn_metadata.spec_sequence_masks is not None
+-            and attn_metadata.num_decodes == 0
+             and attn_metadata.num_spec_decodes > 0
+             and self.kv_cache[1].dtype in FUSED_GDN_STATE_DTYPES
+             and self.gdn_decode_kernel == "cuda"
+@@ -1846,6 +1879,191 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+             activation=self.norm.activation,
+         )
+ 
++    def _forward_core_mixed_spec_fused_norm(
++        self,
++        mixed_qkv: torch.Tensor,
++        b: torch.Tensor,
++        a: torch.Tensor,
++        output_gate: torch.Tensor,
++        core_attn_out: torch.Tensor,
++        attn_metadata: GDNAttentionMetadata,
++    ) -> None:
++        has_initial_state = attn_metadata.has_initial_state
++        spec_query_start_loc = attn_metadata.spec_query_start_loc
++        non_spec_query_start_loc = attn_metadata.non_spec_query_start_loc
++        spec_token_indx = attn_metadata.spec_token_indx
++        non_spec_token_indx = attn_metadata.non_spec_token_indx
++        spec_state_indices_tensor = attn_metadata.spec_state_indices_tensor
++        non_spec_state_indices_tensor = attn_metadata.non_spec_state_indices_tensor
++        num_actual_tokens = attn_metadata.num_actual_tokens
++        num_accepted_tokens = attn_metadata.num_accepted_tokens
++        num_requests = attn_metadata.num_spec_decodes
++
++        assert spec_state_indices_tensor is not None
++        assert spec_query_start_loc is not None
++        assert num_accepted_tokens is not None
++
++        conv_state = (
++            self.kv_cache[0]
++            if is_conv_state_dim_first()
++            else self.kv_cache[0].transpose(-1, -2)
++        )
++        ssm_state = self.kv_cache[1]
++        conv_weights = self.conv1d.weight.view(
++            self.conv1d.weight.size(0), self.conv1d.weight.size(2)
++        )
++
++        mixed_qkv = mixed_qkv[:num_actual_tokens]
++        b = b[:num_actual_tokens]
++        a = a[:num_actual_tokens]
++        output_gate = output_gate[:num_actual_tokens]
++
++        front_contiguous = getattr(
++            attn_metadata, "spec_tokens_front_contiguous", False
++        )
++        n_spec = attn_metadata.num_spec_decode_tokens
++
++        # 1. Process spec-decode tokens via the fused C++ CUDA MTP kernel
++        if front_contiguous:
++            mixed_qkv_spec = causal_conv1d_update(
++                mixed_qkv[:n_spec],
++                conv_state,
++                conv_weights,
++                self.conv1d.bias,
++                self.activation,
++                conv_state_indices=spec_state_indices_tensor[:num_requests, 0],
++                num_accepted_tokens=num_accepted_tokens[:num_requests],
++                query_start_loc=spec_query_start_loc[: num_requests + 1],
++                max_query_len=spec_state_indices_tensor.size(1),
++                validate_data=False,
++            )
++            self._forward_core_decode_spec_post_conv_fused_norm(
++                mixed_qkv=mixed_qkv_spec,
++                b=b[:n_spec],
++                a=a[:n_spec],
++                output_gate=output_gate[:n_spec],
++                core_attn_out=core_attn_out[:n_spec],
++                attn_metadata=attn_metadata,
++            )
++        else:
++            assert spec_token_indx is not None
++            mixed_qkv_spec = mixed_qkv.index_select(0, spec_token_indx)
++            a_spec = a.index_select(0, spec_token_indx).contiguous()
++            b_spec = b.index_select(0, spec_token_indx).contiguous()
++            output_gate_spec = output_gate.index_select(
++                0, spec_token_indx
++            ).contiguous()
++
++            mixed_qkv_spec = causal_conv1d_update(
++                mixed_qkv_spec,
++                conv_state,
++                conv_weights,
++                self.conv1d.bias,
++                self.activation,
++                conv_state_indices=spec_state_indices_tensor[:num_requests, 0],
++                num_accepted_tokens=num_accepted_tokens[:num_requests],
++                query_start_loc=spec_query_start_loc[: num_requests + 1],
++                max_query_len=spec_state_indices_tensor.size(1),
++                validate_data=False,
++            )
++            core_attn_out_spec = torch.empty_like(output_gate_spec)
++            self._forward_core_decode_spec_post_conv_fused_norm(
++                mixed_qkv=mixed_qkv_spec,
++                b=b_spec,
++                a=a_spec,
++                output_gate=output_gate_spec,
++                core_attn_out=core_attn_out_spec,
++                attn_metadata=attn_metadata,
++            )
++            core_attn_out.index_copy_(0, spec_token_indx, core_attn_out_spec)
++
++        # 2. Process non-spec prefill tokens via chunk_gated_delta_rule + gated RMSNorm
++        if attn_metadata.num_prefills > 0:
++            if front_contiguous:
++                mixed_qkv_non_spec = mixed_qkv[n_spec:]
++                a_non_spec = a[n_spec:]
++                b_non_spec = b[n_spec:]
++                output_gate_non_spec = output_gate[n_spec:].contiguous()
++            else:
++                assert non_spec_token_indx is not None
++                mixed_qkv_non_spec = mixed_qkv.index_select(0, non_spec_token_indx)
++                a_non_spec = a.index_select(0, non_spec_token_indx)
++                b_non_spec = b.index_select(0, non_spec_token_indx)
++                output_gate_non_spec = output_gate.index_select(
++                    0, non_spec_token_indx
++                ).contiguous()
++
++            mixed_qkv_non_spec_T = mixed_qkv_non_spec.transpose(0, 1)
++            mixed_qkv_non_spec = causal_conv1d_fn(
++                mixed_qkv_non_spec_T,
++                conv_weights,
++                self.conv1d.bias,
++                activation=self.activation,
++                conv_states=conv_state,
++                has_initial_state=has_initial_state,
++                cache_indices=non_spec_state_indices_tensor,
++                query_start_loc=non_spec_query_start_loc,
++                metadata=attn_metadata,
++            ).transpose(0, 1)
++
++            (
++                query_non_spec,
++                key_non_spec,
++                value_non_spec,
++                g_non_spec,
++                beta_non_spec,
++            ) = fused_post_conv_prep(
++                conv_output=mixed_qkv_non_spec,
++                a=a_non_spec,
++                b=b_non_spec,
++                A_log=self.A_log,
++                dt_bias=self.dt_bias,
++                num_k_heads=self.num_k_heads // self.tp_size,
++                head_k_dim=self.head_k_dim,
++                head_v_dim=self.head_v_dim,
++                apply_l2norm=True,
++                output_g_exp=False,
++            )
++            prefill_state_indices = attn_metadata.prefill_state_indices
++            prefill_has_initial_state = attn_metadata.prefill_has_initial_state
++            assert prefill_state_indices is not None
++            assert prefill_has_initial_state is not None
++            initial_state = ssm_state[prefill_state_indices]
++            initial_state[~prefill_has_initial_state, ...] = 0
++            core_attn_out_non_spec, last_recurrent_state = self.chunk_gated_delta_rule(
++                q=query_non_spec.unsqueeze(0),
++                k=key_non_spec.unsqueeze(0),
++                v=value_non_spec.unsqueeze(0),
++                g=g_non_spec.unsqueeze(0),
++                beta=beta_non_spec.unsqueeze(0),
++                initial_state=initial_state,
++                output_final_state=True,
++                cu_seqlens=attn_metadata.prefill_query_start_loc,
++                chunk_indices=attn_metadata.chunk_indices,
++                chunk_offsets=attn_metadata.chunk_offsets,
++                use_qk_l2norm_in_kernel=False,
++            )
++            ssm_state[prefill_state_indices] = last_recurrent_state.to(ssm_state.dtype)
++            core_attn_out_non_spec_3d = core_attn_out_non_spec.squeeze(0).contiguous()
++            if front_contiguous:
++                self._rms_norm_gated_cuda(
++                    core_attn_out_non_spec_3d,
++                    output_gate_non_spec,
++                    core_attn_out[n_spec:num_actual_tokens],
++                )
++            else:
++                self._rms_norm_gated_cuda(
++                    core_attn_out_non_spec_3d,
++                    output_gate_non_spec,
++                    core_attn_out_non_spec_3d,
++                )
++                core_attn_out.index_copy_(
++                    0, non_spec_token_indx, core_attn_out_non_spec_3d
++                )
++
++        if num_actual_tokens < core_attn_out.size(0):
++            core_attn_out[num_actual_tokens:].zero_()
++
+     def _forward_core_fused_norm(
+         self,
+         mixed_qkv: torch.Tensor,
+@@ -1864,14 +2082,24 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+             return
+ 
+         assert isinstance(attn_metadata, GDNAttentionMetadata)
+-        if (
+-            self._can_use_fused_gdn_mtp_decode(attn_metadata)
+-            and attn_metadata.num_prefills == 0
+-        ):
+-            self._forward_core_decode_spec_fused_norm(
++        num_actual_tokens = attn_metadata.num_actual_tokens
++        if self._can_use_fused_gdn_mtp_decode(attn_metadata):
++            if attn_metadata.num_prefills == 0 and attn_metadata.num_decodes == 0:
++                self._forward_core_decode_spec_fused_norm(
++                    mixed_qkv=mixed_qkv,
++                    b=b,
++                    a=a,
++                    output_gate=output_gate,
++                    core_attn_out=core_attn_out,
++                    attn_metadata=attn_metadata,
++                )
++                if num_actual_tokens < core_attn_out.size(0):
++                    core_attn_out[num_actual_tokens:].zero_()
++                return
++            self._forward_core_mixed_spec_fused_norm(
+                 mixed_qkv=mixed_qkv,
+-                b=b,
+-                a=a,
++                b=b.contiguous(),
++                a=a.contiguous(),
+                 output_gate=output_gate,
+                 core_attn_out=core_attn_out,
+                 attn_metadata=attn_metadata,
+@@ -1883,12 +2111,13 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+             a=a.contiguous(),
+             core_attn_out=core_attn_out,
+         )
+-        num_actual_tokens = attn_metadata.num_actual_tokens
+         self._rms_norm_gated_cuda(
+             core_attn_out[:num_actual_tokens],
+             output_gate[:num_actual_tokens],
+             core_attn_out[:num_actual_tokens],
+         )
++        if num_actual_tokens < core_attn_out.size(0):
++            core_attn_out[num_actual_tokens:].zero_()
+ 
+ 
+ @eager_break_during_capture
+diff --git a/vllm/v1/attention/backends/gdn_attn.py b/vllm/v1/attention/backends/gdn_attn.py
+index ae8a943..da44e87 100644
+--- a/vllm/v1/attention/backends/gdn_attn.py
++++ b/vllm/v1/attention/backends/gdn_attn.py
+@@ -66,6 +66,7 @@ class GDNAttentionMetadata:
+ 
+     num_accepted_tokens: torch.Tensor | None = None  # shape: [batch,]
+     uniform_spec_sequence_length: int | None = None  # None for ragged batches
++    spec_tokens_front_contiguous: bool = False
+ 
+     # Pre-computed FLA chunk metadata (avoids GPU->CPU sync in prepare_chunk_indices)
+     chunk_indices: torch.Tensor | None = None
+@@ -245,6 +246,7 @@ class GDNAttentionMetadataBuilder(AttentionMetadataBuilder[GDNAttentionMetadata]
+             )
+ 
+         uniform_spec_sequence_length = None
++        spec_tokens_front_contiguous = False
+         spec_sequence_masks_cpu: torch.Tensor | None = None
+         if not self.use_spec_decode or num_decode_draft_tokens_cpu is None:
+             spec_sequence_masks = None
+@@ -252,11 +254,7 @@ class GDNAttentionMetadataBuilder(AttentionMetadataBuilder[GDNAttentionMetadata]
+         else:
+             spec_sequence_masks_cpu = num_decode_draft_tokens_cpu >= 0
+             num_spec_decodes = spec_sequence_masks_cpu.sum().item()
+-            if (
+-                num_spec_decodes == 0
+-                or num_decode_draft_tokens_cpu[spec_sequence_masks_cpu].sum().item()
+-                == 0
+-            ):
++            if num_spec_decodes == 0:
+                 num_spec_decodes = 0
+                 spec_sequence_masks = None
+                 spec_sequence_masks_cpu = None
+@@ -364,6 +362,27 @@ class GDNAttentionMetadataBuilder(AttentionMetadataBuilder[GDNAttentionMetadata]
+                 spec_query_start_loc = query_start_loc[: num_spec_decodes + 1]
+                 non_spec_query_start_loc = None
+                 non_spec_query_start_loc_cpu = None
++                spec_tokens_front_contiguous = True
++            elif bool(spec_sequence_masks_cpu[:num_spec_decodes].all()):
++                # sort_batch_req_ids places all decode/spec-decode requests
++                # first in the batch ([0 : num_spec_decodes]). Slice directly
++                # without GPU repeat_interleave / argsort / cumsum kernels.
++                spec_tokens_front_contiguous = True
++                spec_token_indx = None
++                non_spec_token_indx = None
++                spec_state_indices_tensor = block_table_tensor[
++                    :num_spec_decodes, : self.num_spec + 1
++                ]
++                non_spec_state_indices_tensor = block_table_tensor[
++                    num_spec_decodes:, 0
++                ]
++                spec_query_start_loc = query_start_loc[: num_spec_decodes + 1]
++                non_spec_query_start_loc = (
++                    query_start_loc[num_spec_decodes:] - num_spec_decode_tokens
++                )
++                non_spec_query_start_loc_cpu = (
++                    query_start_loc_cpu[num_spec_decodes:] - num_spec_decode_tokens
++                )
+             else:
+                 spec_token_masks = torch.repeat_interleave(
+                     spec_sequence_masks,
+@@ -559,6 +578,7 @@ class GDNAttentionMetadataBuilder(AttentionMetadataBuilder[GDNAttentionMetadata]
+             non_spec_token_indx=non_spec_token_indx,
+             num_accepted_tokens=num_accepted_tokens,
+             uniform_spec_sequence_length=uniform_spec_sequence_length,
++            spec_tokens_front_contiguous=spec_tokens_front_contiguous,
+             nums_dict=nums_dict,
+             batch_ptr=batch_ptr,
+             token_chunk_offset_ptr=token_chunk_offset_ptr,
+diff --git a/vllm/v1/worker/gpu/model_states/mamba_hybrid.py b/vllm/v1/worker/gpu/model_states/mamba_hybrid.py
+index 3292455..0b6dc12 100644
+--- a/vllm/v1/worker/gpu/model_states/mamba_hybrid.py
++++ b/vllm/v1/worker/gpu/model_states/mamba_hybrid.py
+@@ -285,7 +285,7 @@ class MambaHybridModelState(DefaultModelState):
+                 # adaptive rewrites num_scheduled_tokens to an even split, so that
+                 # equality rarely holds and would demote every verify row to decode.
+                 is_decode = ~is_prefilling_np & (input_batch.num_scheduled_tokens > 0)
+-                spec_decode_mask = (num_draft_tokens_per_req > 0) & is_decode
++                spec_decode_mask = is_decode
+                 num_decode_draft_tokens_np[: input_batch.num_reqs] = np.where(
+                     spec_decode_mask, num_draft_tokens_per_req, -1
+                 )

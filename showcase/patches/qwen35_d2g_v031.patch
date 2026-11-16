@@ -1,0 +1,44 @@
+diff --git a/vllm/envs.py b/vllm/envs.py
+index 64b5ca2c4e..d2006e09e3 100755
+--- a/vllm/envs.py
++++ b/vllm/envs.py
+@@ -93,6 +93,9 @@ if TYPE_CHECKING:
+     VLLM_FLOAT32_MATMUL_PRECISION: Literal["highest", "high", "medium"] = "highest"
+     VLLM_BATCH_INVARIANT: bool = False
+     VLLM_TRITON_USE_TD: bool | None = None
++    D2G_TILE: int = 32
++    D2G_STAGES: int = 2
++    D2G_WARPS: int = 0
+     VLLM_GPU_SYNC_CHECK: Literal["warn", "error"] | None = None
+     MAX_JOBS: str | None = None
+     NVCC_THREADS: str | None = None
+@@ -651,6 +654,11 @@ environment_variables: dict[str, Callable[[], Any]] = {
+     "VLLM_GPU_SYNC_CHECK": env_with_choices(
+         "VLLM_GPU_SYNC_CHECK", None, ["warn", "error"]
+     ),
++    # Fork launch controls: tile affects the 2D path; stages/warps affect both
++    # 2D and 3D. Zero retains the upstream choice for each control.
++    "D2G_TILE": lambda: int(os.getenv("D2G_TILE", "32")),
++    "D2G_STAGES": lambda: int(os.getenv("D2G_STAGES", "2")),
++    "D2G_WARPS": lambda: int(os.getenv("D2G_WARPS", "0")),
+     # Maximum number of compilation jobs to run in parallel.
+     # By default this is the number of CPUs
+     "MAX_JOBS": lambda: os.getenv("MAX_JOBS", None),
+diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attention/ops/triton_unified_attention.py
+index b0231dd0c0..ab4313d6f5 100644
+--- a/vllm/v1/attention/ops/triton_unified_attention.py
++++ b/vllm/v1/attention/ops/triton_unified_attention.py
+@@ -1092,6 +1092,13 @@ def unified_attention(
+     if launch_num_stages is not None:
+         launch_kwargs["num_stages"] = launch_num_stages
+
++    if envs.D2G_TILE and not use_3d:
++        tile_size = min(envs.D2G_TILE, block_size) if use_td else envs.D2G_TILE
++    if envs.D2G_STAGES:
++        launch_kwargs["num_stages"] = envs.D2G_STAGES
++    if envs.D2G_WARPS:
++        launch_kwargs["num_warps"] = envs.D2G_WARPS
++
+     kernel_unified_attention[grid](
+         output_ptr=out,
+         segm_output_ptr=segm_output_ptr,

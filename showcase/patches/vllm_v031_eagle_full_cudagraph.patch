@@ -1,0 +1,67 @@
+diff --git a/vllm/v1/attention/backends/triton_attn.py b/vllm/v1/attention/backends/triton_attn.py
+index 8a2fab4..9ef53e7 100644
+--- a/vllm/v1/attention/backends/triton_attn.py
++++ b/vllm/v1/attention/backends/triton_attn.py
+@@ -128,6 +128,11 @@ class TritonAttentionMetadataBuilder(AttentionMetadataBuilder[TritonAttentionMet
+                 CUDAGraphMode.FULL_DECODE_ONLY,
+                 CUDAGraphMode.FULL,
+             )
++            or (
++                self.vllm_config.speculative_config is not None
++                and self.vllm_config.compilation_config.cudagraph_mode
++                != CUDAGraphMode.NONE
++            )
+         )
+ 
+         # The launch grid for the 2D kernel is defined as (num_q_blocks, num_heads_kv).
+diff --git a/vllm/v1/worker/gpu/spec_decode/autoregressive/speculator.py b/vllm/v1/worker/gpu/spec_decode/autoregressive/speculator.py
+index 897e7af..23dba01 100644
+--- a/vllm/v1/worker/gpu/spec_decode/autoregressive/speculator.py
++++ b/vllm/v1/worker/gpu/spec_decode/autoregressive/speculator.py
+@@ -130,7 +130,13 @@ class AutoRegressiveSpeculator(DraftModelSpeculator):
+         )
+ 
+         # PIECEWISE cudagraphs are not supported for draft decodes.
+-        if cudagraph_mode.decode_mode() == CUDAGraphMode.FULL:
++        draft_attn_backend = getattr(
++            self.speculative_config, "attention_backend", None
++        )
++        if cudagraph_mode.decode_mode() == CUDAGraphMode.FULL or (
++            cudagraph_mode != CUDAGraphMode.NONE
++            and draft_attn_backend in (None, "TRITON_ATTN", "FLASH_ATTN")
++        ):
+             cudagraph_mode = CUDAGraphMode.FULL_DECODE_ONLY
+         else:
+             cudagraph_mode = CUDAGraphMode.NONE
+@@ -510,6 +516,15 @@ class AutoRegressiveSpeculator(DraftModelSpeculator):
+         query_start_loc = self.input_buffers.query_start_loc[: num_reqs + 1]
+         idx_mapping = self.idx_mapping[:num_reqs]
+ 
++        if (
++            not skip_attn
++            and batch_desc.num_reqs is not None
++            and batch_desc.num_reqs > num_reqs
++        ):
++            self.block_tables.gather_block_tables(
++                idx_mapping, num_reqs_padded=batch_desc.num_reqs
++            )
++
+         attn_metadata = None
+         slot_mappings_by_layer = None
+         for step in range(1, self.num_speculative_steps):
+@@ -560,6 +575,15 @@ class AutoRegressiveSpeculator(DraftModelSpeculator):
+         query_start_loc = self.input_buffers.query_start_loc[: num_reqs + 1]
+         idx_mapping = self.idx_mapping[:num_reqs]
+ 
++        if (
++            not skip_attn
++            and batch_desc.num_reqs is not None
++            and batch_desc.num_reqs > num_reqs
++        ):
++            self.block_tables.gather_block_tables(
++                idx_mapping, num_reqs_padded=batch_desc.num_reqs
++            )
++
+         attn_metadata = None
+         slot_mappings_by_layer = None
+         if not skip_attn:

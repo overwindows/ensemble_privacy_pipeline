@@ -1,0 +1,65 @@
+diff --git a/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py b/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+index 7a8b1f2..9d2c4e1 100644
+--- a/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
++++ b/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py
+@@ -428,10 +428,17 @@
+         base_logits = self.model.compute_draft_logits(sample_hidden)
+         base_logits = base_logits.view(num_reqs, n_spec, -1)
+         base_values, draft_indices = base_logits.topk(self._draft_topk, dim=-1)
+-        # Reuse the dense backbone output as the normal sampler's input. Fill
+-        # once for all positions, then scatter only the corrected candidates
+-        # during the sequential loop.
+-        base_logits.fill_(float("-inf"))
++        fast_greedy = (
++            self.draft_logits is None
++            and self.acceptance_estimator is None
++            and not getattr(
++                self.model.model.markov_head.markov_w2, "is_w4a16_nvfp4", False
++            )
++        )
++        if not fast_greedy:
++            base_logits.fill_(float("-inf"))
++        scale = self.model.logits_processor.scale
++        markov_w2_weight = self.model.model.markov_head.markov_w2.weight
+         idx_map = self.sample_idx_mapping[:num_sample].view(num_reqs, n_spec)
+         sample_pos = self.sample_pos[:num_sample].view(num_reqs, n_spec)
+         confidence_markov_embeds = []
+@@ -443,15 +450,29 @@
+             markov_embed, state = self._markov_step(prev, hidden_by_step[:, i], state)
+             if self.use_confidence_head:
+                 confidence_markov_embeds.append(markov_embed)
+-            logits_i = self.model.apply_markov_bias_gathered(
+-                markov_embed,
+-                base_logits[:, i],
+-                base_values[:, i],
+-                draft_indices[:, i],
+-            )
+-            draft_sampled_i = self._sample_logits(
+-                logits_i, idx_map[:, i], sample_pos[:, i], i
+-            )
++            if fast_greedy:
++                idx_i = draft_indices[:, i]
++                weight = markov_w2_weight[idx_i]
++                corrected = base_values[:, i].unsqueeze(-1).clone()
++                corrected.baddbmm_(
++                    weight,
++                    markov_embed.unsqueeze(-1),
++                    beta=1.0,
++                    alpha=scale,
++                )
++                best_k = corrected.squeeze(-1).argmax(dim=-1, keepdim=True)
++                draft_ids = idx_i.gather(1, best_k).squeeze(-1)
++                draft_sampled_i = self.model.map_draft_to_target(draft_ids)
++            else:
++                logits_i = self.model.apply_markov_bias_gathered(
++                    markov_embed,
++                    base_logits[:, i],
++                    base_values[:, i],
++                    draft_indices[:, i],
++                )
++                draft_sampled_i = self._sample_logits(
++                    logits_i, idx_map[:, i], sample_pos[:, i], i
++                )
+             self.draft_tokens[:num_reqs, i] = draft_sampled_i
+             prev = draft_sampled_i
+ 

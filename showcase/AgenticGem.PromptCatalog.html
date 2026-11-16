@@ -8,9 +8,10 @@
   :root {
     --accent:#0f6cbd;
     --accent-hover:#115ea3;
-    --accent-soft:#e3f0fa;
+    --accent-soft:#e7f0f9;
     --accent2:#2760ae;
     --accent3:#0f6cbd;
+    --accent4d:#0f6cbd;
     --amber:#9d5d00;
     --ax:#9d5d00;
     --bad:#c42b1c;
@@ -39,6 +40,7 @@
     --gold-soft:#fdf4dc;
     --green:#0f7b0f;
     --green-soft:#e3f0fa;
+    --green-soft2:#e5f3e5;
     --head:#f3f2f1;
     --highlight:#e3f0fa;
     --info:#0f6cbd;
@@ -54,8 +56,12 @@
     --panel:#ffffff;
     --panel2:#f7f6f5;
     --paper:#ffffff;
+    --purple:#5b2d90;
+    --purple-soft:#ede3f7;
+    --purple4d:#5b2d90;
     --radius:8px;
     --red:#c42b1c;
+    --red-soft:#fbe9e7;
     --round:8px;
     --run:#0f6cbd;
     --sb:#0f6cbd;
@@ -64,6 +70,9 @@
     --subtle:#f3f2f1;
     --success:#0f7b0f;
     --surface:#ffffff;
+    --teal:#038387;
+    --teal-soft:#d9efee;
+    --teal4d:#038387;
     --text:#1b1a19;
     --thead:#f8f8f8;
     --tx:#1b1a19;
@@ -88,7 +97,7 @@
     button, input, select { font: inherit; letter-spacing: 0; }
     a { color: var(--green); }
     .shell { width: min(1480px, calc(100% - 32px)); margin: 0 auto; }
-    header { padding: 54px 0 28px; border-bottom: 1px solid var(--line); }
+    header:not(.fl-hub) { padding: 54px 0 28px; border-bottom: 1px solid var(--line); }
     .eyebrow { color: var(--coral); font-size: 12px; font-weight: 750; text-transform: uppercase; }
     h1 {
       max-width: 920px;
@@ -153,7 +162,7 @@
     .task { margin: 0 0 16px; font-size: 15px; line-height: 1.6; }
     .example-scope { margin: -6px 0 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
     .io-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .code-panel { min-width: 0; border: 1px solid #30433f; background: var(--code); }
+    .code-panel { min-width: 0; border: 1px solid #30433f; background: #1e242b; border-radius: 6px; overflow: hidden; }
     .code-title { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; color: #c8d7d3; border-bottom: 1px solid #30433f; font-size: 11px; text-transform: uppercase; }
     .copy { padding: 4px 7px; border: 1px solid #536762; border-radius: 3px; color: #dceae6; background: transparent; cursor: pointer; }
     pre { min-height: 160px; max-height: 360px; margin: 0; padding: 14px; overflow: auto; color: #e6f0ed; white-space: pre-wrap; word-break: break-word; font: 12px/1.55 "Cascadia Code", Consolas, monospace; }
@@ -175,7 +184,7 @@
     }
     @media (max-width: 640px) {
       .shell { width: min(100% - 20px, 1480px); }
-      header { padding-top: 34px; }
+      header:not(.fl-hub) { padding-top: 34px; }
       .toolbar-row { grid-template-columns: 1fr 1fr; }
       .toolbar-row input { grid-column: 1 / -1; }
       .view-toggle { display: none; }
@@ -194,53 +203,57 @@
       .model-table-wrap td { padding: 9px 12px 9px 42%; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
       .model-table-wrap td::before { content: attr(data-label); float: left; width: 68%; margin-left: -68%; color: var(--muted); font-size: 10px; text-transform: uppercase; }
     }
-  
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:var(--accent);text-decoration:none}
 a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
 h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
 /* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
 h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
 code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
-::selection{background:#d4e8fb}
+::selection{background:#cfe4f7}
 
-/* ---- Shared hub masthead + site nav ---- */
-.fl-hub{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;box-shadow:0 1px 2px rgba(0,0,0,.05)}
-.fl-hub-inner{max-width:1280px;margin:0 auto;padding:9px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.fl-hub-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13.5px;color:var(--ink);white-space:nowrap}
-.fl-hub-logo{width:18px;height:18px;border-radius:4px;background:var(--accent);flex:0 0 auto;display:inline-block}
+/* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
+.fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+.fl-hub-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
 .fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
-.fl-hub-nav a{color:var(--mut);font-size:12.5px;padding:5px 10px;border-radius:5px;text-decoration:none;font-weight:500}
-.fl-hub-nav a:hover{background:var(--nav-hover,var(--bg2));color:var(--ink);text-decoration:none}
-.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
-@media(max-width:760px){.fl-hub-nav{margin-left:0;width:100%}}
+.fl-hub-nav a{color:var(--mut);font-size:12px;padding:4px 8px;border-radius:6px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
+@media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
 
 /* ---- Shared page footer ---- */
-.fl-foot{max-width:1280px;margin:0 auto;padding:20px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
+.fl-foot{max-width:1240px;margin:0 auto;padding:22px 24px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fl-foot code{font-size:11.5px}
 </style>
 </head>
 <body>
 <header class="fl-hub">
   <div class="fl-hub-inner">
-    <div class="fl-hub-brand"><span class="fl-hub-logo"></span>Chrona Showcase Hub</div>
+    <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
     <nav class="fl-hub-nav">
       <a href="index.html">Home</a>
-      <a href="AgenticGem.PromptCatalog.html" class="active">AgenticGem Catalog</a>
-      <a href="ask-chen.html">Ask-Chen</a>
-      <a href="openjev-ft.html">OpenJev</a>
       <a href="one_unified.html">One Unified</a>
+      <a href="openjev-ft.html">OpenJev</a>
       <a href="vllm-gemma4.html">vLLM Gemma4</a>
-      <a href="newsrank.html">NewsRank</a>
+      <a href="qwen35_throughput.html">vLLM Qwen3.5</a>
+      <a href="agentic-inference-opt.html">Agentic Opt</a>
+      <a href="agentic-inference-opt-deck.html">Opt Deck</a>
+      <a href="content-agent.html">Content-Agent</a>
+      <a href="ask-chen.html">Ask-Chen</a>
+      <a href="AgenticGem.PromptCatalog.html" class="active">AgenticGem</a>
       <a href="bench_models.html">Benchmarks</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="cliff.html">CLIFF</a>
+      <a href="llm_recommender_design.html">LLM Rec</a>
       <a href="speculators.html">Speculators</a>
       <a href="reproduce_s2_best.html">Reproduce S2</a>
     </nav>
   </div>
 </header>
-
-
   <header>
     <div class="shell">
       <div class="eyebrow">AgenticGem / Model inventory / 2026-09-16</div>

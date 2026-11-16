@@ -1,0 +1,54 @@
+diff --git a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+index 9d5bcc8..a6997a7 100644
+--- a/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
++++ b/vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+@@ -914,7 +914,7 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+             and self.norm.weight.dtype in (torch.bfloat16, torch.float32)
+         )
+         if use_fused_gdn_decode:
+-            core_attn_out = torch.zeros(
++            core_attn_out = torch.empty(
+                 (num_tokens, self.num_v_heads // self.tp_size, self.head_v_dim),
+                 dtype=hidden_states.dtype,
+                 device=hidden_states.device,
+@@ -1163,6 +1163,40 @@ class QwenGatedDeltaNetAttention(GatedDeltaNetAttention):
+                 T,
+                 self.prefix,
+             )
++            try:
++                conv_dim = qkv_or_qkvz.shape[-1] - v_dim
++                conv_w = self.conv1d.weight.view(
++                    self.conv1d.weight.size(0), self.conv1d.weight.size(2)
++                )
++                conv_state_dtype, _ = self.get_state_dtype()
++                dummy_conv_state = torch.zeros(
++                    2,
++                    conv_dim,
++                    self.conv_kernel_size - 1,
++                    device=device,
++                    dtype=conv_state_dtype,
++                )
++                dummy_conv_indices = torch.tensor([0], device=device, dtype=torch.int32)
++                dummy_acc = torch.tensor([1], device=device, dtype=torch.int32)
++                dummy_qsl = torch.tensor([0, 4], device=device, dtype=torch.int32)
++                causal_conv1d_update(
++                    dummy_mixed_qkv[:4],
++                    dummy_conv_state,
++                    conv_w,
++                    self.conv1d.bias,
++                    self.activation,
++                    conv_state_indices=dummy_conv_indices,
++                    num_accepted_tokens=dummy_acc,
++                    query_start_loc=dummy_qsl,
++                    max_query_len=4,
++                    validate_data=False,
++                )
++                del dummy_conv_state, dummy_conv_indices, dummy_acc, dummy_qsl
++            except Exception:
++                logger.debug(
++                    "GDN causal_conv1d_update warmup skipped for layer %s",
++                    self.prefix,
++                )
+         finally:
+             del (
+                 dummy_mixed_qkv,

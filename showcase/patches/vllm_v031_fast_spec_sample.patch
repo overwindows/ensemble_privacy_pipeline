@@ -1,0 +1,299 @@
+diff --git a/vllm/v1/worker/gpu/sample/sampler.py b/vllm/v1/worker/gpu/sample/sampler.py
+index 802adb6..2af1803 100644
+--- a/vllm/v1/worker/gpu/sample/sampler.py
++++ b/vllm/v1/worker/gpu/sample/sampler.py
+@@ -83,6 +83,7 @@ class Sampler:
+             TraceReplayState(req_states) if enable_trace_replay else None
+         )
+         self.needs_logits_processing = np.zeros(max_num_reqs, dtype=bool)
++        self.needs_non_temp_logits_processing = np.zeros(max_num_reqs, dtype=bool)
+         self.num_speculative_tokens = num_speculative_tokens
+         self.return_sampling_mask = return_sampling_mask
+         self.use_flashinfer = (
+@@ -95,12 +96,20 @@ class Sampler:
+ 
+     def add_request(self, req_idx: int, sampling_params: SamplingParams) -> None:
+         needs_processing = self.sampling_states.add_request(req_idx, sampling_params)
+-        needs_processing |= self.thinking_budget_state.add_request(
++        needs_non_temp = self.thinking_budget_state.add_request(
+             req_idx, sampling_params
+         )
+         for processor in self.logits_processors:
+-            needs_processing |= processor.add_request(req_idx, sampling_params)
+-        self.needs_logits_processing[req_idx] = needs_processing
++            needs_non_temp |= processor.add_request(req_idx, sampling_params)
++        self.needs_logits_processing[req_idx] = needs_processing or needs_non_temp
++        self.needs_non_temp_logits_processing[req_idx] = needs_non_temp or (
++            self.sampling_states.temperature.np[req_idx] != 0.0
++            and (
++                self.sampling_states.min_p.np[req_idx] != 0.0
++                or self.sampling_states.top_k.np[req_idx] != self.sampling_states.vocab_size
++                or self.sampling_states.top_p.np[req_idx] != 1.0
++            )
++        )
+ 
+         self.logprob_token_ids_state.add_request(req_idx, sampling_params)
+         if self.trace_replay_state is not None:
+@@ -131,6 +140,11 @@ class Sampler:
+         num_logprobs = max_num_logprobs if max_num_logprobs != NO_LOGPROBS else 0
+         return num_logprobs, max_token_ids
+ 
++    def can_fuse_temperature(self, idx_mapping_np: np.ndarray) -> bool:
++        return not bool(
++            np.any(self.needs_non_temp_logits_processing[idx_mapping_np])
++        )
++
+     def __call__(
+         self,
+         logits: torch.Tensor,
+@@ -284,6 +298,23 @@ class Sampler:
+         seq_lens_upper_bound_np: np.ndarray,
+         return_logprobs: bool = False,
+     ) -> tuple[torch.Tensor, torch.Tensor]:
++        if (
++            self.can_fuse_temperature(idx_mapping_np)
++            and not (return_logprobs and self.logprobs_mode in PROCESSED_LOGPROBS_MODES)
++            and not self.return_sampling_mask
++        ):
++            sampled = gumbel_sample(
++                logits,
++                expanded_idx_mapping,
++                self.sampling_states.temperature.gpu,
++                self.sampling_states.seeds.gpu,
++                pos,
++                apply_temperature=True,
++                is_drafting=False,
++                use_fp64=self.use_fp64_gumbel,
++            )
++            return sampled, logits
++
+         processed_logits = self.apply_sampling_params(
+             logits,
+             expanded_idx_mapping,
+diff --git a/vllm/v1/worker/gpu/spec_decode/rejection_sampler.py b/vllm/v1/worker/gpu/spec_decode/rejection_sampler.py
+index 61eb3fb..3c74b6d 100644
+--- a/vllm/v1/worker/gpu/spec_decode/rejection_sampler.py
++++ b/vllm/v1/worker/gpu/spec_decode/rejection_sampler.py
+@@ -247,16 +247,24 @@ class RejectionSampler:
+         expanded_local_pos: torch.Tensor,
+         seq_lens_upper_bound_np: np.ndarray,
+     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+-        processed_logits = self.sampler.apply_sampling_params(
+-            logits,
+-            expanded_idx_mapping,
+-            idx_mapping,
+-            idx_mapping_np,
+-            pos,
+-            draft_sampled,
+-            expanded_local_pos,
+-            seq_lens_upper_bound_np,
++        fuse_temperature = self.sampler.can_fuse_temperature(idx_mapping_np) and not (
++            self.sampler.logprobs_mode in PROCESSED_LOGPROBS_MODES
++            and self.sampler.sampling_states.max_num_logprobs(idx_mapping_np)
++            != NO_LOGPROBS
+         )
++        if fuse_temperature:
++            processed_logits = logits
++        else:
++            processed_logits = self.sampler.apply_sampling_params(
++                logits,
++                expanded_idx_mapping,
++                idx_mapping,
++                idx_mapping_np,
++                pos,
++                draft_sampled,
++                expanded_local_pos,
++                seq_lens_upper_bound_np,
++            )
+         sampled, num_sampled = rejection_sample(
+             processed_logits,
+             draft_logits,
+@@ -272,6 +280,7 @@ class RejectionSampler:
+             self.synthetic_conditional_rates,
+             use_fp64=self.sampler.use_fp64_gumbel,
+             use_block_verification=self.use_block_verification,
++            apply_temperature=fuse_temperature,
+             **self._watermarking_kwargs(
+                 draft_sampled, expanded_idx_mapping, expanded_local_pos
+             ),
+diff --git a/vllm/v1/worker/gpu/spec_decode/rejection_sampler_utils.py b/vllm/v1/worker/gpu/spec_decode/rejection_sampler_utils.py
+index cf804e6..ffa6ff9 100644
+--- a/vllm/v1/worker/gpu/spec_decode/rejection_sampler_utils.py
++++ b/vllm/v1/worker/gpu/spec_decode/rejection_sampler_utils.py
+@@ -59,8 +59,10 @@ def _compute_global_residual_mass(
+     draft_token,
+     logit_idx,
+     vocab_num_blocks,
++    temp,
+     PADDED_VOCAB_NUM_BLOCKS: tl.constexpr,
+     HAS_DRAFT_LOGITS: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     if HAS_DRAFT_LOGITS:
+         blocks = tl.arange(0, PADDED_VOCAB_NUM_BLOCKS)
+@@ -87,6 +89,8 @@ def _compute_global_residual_mass(
+         target_logit = tl.load(
+             target_logits_ptr + logit_idx * target_logits_stride + draft_token,
+         ).to(tl.float32)
++        if APPLY_TEMPERATURE and temp != 1.0:
++            target_logit = target_logit / temp
+         m_b = tl.exp(target_logit - target_lse)
+         return prefix_joint_ratio * (1.0 - m_b)
+ 
+@@ -144,12 +148,15 @@ def _compute_global_logprobs_and_logsumexp(
+     vocab_num_blocks,
+     PADDED_VOCAB_NUM_BLOCKS: tl.constexpr,
+     HAS_DRAFT_LOGITS: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     target_logit = tl.load(
+         target_logits_ptr + logit_idx * target_logits_stride + token,
+         mask=mask,
+         other=float("-inf"),
+     ).to(tl.float32)
++    if APPLY_TEMPERATURE and temp != 1.0:
++        target_logit = target_logit / temp
+     target_lse = _compute_global_logsumexp(
+         target_local_max_ptr,
+         target_local_max_stride,
+@@ -224,6 +231,7 @@ def _compute_local_logits_stats_kernel(
+     num_speculative_steps,
+     BLOCK_SIZE: tl.constexpr,
+     HAS_DRAFT_LOGITS: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     logit_idx = tl.program_id(0).to(tl.int64)
+     draft_step_idx = tl.load(expanded_local_pos_ptr + logit_idx)
+@@ -265,6 +273,8 @@ def _compute_local_logits_stats_kernel(
+             mask=mask,
+             other=float("-inf"),
+         ).to(tl.float32)
++        if APPLY_TEMPERATURE and temp != 1.0:
++            target_logits = target_logits / temp
+         target_max, target_sumexp = _compute_max_and_sumexp(target_logits)
+         tl.store(
+             target_local_max_ptr + logit_idx * target_local_max_stride + block_idx,
+@@ -337,6 +347,7 @@ def _compute_cumulative_log_p_kernel(
+     vocab_num_blocks,
+     PADDED_VOCAB_NUM_BLOCKS: tl.constexpr,
+     HAS_DRAFT_LOGITS: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     req_idx = tl.program_id(0)
+     req_state_idx = tl.load(idx_mapping_ptr + req_idx).to(tl.int64)
+@@ -378,6 +389,7 @@ def _compute_cumulative_log_p_kernel(
+                     vocab_num_blocks,
+                     PADDED_VOCAB_NUM_BLOCKS,
+                     HAS_DRAFT_LOGITS,
++                    APPLY_TEMPERATURE,
+                 )
+             )
+             log_p = tl.minimum(log_p + (target_logprob - draft_logprob), 0.0)
+@@ -423,6 +435,7 @@ def _compute_local_residual_mass_kernel(
+     vocab_num_blocks,
+     BLOCK_SIZE: tl.constexpr,
+     PADDED_VOCAB_NUM_BLOCKS: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     logit_idx = tl.program_id(0).to(tl.int64)
+     draft_step_idx = tl.load(expanded_local_pos_ptr + logit_idx)
+@@ -468,6 +481,7 @@ def _compute_local_residual_mass_kernel(
+         vocab_num_blocks,
+         PADDED_VOCAB_NUM_BLOCKS,
+         True,  # HAS_DRAFT_LOGITS
++        APPLY_TEMPERATURE,
+     )
+ 
+     # Compute the residual mass: max(p_i * M_b(x|x_{<i}) - M_s(x|x_{<i}), 0)
+@@ -538,6 +552,7 @@ def _rejection_kernel(
+     HAS_DRAFT_LOGITS: tl.constexpr,
+     SYNTHETIC_MODE: tl.constexpr,
+     USE_BLOCK_VERIFICATION: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     req_idx = tl.program_id(0)
+     req_state_idx = tl.load(idx_mapping_ptr + req_idx).to(tl.int64)
+@@ -617,8 +632,10 @@ def _rejection_kernel(
+                         next_draft_token,
+                         logit_idx + 1,
+                         vocab_num_blocks,
++                        temp,
+                         PADDED_VOCAB_NUM_BLOCKS,
+                         HAS_DRAFT_LOGITS,
++                        APPLY_TEMPERATURE,
+                     )
+                     denom = residual_mass + 1.0 - prefix_joint_ratio
+                     h = tl.where(denom > 0.0, residual_mass / denom, 1.0)
+@@ -652,6 +669,7 @@ def _rejection_kernel(
+                         vocab_num_blocks,
+                         PADDED_VOCAB_NUM_BLOCKS,
+                         HAS_DRAFT_LOGITS,
++                        APPLY_TEMPERATURE,
+                     )
+                 )
+                 if SYNTHETIC_MODE:
+@@ -775,6 +793,7 @@ def _resample_kernel(
+     USE_BLOCK_VERIFICATION: tl.constexpr,
+     CONTEXT_WIDTH: tl.constexpr,
+     WATERMARK: tl.constexpr,
++    APPLY_TEMPERATURE: tl.constexpr = False,
+ ):
+     req_idx = tl.program_id(0)
+     resample_idx = tl.load(rejected_step_ptr + req_idx)
+@@ -805,6 +824,8 @@ def _resample_kernel(
+         mask=mask,
+         other=float("-inf"),
+     ).to(tl.float32)
++    if APPLY_TEMPERATURE and temp != 0.0 and temp != 1.0:
++        target_logits = target_logits / temp
+ 
+     # Compute the residual logits to resample the rejected token from.
+     if is_bonus or not is_valid_rejected_draft:
+@@ -1024,6 +1045,7 @@ def rejection_sample(
+     contexts: torch.Tensor | None = None,
+     watermarking: torch.Tensor | None = None,
+     watermark_key: int | None = None,
++    apply_temperature: bool = False,
+ ) -> tuple[torch.Tensor, torch.Tensor]:
+     assert target_logits.ndim == 2 and target_logits.stride(-1) == 1
+     assert draft_logits is None or (
+@@ -1108,6 +1130,7 @@ def rejection_sample(
+         num_speculative_steps,
+         BLOCK_SIZE=VOCAB_BLOCK_SIZE,
+         HAS_DRAFT_LOGITS=has_draft_logits,
++        APPLY_TEMPERATURE=apply_temperature,
+     )
+ 
+     # Precompute the running joint ratio and residual mass for block
+@@ -1143,6 +1166,7 @@ def rejection_sample(
+             vocab_num_blocks,
+             PADDED_VOCAB_NUM_BLOCKS=padded_vocab_num_blocks,
+             HAS_DRAFT_LOGITS=has_draft_logits,
++            APPLY_TEMPERATURE=apply_temperature,
+             num_warps=1,
+         )
+ 
+@@ -1180,6 +1204,7 @@ def rejection_sample(
+                 vocab_num_blocks,
+                 BLOCK_SIZE=VOCAB_BLOCK_SIZE,
+                 PADDED_VOCAB_NUM_BLOCKS=padded_vocab_num_blocks,
++                APPLY_TEMPERATURE=apply_temperature,
+             )
+         else:
+             local_residual_mass = None
+@@ -1231,6 +1256,7 @@ def rejection_sample(
+         HAS_DRAFT_LOGITS=has_draft_logits,
+         SYNTHETIC_MODE=synthetic_conditional_rates is not None,
+         USE_BLOCK_VERIFICATION=use_block_verification,
++        APPLY_TEMPERATURE=apply_temperature,
+         num_warps=1,
+     )
+ 
+@@ -1278,6 +1304,7 @@ def rejection_sample(
+         USE_BLOCK_VERIFICATION=use_block_verification,
+         CONTEXT_WIDTH=context_width,
+         WATERMARK=watermark,
++        APPLY_TEMPERATURE=apply_temperature,
+     )
+ 
+     # Insert the resampled tokens into the output sampled.

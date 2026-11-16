@@ -1,0 +1,51 @@
+diff --git a/vllm/v1/core/kv_cache_utils.py b/vllm/v1/core/kv_cache_utils.py
+index 8e46b4c2d1..f19e3c02a8 100644
+--- a/vllm/v1/core/kv_cache_utils.py
++++ b/vllm/v1/core/kv_cache_utils.py
+@@ -1141,6 +1141,17 @@ def _split_kv_cache_groups_uniform_type(
+     min_num_layers = min([len(layers) for layers in same_type_layers.values()])
+     group_size = min_num_layers
+     max_num_layers = max([len(layers) for layers in same_type_layers.values()])
++    # Fix 34-KV-cache-group fragmentation when an external speculative draft
++    # model (e.g. DSpark 2L with 1 sliding_attention + 1 full_attention layer)
++    # introduces a singleton spec bucket alongside a hybrid Mamba+FullAttention
++    # target (e.g. Qwen3.5-4B: 24 Mamba + 8 full_attention). Exclude draft-only
++    # singleton buckets when computing the target n:1 group_size.
++    non_draft_counts = [
++        len(layers) for layers in same_type_layers.values()
++        if not all("drafter" in name or "mtp" in name for name in layers)
++    ]
++    if non_draft_counts and min(non_draft_counts) > 1 and min_num_layers == 1:
++        group_size = min(non_draft_counts)
+     if max_num_layers < min_num_layers * 1.5:
+         # If the number of layers is not much larger than the minimum number of
+         # layers, use the maximum number of layers as the group size to avoid
+--- a/IWRITECODE_qwen35-l1-dspark-2l-v32k/config.json
++++ b/IWRITECODE_qwen35-l1-dspark-2l-v32k/config.json
+@@ -16,9 +16,9 @@
+   "intermediate_size": 9216,
+   "layer_types": [
+-    "sliding_attention",
++    "full_attention",
+     "full_attention"
+   ],
+   "markov_Bottleneck_dim": 256,
+   "max_position_embeddings": 40960,
+   "max_window_layers": 2,
+   "model_type": "dspark_qwen3",
+   "num_attention_heads": 16,
+   "num_hidden_layers": 2,
+   "num_key_value_heads": 4,
+   "rms_norm_eps": 1e-06,
+   "rope_scaling": null,
+   "rope_theta": 1000000,
+-  "sliding_window": 4096,
++  "sliding_window": null,
+   "target_hidden_size": 2560,
+   "tie_word_embeddings": false,
+   "torch_dtype": "bfloat16",
+   "use_cache": true,
+-  "use_sliding_window": true,
++  "use_sliding_window": false,
+   "vocab_size": 248320
+ }

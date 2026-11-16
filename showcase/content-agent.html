@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content-Agent: Operator Console for the s2-mtp-optimizer AgentX Loop</title>
+<style>
+  :root {
+    --accent:#0f6cbd;
+    --accent-hover:#115ea3;
+    --accent-soft:#e7f0f9;
+    --accent2:#2760ae;
+    --accent3:#0f6cbd;
+    --accent4d:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --banner:#f3f2f1;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code2:#f3f2f1;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
+    --error:#c42b1c;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --green-soft2:#e5f3e5;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --info:#0f6cbd;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --mono:"Cascadia Code",Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --nav-hover:#edebe9;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --panel2:#f7f6f5;
+    --paper:#ffffff;
+    --purple:#5b2d90;
+    --purple-soft:#ede3f7;
+    --purple4d:#5b2d90;
+    --radius:8px;
+    --red:#c42b1c;
+    --red-soft:#fbe9e7;
+    --round:8px;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --teal:#038387;
+    --teal-soft:#d9efee;
+    --teal4d:#038387;
+    --text:#1b1a19;
+    --thead:#f8f8f8;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.65;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono,"Cascadia Code",Consolas,monospace);font-size:.88em;background:var(--bg2);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+  ::selection{background:#d4e8fb}.wrap{max-width:900px;margin:0 auto;padding:0 24px 60px}
+  .hero{padding:34px 0 8px;text-align:center}
+  .kicker{color:var(--accent);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;margin:0 0 10px}
+  .hero h1{font-size:clamp(26px,4vw,38px);font-weight:650;letter-spacing:-.02em;margin:0 0 8px}
+  .hero .lede{max-width:820px;margin:0 auto;color:#3b3a39;font-size:15px;line-height:1.7}
+  .hero .badges{margin-top:14px}
+  .pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11.5px;font-weight:600;margin:0 4px;border:1px solid var(--line2);color:var(--mut)}
+  .pill.g{color:var(--ok);border-color:var(--ok);background:#e9f5e9}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:20px 0 6px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut)}
+  .stat .v{font-size:17px;font-weight:700;margin-top:3px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .stat .s{font-size:11px;color:var(--mut2);margin-top:2px;line-height:1.4}
+
+  h2{font-size:19px;font-weight:650;margin:42px 0 10px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h2 .n{color:var(--accent);font-weight:700}
+  h2 .subtag{font-size:11px;color:var(--mut2);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+  h3{font-size:15.5px;font-weight:650;margin:26px 0 8px;color:var(--ink)}
+  p{color:var(--mut);font-size:14px;line-height:1.7}
+  .abstract{padding:16px 20px;border:1px solid var(--line);border-left:3px solid var(--accent);background:var(--surface);border-radius:0 8px 8px 0;font-size:14.5px;line-height:1.7;color:#3b3a39;max-width:980px}
+  .abstract b{color:var(--ink)}
+
+  /* Figures */
+  .fig{margin:14px 0 8px}
+  .fig .cap{font-size:12px;color:#3b3a39;margin:8px 0 0;line-height:1.6}
+  .fig .cap b{color:var(--ink)}
+  .figbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+  svg text{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+
+  /* Compact callout strips */
+  .strip{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
+  .chip{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px}
+  .chip b{display:block;font-size:13px;color:var(--ink);margin-bottom:3px}
+  .chip span{font-size:12.5px;color:#3b3a39;line-height:1.55;display:block}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:8px 0}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  td{color:#3b3a39}
+  th{background:var(--bg2);color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  tr:last-child td{border-bottom:none}
+
+  pre{background:#201f1e;color:#f3f2f1;padding:14px 18px;border-radius:8px;overflow:auto;font:13px/1.65 var(--mono);border:1px solid var(--line);margin:8px 0}
+  pre code{background:none;border:none;padding:0;color:#c9d8f2}
+
+  .callout{display:flex;gap:10px;border-radius:8px;padding:12px 16px;margin:10px 0;font-size:13px;border:1px solid var(--line);line-height:1.6;color:#3b3a39}
+  .callout b{white-space:nowrap}
+  .callout.warn{background:var(--gold-soft);border-left:3px solid var(--amber)} .callout.warn b{color:var(--amber)}
+  .callout.ok{background:#e9f5e9;border-left:3px solid var(--ok)} .callout.ok b{color:var(--ok)}
+  .callout.fix{background:var(--accent-soft);border-left:3px solid var(--cyan)} .callout.fix b{color:var(--accent)}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .minicard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+  .minicard h4{margin:0 0 4px;font-size:13px;color:var(--ink)}
+  .minicard p{margin:0;font-size:12.5px;color:#3b3a39;line-height:1.55}
+
+  .fl-foot{max-width:1280px;margin:0 auto;padding:20px 22px;color:var(--mut2);font-size:11.5px;border-top:1px solid var(--line)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#cfe4f7}
+
+/* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
+.fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+.fl-hub-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12px;padding:4px 8px;border-radius:6px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
+@media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1240px;margin:0 auto;padding:22px 24px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fl-foot code{font-size:11.5px}
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="qwen35_throughput.html">vLLM Qwen3.5</a>
+      <a href="agentic-inference-opt.html">Agentic Opt</a>
+      <a href="agentic-inference-opt-deck.html">Opt Deck</a>
+      <a href="content-agent.html" class="active">Content-Agent</a>
+      <a href="ask-chen.html">Ask-Chen</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="cliff.html">CLIFF</a>
+      <a href="llm_recommender_design.html">LLM Rec</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+
+  <div class="hero">
+    <p class="kicker">Content-Agent · operator console</p>
+    <h1>An operator console for the s2-mtp-optimizer AgentX loop</h1>
+    <p class="lede">A persistent loopback HTTP daemon wrapping the <code>s2-mtp-optimizer</code> AgentX loop —
+    trigger, poll, and live-log a single autonomous iteration of the 7-role co-engine team. Smoke mode
+    (<code>S2MTP_SMOKE=1</code>) measures baseline and candidate against the same frozen log, yielding a reproducible
+    <code>delta&nbsp;0</code> and a reviewable no-op diff.</p>
+    <div class="badges">
+      <span class="pill">127.0.0.1:8790</span><span class="pill">s2-mtp-optimizer</span>
+      <span class="pill">AgentX · sandbox · copilot backend</span><span class="pill g">smoke mode · delta 0</span>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Endpoint</div><div class="v">127.0.0.1:8790</div><div class="s">loopback only · stdlib HTTPServer · no auth, no web reach</div></div>
+    <div class="stat"><div class="k">Loop</div><div class="v">s2-mtp-optimizer</div><div class="s">AgentX provider · run-mode agentx · sandbox · copilot</div></div>
+    <div class="stat"><div class="k">Measure</div><div class="v">Smoke</div><div class="s">S2MTP_SMOKE=1 · frozen baseline → tps 1842.50 · delta 0</div></div>
+    <div class="stat"><div class="k">Repo root</div><div class="v">Q:\content-agents</div><div class="s">template + agent proxy CLI · campaign C:\repos\s2mtp-target</div></div>
+  </div>
+
+  <p class="abstract"><b>Abstract.</b> <b>Content-Agent</b> exposes the decode-throughput workload of the Agentic
+  Inference Optimization program through a trigger / poll / log HTTP surface. It realizes Chen's 7-role
+  autonomous team — one standalone Copilot process per role talking over the <b>agentbus</b>, plus a human
+  <b>Judgment</b> gate. Smoke mode measures baseline and candidate against the same frozen log, giving a reproducible
+  <code>delta&nbsp;0</code> and a reviewable no-op diff, so the full loop completes locally. This runbook covers the
+  design, operation, and a risk analysis of migrating the loop to the cloud. Governing principle: <b>the cloud moves
+  compute, never knowledge or credentials</b> — a hybrid control-plane, not a fully-cloud blind agent.</p>
+
+  <!-- ================= 1 Architecture ================= -->
+  <h2><span class="n">1</span>Architecture
+    <span class="subtag">trigger · poll · log</span></h2>
+  <div class="fig">
+    <div class="figbox">
+      <svg viewBox="0 0 1000 300" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Content-Agent architecture">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#605e5c"/></marker>
+        </defs>
+
+        <!-- Left: actor -->
+        <rect x="20" y="90" width="150" height="120" rx="10" fill="#e3f0fa" stroke="#0f6cbd"/>
+        <text x="95" y="128" text-anchor="middle" font-size="14" font-weight="700" fill="#0f6cbd">Browser / Script</text>
+        <text x="95" y="150" text-anchor="middle" font-size="11" fill="#2760ae">GET /status · /log</text>
+        <text x="95" y="166" text-anchor="middle" font-size="11" fill="#2760ae">POST /run</text>
+        <text x="95" y="188" text-anchor="middle" font-size="11" fill="#605e5c">on Chen's box</text>
+
+        <!-- Middle: daemon -->
+        <rect x="350" y="60" width="220" height="180" rx="12" fill="#ffffff" stroke="#0f6cbd" stroke-width="2"/>
+        <rect x="350" y="60" width="220" height="34" rx="12" fill="#0f6cbd"/>
+        <rect x="350" y="82" width="220" height="12" fill="#0f6cbd"/>
+        <text x="460" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">HTTP daemon</text>
+        <text x="460" y="118" text-anchor="middle" font-size="12" font-weight="700" fill="#0f6cbd">127.0.0.1:8790</text>
+        <text x="460" y="140" text-anchor="middle" font-size="11" fill="#605e5c">/health · / · /run</text>
+        <text x="460" y="157" text-anchor="middle" font-size="11" fill="#605e5c">/status · /log</text>
+        <text x="460" y="182" text-anchor="middle" font-size="11" fill="#605e5c">spawns detached CLI</text>
+        <text x="460" y="199" text-anchor="middle" font-size="11" fill="#605e5c">S2MTP_SMOKE=1</text>
+        <text x="460" y="222" text-anchor="middle" font-size="11" fill="#8a8886">s2mtp.log tail (20k)</text>
+
+        <!-- Right: loop -->
+        <rect x="730" y="55" width="250" height="150" rx="12" fill="#ffffff" stroke="#2760ae" stroke-width="2"/>
+        <text x="855" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#2760ae">AgentX loop</text>
+        <text x="855" y="102" text-anchor="middle" font-size="11" fill="#605e5c">goal → sandbox → baseline eval</text>
+        <text x="855" y="119" text-anchor="middle" font-size="11" fill="#605e5c">→ candidate eval → compare → finalize</text>
+        <text x="855" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#0f6cbd">7-role co-engine team</text>
+        <text x="855" y="160" text-anchor="middle" font-size="11" fill="#605e5c">1 process / role over agentbus</text>
+        <text x="855" y="180" text-anchor="middle" font-size="11" fill="#8a8886">Trusted local box</text>
+
+        <!-- Right bottom: A100 -->
+        <rect x="730" y="230" width="250" height="50" rx="10" fill="#5b2d90" opacity="0.9"/>
+        <text x="855" y="258" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">NVIDIA A100 80GB</text>
+        <text x="855" y="270" text-anchor="middle" font-size="10" fill="#e6dcf2">real candidate tps (non-smoke) · DLIS/AML job</text>
+
+        <!-- arrows -->
+        <line x1="170" y1="150" x2="345" y2="150" stroke="#605e5c" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="258" y="142" text-anchor="middle" font-size="10.5" fill="#605e5c">trigger / poll</text>
+        <line x1="570" y1="150" x2="725" y2="150" stroke="#605e5c" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="648" y="142" text-anchor="middle" font-size="10.5" fill="#605e5c">spawn loop</text>
+        <line x1="855" y1="205" x2="855" y2="226" stroke="#5b2d90" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="888" y="220" text-anchor="middle" font-size="10.5" fill="#5b2d90">measure</text>
+      </svg>
+    </div>
+    <p class="cap"><b>Figure 1.</b> Console overview: a thin loopback HTTP daemon wraps the local AgentX loop and exposes
+    trigger/poll/log. The loop runs fully on the local trusted box; a real A100 measurement (non-smoke) is the only step
+    that reaches out to DLIS/AML.</p>
+  </div>
+
+  <div class="callout warn"><b>Loopback only.</b> Binds <code>127.0.0.1:8790</code> — meant for a browser/script on
+  Chen's box. Not internet-reachable, holds no credentials, no auth. For remote/colleague access use the
+  <b>Ask-Chen</b> runbook (Azure-queue relay) instead.</div>
+
+  <!-- ================= 2 Smoke mode ================= -->
+  <h2><span class="n">2</span>Why smoke mode
+    <span class="subtag">delta 0 · reproducible baseline</span></h2>
+  <div class="fig">
+    <div class="figbox">
+      <svg viewBox="0 0 1000 190" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Smoke mode data flow">
+        <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#605e5c"/></marker></defs>
+        <rect x="30" y="55" width="170" height="90" rx="10" fill="#ffffff" stroke="#0f7b0f"/>
+        <text x="115" y="85" text-anchor="middle" font-size="12" font-weight="700" fill="#0f7b0f">Frozen baseline log</text>
+        <text x="115" y="105" text-anchor="middle" font-size="12" font-weight="700" fill="#0f7b0f">tps 1842.50</text>
+        <text x="115" y="125" text-anchor="middle" font-size="10.5" fill="#605e5c">sc_delta1_data-1000</text>
+        <text x="115" y="138" text-anchor="middle" font-size="10.5" fill="#8a8886">committed contract</text>
+
+        <line x1="200" y1="100" x2="300" y2="100" stroke="#605e5c" stroke-width="2" marker-end="url(#ar2)"/>
+
+        <rect x="305" y="55" width="190" height="90" rx="10" fill="#ffffff" stroke="#0f6cbd"/>
+        <text x="400" y="85" text-anchor="middle" font-size="12" font-weight="700" fill="#0f6cbd">Both sides re-read</text>
+        <text x="400" y="105" text-anchor="middle" font-size="11" fill="#605e5c">baseline esp. candidate</text>
+        <text x="400" y="125" text-anchor="middle" font-size="11" fill="#605e5c">against the SAME log</text>
+
+        <line x1="495" y1="100" x2="595" y2="100" stroke="#605e5c" stroke-width="2" marker-end="url(#ar2)"/>
+
+        <rect x="600" y="55" width="170" height="90" rx="10" fill="#ffffff" stroke="#0f7b0f"/>
+        <text x="685" y="85" text-anchor="middle" font-size="12" font-weight="700" fill="#0f7b0f">Delta 0</text>
+        <text x="685" y="105" text-anchor="middle" font-size="11" fill="#605e5c">thruput.tps = baseline</text>
+        <text x="685" y="125" text-anchor="middle" font-size="11" fill="#605e5c">reviewable no-op diff</text>
+
+        <line x1="770" y1="100" x2="870" y2="100" stroke="#605e5c" stroke-width="2" marker-end="url(#ar2)"/>
+
+        <rect x="875" y="55" width="105" height="90" rx="10" fill="#fdf4dc" stroke="#9d5d00"/>
+        <text x="928" y="85" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d5d00">Promotion</text>
+        <text x="928" y="103" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d5d00">proposed</text>
+        <text x="928" y="122" text-anchor="middle" font-size="10" fill="#9d5d00">human review</text>
+        <text x="928" y="135" text-anchor="middle" font-size="10" fill="#9d5d00">no auto-approve</text>
+      </svg>
+    </div>
+    <p class="cap"><b>Figure 2.</b> Smoke-mode data flow. Without a real A100 log there is no honest local substitute for
+    candidate <code>tps</code>, so both sides measure the frozen baseline — yielding <code>delta 0</code> and a
+    reviewable no-op diff instead of aborting on "no measured change".</p>
+  </div>
+
+  <!-- ================= 3 7-role team ================= -->
+  <h2><span class="n">3</span>Helper-role architecture: the co-engine team
+    <span class="subtag">deck §8 · role split</span></h2>
+  <div class="fig">
+    <div class="figbox">
+      <svg viewBox="0 0 1000 350" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="7-role pipeline">
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0L10,5L0,10z" fill="#0f6cbd"/></marker>
+          <marker id="ar3b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0L10,5L0,10z" fill="#9d5d00"/></marker>
+          <marker id="ar3p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0L10,5L0,10z" fill="#5b2d90"/></marker>
+        </defs>
+
+        <!-- agentbus substrate: the 7-role core runs over it -->
+        <rect x="20" y="55" width="810" height="225" rx="12" fill="#e3f0fa" stroke="#0f6cbd" stroke-dasharray="5 4" opacity="0.55"/>
+        <text x="42" y="268" font-size="12" font-weight="700" fill="#0f6cbd">agentbus</text>
+        <text x="106" y="268" font-size="11" fill="#2760ae">· publish / subscribe · any role ↔ any role · durable state <tspan font-family="var(--mono)">s2mtp.coengine.&lt;candidate&gt;.&lt;role&gt;</tspan></text>
+
+        <!-- PHASE 1 · DESIGN -->
+        <text x="42" y="84" font-size="11.5" font-weight="700" fill="#2760ae" letter-spacing=".08em">PHASE 1 · DESIGN / BUILD</text>
+        <g font-size="14" font-weight="700" text-anchor="middle">
+          <rect x="40" y="95" width="170" height="60" rx="9" fill="#0f6cbd"/><text x="125" y="126" fill="#fff">Planner</text><text x="125" y="142" fill="#cfe3f7" font-size="10.5" font-weight="400">sequence steps</text>
+          <rect x="230" y="95" width="170" height="60" rx="9" fill="#0f6cbd"/><text x="315" y="126" fill="#fff">Researcher</text><text x="315" y="142" fill="#cfe3f7" font-size="10.5" font-weight="400">hypotheses</text>
+          <rect x="420" y="95" width="170" height="60" rx="9" fill="#2760ae"/><text x="505" y="126" fill="#fff">Dev</text><text x="505" y="142" fill="#cfe3f7" font-size="10.5" font-weight="400">sole writer</text>
+          <rect x="610" y="95" width="170" height="60" rx="9" fill="#2760ae"/><text x="695" y="126" fill="#fff">Code review</text><text x="695" y="142" fill="#cfe3f7" font-size="10.5" font-weight="400">PASS / bounded fix</text>
+        </g>
+        <g stroke="#0f6cbd" stroke-width="2" marker-end="url(#ar3)">
+          <line x1="210" y1="125" x2="226" y2="125"/><line x1="400" y1="125" x2="416" y2="125"/><line x1="590" y1="125" x2="606" y2="125"/>
+        </g>
+
+        <!-- PHASE 2 · VALIDATE -->
+        <text x="42" y="186" font-size="11.5" font-weight="700" fill="#2760ae" letter-spacing=".08em">PHASE 2 · VALIDATE / OPERATE</text>
+        <g font-size="14" font-weight="700" text-anchor="middle">
+          <rect x="110" y="205" width="170" height="60" rx="9" fill="#2760ae"/><text x="195" y="236" fill="#fff">DevOps</text><text x="195" y="252" fill="#cfe3f7" font-size="10.5" font-weight="400">build · queue A100</text>
+          <rect x="300" y="205" width="170" height="60" rx="9" fill="#2760ae"/><text x="385" y="236" fill="#fff">Monitor</text><text x="385" y="252" fill="#cfe3f7" font-size="10.5" font-weight="400">detect failures</text>
+          <rect x="490" y="205" width="170" height="60" rx="9" fill="#2760ae"/><text x="575" y="236" fill="#fff">Evaluation</text><text x="575" y="252" fill="#cfe3f7" font-size="10.5" font-weight="400">measured tps</text>
+        </g>
+        <g stroke="#0f6cbd" stroke-width="2" marker-end="url(#ar3)">
+          <line x1="280" y1="235" x2="296" y2="235"/><line x1="470" y1="235" x2="486" y2="235"/>
+        </g>
+
+        <!-- connector: Code review → DevOps -->
+        <path d="M695 155 C 695 182, 195 180, 195 203" fill="none" stroke="#0f6cbd" stroke-width="2" marker-end="url(#ar3)"/>
+
+        <!-- Judgment (human edge, outside the bus) -->
+        <rect x="845" y="105" width="140" height="105" rx="10" fill="#fdf4dc" stroke="#9d5d00" stroke-width="2"/>
+        <text x="915" y="135" text-anchor="middle" font-size="14" font-weight="700" fill="#9d5d00">Judgment</text>
+        <text x="915" y="156" text-anchor="middle" font-size="11" fill="#9d5d00">human · go / no-go</text>
+        <text x="915" y="174" text-anchor="middle" font-size="11" fill="#9d5d00">acceptance criteria</text>
+        <text x="915" y="196" text-anchor="middle" font-size="10.5" fill="#9d5d00">no auto-approve</text>
+        <line x1="790" y1="150" x2="841" y2="140" stroke="#9d5d00" stroke-width="2" marker-end="url(#ar3b)"/>
+
+        <!-- Learn / iterate feedback loop -->
+        <rect x="20" y="300" width="965" height="36" rx="8" fill="#5b2d90"/>
+        <text x="505" y="323" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">↺ &nbsp;LEARN / ITERATE — feed the winner + reasoning into the next round</text>
+        <line x1="575" y1="265" x2="575" y2="298" stroke="#5b2d90" stroke-width="2" marker-end="url(#ar3p)"/>
+        <line x1="8" y1="318" x2="8" y2="92" stroke="#5b2d90" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar3p)"/>
+        <line x1="10" y1="95" x2="36" y2="95" stroke="#5b2d90" stroke-width="2" marker-end="url(#ar3p)"/>
+      </svg>
+    </div>
+    <p class="cap"><b>Figure 3.</b> The co-engine team: the autonomous core runs the loop over the agentbus;
+    <b>Judgment</b> (human) sits at the edge, and <b>Learn / iterate</b> feeds memory into the next round. Each
+    role runs as an independent Copilot process — <b>Planner</b> acts as the true orchestrator (emitting a JSON DAG dispatch plan posted to the AgentBus task board), the 6 downstream roles claim and execute their tasks over AgentBus with Dev as sole writer, and <b>Monitor</b> collects and verifies all 7 deliverables before the interactive Human Judgment Gate.</p>
+  </div>
+
+  <div class="callout ok"><b>Campaign UI Live Real-Time Message Feed &amp; Interactive Judgment Gate (<code>http://localhost:3980/campaigns/</code> · 2026-11-16).</b>
+  <div>In addition to the lightweight <code>:8790</code> operator console, the durable AgentX Campaign UI at <code>http://localhost:3980/campaigns/</code> (active campaign <code>97dc7e3c-ca33-4988-8f8c-ee4d1c1ea51f</code>, template <code>openjev-coengine</code>) now renders:
+  <b>(1) Live Real-Time Inter-Agent Message Feed</b> (<code>&lt;prefix&gt;.coengine.&lt;candidate&gt;.messages</code>, auto-polling AgentBus <code>:8765</code> every 4s with pre-turn/mid-turn <code>status: "running"</code> state and inbound prompts),
+  <b>(2) Step-by-Step DAG Handoff Pipeline</b>,
+  <b>(3) Per-Agent Conversations</b> (full inbound prompt &amp; published deliverable), and
+  <b>(4) Interactive Human Judgment Gate</b> (<code>GO</code> / <code>NO-GO</code> / <code>next_steering</code> feedback) keeping the campaign in a multi-iteration feedback loop at <code>awaiting_decision</code>.</div></div>
+
+  <!-- ================= 4 Endpoints ================= -->
+  <h2><span class="n">4</span>Endpoint surface
+    <span class="subtag">trigger · poll · log</span></h2>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Method</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>/health</code></td><td>GET</td><td><code>{"ok": true, "service": …, "port": …}</code></td></tr>
+      <tr><td><code>/</code></td><td>GET</td><td>Handler summary: template, repo_root, endpoints</td></tr>
+      <tr><td><code>/run</code></td><td>POST</td><td><code>{"run_id","state","log","note"}</code> — triggers one loop</td></tr>
+      <tr><td><code>/status</code></td><td>GET</td><td><code>{"last","runs"}</code> — latest result + per-run state</td></tr>
+      <tr><td><code>/log</code></td><td>GET</td><td>Tail (last 20k chars) of <code>s2mtp.log</code></td></tr>
+    </tbody>
+  </table>
+  <p class="muted" style="color:var(--mut2);font-size:12px">Run state: <code>enqueued → running → done/failed</code>.
+  A smoke iteration typically takes ~3 min (sandbox provisioning + two eval passes + analysis).</p>
+
+  <!-- ================= 5 Quick start ================= -->
+  <h2><span class="n">5</span>Quick start
+    <span class="subtag">runbook</span></h2>
+  <pre><code>curl -s http://127.0.0.1:8790/health                       # health
+curl -s -X POST http://127.0.0.1:8790/run                  # trigger one loop → run_id
+curl -s http://127.0.0.1:8790/status                       # poll until done/failed
+curl -s http://127.0.0.1:8790/log                          # tail loop log</code></pre>
+
+  <h3>5.1&nbsp; Operation (owner)</h3>
+  <div class="grid2">
+    <div class="minicard">
+      <h4>Start the daemon (detached)</h4>
+      <pre style="margin:6px 0 0"><code>cd /c/CodeGuru/agentbus
+python s2mtp_server.py --daemon --port 8790</code></pre>
+      <p style="margin-top:6px">State dir <code>~/.codeguru-agent-bus/s2mtp</code> · repo root
+      <code>Q:\content-agents</code> — both override via <code>--state-dir</code> / <code>--repo-root</code>.</p>
+    </div>
+    <div class="minicard">
+      <h4>Manual foreground launch (debug)</h4>
+      <pre style="margin:6px 0 0"><code>export PATH="/c/Program Files/RedHat/Podman:$PATH"
+cd /q/content-agents
+S2MTP_SMOKE=1 PYTHONPATH=src/agent_proxy/agent .venv/Scripts/python.exe \
+  src/agent_proxy/agent/cli.py start --name s2-mtp-loop \
+  --template s2-mtp-optimizer --run-mode agentx --no-relay \
+  --sandbox --backend copilot --work-dir 'C:/repos/s2mtp-target' \
+  --agentx-max-attempts 3 --input '&lt;goal&gt;'</code></pre>
+    </div>
+  </div>
+  <div class="callout fix"><b>Target-repo wiring.</b> If launch fails fast with <code>agentx_context_invalid</code>
+  (cause <code>git repository origin lookup failed</code>), the campaign repo lacks
+  <code>remote.origin.url</code> (template uses <code>workspace.mode: clone</code> /
+  <code>git_origin: C:/repos/s2mtp-target</code>). Fix:
+  <code>git -C /c/repos/s2mtp-target config remote.origin.url "C:/repos/s2mtp-target"</code>.</div>
+
+  <div class="callout fix"><b>Template digest gotcha.</b> Edit <b>only</b> the template source
+  <code>agents/templates/s2-mtp-optimizer/</code>, never the deployed runtime
+  <code>~/.content-agents/.agent-proxy/.agents/agent_proxy_s2-mtp-loop/</code>. A manual copy into the deployed dir
+  corrupts its recorded digest → instant <code>agentx_template_startup_error</code> (~700ms). Restore from a
+  <code>.rollback-*</code> dir and re-provision (source digest after fixes = <code>35d1ffad…</code>).</div>
+
+  <!-- ================= 6 Status ref ================= -->
+  <h2><span class="n">6</span>Status / error reference</h2>
+  <table>
+    <thead><tr><th>Signal</th><th>Meaning</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>outcome: succeeded</code></td><td>Iteration completed; promotion proposed</td><td>Review diff + comparison before promoting</td></tr>
+      <tr><td><code>rc != 0 / failed</code></td><td>Loop exited non-zero</td><td>Read <code>/log</code> for the failing stage</td></tr>
+      <tr><td><code>TemplateRuntimeError (digest)</code></td><td>Deployed runtime corrupted</td><td>Restore rollback + re-provision; edit only source</td></tr>
+      <tr><td><code>A100 candidate gap</code></td><td>Real measured rollout needs a live GPU job log</td><td>Non-smoke real iterations halt at "no real TPS" by design</td></tr>
+      <tr><td><code>charmap UnicodeEncodeError</code></td><td>CLI echoes exit 1 when a tool prints <code>→</code>/<code>−</code> (U+2192/U+2212)</td><td>Loop completes; console echo fails. Re-run with <code>PYTHONIOENCODING=utf-8</code> + UTF-8 log</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ================= 7 Cloud rollout ================= -->
+  <h2><span class="n">7</span>Cloud rollout — risk analysis
+    <span class="subtag">move compute; knowledge stays local</span></h2>
+  <div class="fig">
+    <div class="figbox">
+      <svg viewBox="0 0 1000 250" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hybrid control-plane">
+        <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#5b2d90"/></marker></defs>
+        <!-- left: cloud (compute out) -->
+        <rect x="25" y="50" width="410" height="180" rx="12" fill="#f1ecfb" stroke="#5b2d90" stroke-width="2"/>
+        <text x="230" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#5b2d90">CLOUD · move compute only</text>
+        <rect x="60" y="95" width="150" height="55" rx="8" fill="#ffffff" stroke="#5b2d90"/>
+        <text x="135" y="118" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5b2d90">Single A100 job</text>
+        <text x="135" y="135" text-anchor="middle" font-size="10" fill="#605e5c">one measured experiment</text>
+        <rect x="250" y="95" width="160" height="55" rx="8" fill="#ffffff" stroke="#5b2d90"/>
+        <text x="330" y="118" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5b2d90">Sealed datastore</text>
+        <text x="330" y="135" text-anchor="middle" font-size="10" fill="#605e5c">frozen slice · scoped identity</text>
+        <rect x="60" y="168" width="350" height="45" rx="8" fill="#ffffff" stroke="#5b2d90"/>
+        <text x="235" y="188" text-anchor="middle" font-size="11" fill="#5b2d90">ephemeral · sealed · destroy on exit</text>
+        <text x="235" y="203" text-anchor="middle" font-size="10" fill="#8a8886">one short-lived cred / job sign</text>
+
+        <!-- right: local (knowledge stays) -->
+        <rect x="565" y="50" width="410" height="180" rx="12" fill="#e3f0fa" stroke="#0f6cbd" stroke-width="2"/>
+        <text x="770" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#0f6cbd">LOCAL · knowledge &amp; control stay</text>
+        <rect x="600" y="95" width="160" height="55" rx="8" fill="#ffffff" stroke="#0f6cbd"/>
+        <text x="680" y="115" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f6cbd">Orchestration / hub</text>
+        <text x="680" y="133" text-anchor="middle" font-size="10" fill="#605e5c">7 roles · agentbus · state</text>
+        <rect x="790" y="95" width="160" height="55" rx="8" fill="#ffffff" stroke="#0f6cbd"/>
+        <text x="870" y="115" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f6cbd">Private KB / creds</text>
+        <text x="870" y="133" text-anchor="middle" font-size="10" fill="#605e5c">prompts · contract · tokens</text>
+        <rect x="600" y="168" width="350" height="45" rx="8" fill="#ffffff" stroke="#0f6cbd"/>
+        <text x="775" y="188" text-anchor="middle" font-size="11" fill="#0f6cbd">Judgment gate · acceptance · promote</text>
+        <text x="775" y="203" text-anchor="middle" font-size="10" fill="#8a8886">human sign-off every merge/promote</text>
+
+        <!-- middle arrow -->
+        <line x1="435" y1="140" x2="561" y2="140" stroke="#5b2d90" stroke-width="3" marker-end="url(#ar4)" marker-start="url(#ar4)"/>
+        <text x="498" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#5b2d90">frozen contract</text>
+        <text x="498" y="160" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f6cbd">measured tps + log</text>
+        <rect x="452" y="128" width="92" height="0"/>
+      </svg>
+    </div>
+    <p class="cap"><b>Figure 4.</b> Hybrid control-plane: the cloud runs only the single A100 measurement; knowledge,
+    credentials, orchestration, and the human gate stay local. Send <b>compute + the frozen contract</b> out; never the
+    <b>knowledge</b> plane.</p>
+  </div>
+
+  <p class="abstract" style="max-width:none"><b>Five risk planes.</b> — each collapses into the same root cause:</p>
+  <div class="strip">
+    <div class="chip"><b>1 · Data &amp; custody</b><span>KB/contract leak · residency · OOM. Worker stays <b>knowledge-blind</b>; ship only frozen contract; pin region; mount not wget.</span></div>
+    <div class="chip"><b>2 · Identity &amp; access</b><span>Token sprawl · wider blast radius. One scoped identity per job; Dev-only writer; fail-closed scopes.</span></div>
+    <div class="chip"><b>3 · Network</b><span>Egress gates (DLIS/MsftAzVPN) · loopback coupling. Hybrid split; allowlist one endpoint; durable outbox/inbox.</span></div>
+  </div>
+  <div class="strip">
+    <div class="chip"><b>4 · Fidelity &amp; reproducibility</b><span>State that doesn't transfer (Q:\ · .pth · podman · PIDs) · env drift. Immutable Dockerfile; pin toolchain + baseline; apples-to-apples TPS delta.</span></div>
+    <div class="chip"><b>5 · Operability</b><span>Observability distance · cold-start (~1–2h build) · cost hops · lost work. Structured logs, warm pools, batch turns, checkpoint at every gate.</span></div>
+    <div class="chip" style="border-left-color:var(--ok)"><b>Synth</b><span>Scale network, identity, operability — <b>never</b> the knowledge plane. The A100 bridge (explicit YAML → measure → localize log → real delta) is the right shape.</span></div>
+  </div>
+
+</div>
+
+<footer class="fl-foot">Content-Agent · localhost operator console (:8790) &amp; AgentX Campaign UI (http://localhost:3980/campaigns/) ·
+live real-time inter-agent message stream over AgentBus (:8765) · interactive Human Judgment Gate (GO / NO-GO / steering) ·
+templates s2-mtp-optimizer &amp; openjev-coengine · 7-role co-engine team · page updated 2026-11-16</footer>
+</body>
+</html>

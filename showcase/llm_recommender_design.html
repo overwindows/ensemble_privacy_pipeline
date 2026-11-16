@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-Driven Feed Recommendation System Design (No-Training)</title>
+<style>
+  /* ================= Fluent 2 light palette (aliases resolved to canonical vars) ================= */
+  :root {
+    --accent:#0f6cbd;
+    --accent-hover:#115ea3;
+    --accent-soft:#e7f0f9;
+    --accent2:#2760ae;
+    --accent3:#0f6cbd;
+    --accent4d:#0f6cbd;
+    --amber:#9d5d00;
+    --ax:#9d5d00;
+    --bad:#c42b1c;
+    --banner:#f3f2f1;
+    --bg:#faf9f8;
+    --bg2:#f3f2f1;
+    --blue:#0f6cbd;
+    --body:#1b1a19;
+    --brand:#0f6cbd;
+    --card:#ffffff;
+    --card2:#f3f2f1;
+    --cardbg:#f3f2f1;
+    --chip:#e3f0fa;
+    --chipb:#0f6cbd;
+    --code:#f3f2f1;
+    --code2:#f3f2f1;
+    --coral:#0f6cbd;
+    --coral-soft:#e3f0fa;
+    --cyan:#0f6cbd;
+    --dim:#8a8886;
+    --edge:#f3f2f1;
+    --error:#c42b1c;
+    --font:"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+    --gold:#9d5d00;
+    --gold-soft:#fdf4dc;
+    --green:#0f7b0f;
+    --green-soft:#e3f0fa;
+    --green-soft2:#e5f3e5;
+    --head:#f3f2f1;
+    --highlight:#e3f0fa;
+    --info:#0f6cbd;
+    --ink:#1b1a19;
+    --line:#e1dfdd;
+    --line2:#c8c6c4;
+    --livepanel:#1b1a19;
+    --mono:"Cascadia Code",Consolas,monospace;
+    --mut:#605e5c;
+    --mut2:#8a8886;
+    --muted:#605e5c;
+    --nav-hover:#edebe9;
+    --ok:#0f7b0f;
+    --panel:#ffffff;
+    --panel2:#f7f6f5;
+    --paper:#ffffff;
+    --purple:#5b2d90;
+    --purple-soft:#ede3f7;
+    --purple4d:#5b2d90;
+    --radius:8px;
+    --red:#c42b1c;
+    --red-soft:#fbe9e7;
+    --round:8px;
+    --run:#0f6cbd;
+    --sb:#0f6cbd;
+    --shadow:0 1.6px 3.6px rgba(0,0,0,.13),0 .3px .9px rgba(0,0,0,.11);
+    --soft:#f3f2f1;
+    --subtle:#f3f2f1;
+    --success:#0f7b0f;
+    --surface:#ffffff;
+    --teal:#038387;
+    --teal-soft:#d9efee;
+    --teal4d:#038387;
+    --text:#1b1a19;
+    --thead:#f8f8f8;
+    --tx:#1b1a19;
+    --txt:#1b1a19;
+    --warn:#9d5d00;
+  }
+
+  /* ================= base ================= */
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;
+       -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{color:var(--accent-hover);text-decoration:underline}
+  h1,h2,h3{font-weight:600;letter-spacing:-0.01em;font-family:var(--font);color:var(--ink)}
+  ::selection{background:#d4e8fb}
+  code{font-family:var(--mono);background:var(--card2);padding:1px 6px;border-radius:5px;font-size:12px}
+
+  /* ================= page masthead + scaffold ================= */
+  header:not(.fl-hub){background:var(--card);border-bottom:1px solid var(--line);padding:28px 32px;position:relative}
+  header h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.3px}
+  header .sub{color:var(--muted);margin-top:4px;font-size:13px}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+
+  /* ================= stat grid ================= */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:22px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .stat .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:24px;font-weight:700;margin-top:4px}
+  .stat .s{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* ================= headings + tables ================= */
+  h2{font-size:16px;margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:14px;margin:26px 0 10px;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--card2);color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+
+  /* ================= badges ================= */
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .b-run{background:var(--accent-soft);color:var(--blue);border:1px solid rgba(79,157,255,.4)}
+  .b-ok{background:#e9f5e9;color:var(--green);border:1px solid rgba(61,214,140,.4)}
+  .b-fail{background:#fbeae8;color:var(--red);border:1px solid rgba(255,93,115,.4)}
+  .b-queued{background:var(--gold-soft);color:var(--amber);border:1px solid rgba(245,185,66,.4)}
+  .b-mute{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+
+  /* ================= cards + callouts ================= */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:12px 0}
+  .fix{border-left:3px solid var(--cyan);padding:10px 14px;background:var(--card);border-radius:0 8px 8px 0;margin:10px 0}
+  .fix b{color:var(--cyan)}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* ================= progress-flow diagram ================= */
+  .flow{margin-top:8px;font-size:12.5px}
+  .flow .row{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+  .flow .lane{flex:1 1 220px;display:flex;flex-direction:column;gap:8px;min-width:200px}
+  .flow .lane-title{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:2px}
+  .fbox{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--card);line-height:1.35;position:relative}
+  .fbox .m{font-weight:700}
+  .fbox .s{font-size:11px;color:var(--muted)}
+  .fbox .f1{float:right;font-weight:800}
+  .fbox.root{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+  .fbox .f1.green{color:var(--green)}
+  .fbox .f1.amber{color:var(--amber)}
+  .fbox.win{border-color:var(--green);box-shadow:0 0 0 1.5px var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}
+  .fbox.gate{border-style:dashed;opacity:.7}
+  .fbox .tag{display:inline-block;font-size:10px;border-radius:8px;padding:0 6px;margin-left:6px;vertical-align:middle}
+  .fbox .tag.win{background:var(--green);color:#fff}
+  .fbox .tag.gate{background:var(--blue);color:#fff}
+  .flow .arrow{align-self:center;color:var(--muted);font-size:16px;padding:0 2px}
+  .flow .fork{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+  .flow .branch{display:flex;align-items:center;gap:10px;padding-left:8px}
+  .flow .drop{width:2px;background:var(--line);margin-left:14px}
+  @media(max-width:720px){.flow .arrow{transform:rotate(90deg)}.flow .row{flex-direction:column}}
+
+  /* ================= footer + two-col ================= */
+  footer{color:var(--muted);font-size:12px;margin-top:40px;padding-top:16px;border-top:1px solid var(--line)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+  /* ================= tech-report / paper structure ================= */
+  .titleblock{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 28px;margin:6px 0 18px}
+  .kicker{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .titleblock h1{font-size:24px;line-height:1.25;margin:0 0 8px;letter-spacing:-.01em}
+  .byline{color:var(--mut);font-size:13px;margin-top:6px}
+  .affil{color:var(--dim);font-size:11.5px;margin-top:2px}
+  .abstract{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:6px 0 6px;font-size:14px}
+  .abclabel{font-weight:700;font-variant:small-caps;letter-spacing:.03em;color:var(--accent)}
+  .keywords{font-size:12.5px;color:var(--mut);margin:8px 0 4px}
+  .secnum{color:var(--accent);font-weight:700;margin-right:8px}
+  .tabcap{font-size:12.5px;font-weight:700;color:var(--ink);margin:18px 0 6px;letter-spacing:.01em}
+  .finding{font-size:13px;color:var(--mut);background:var(--card);border:1px dashed var(--line2);border-radius:8px;padding:10px 14px;margin:10px 0 4px}
+  .appendix-hint{margin-top:60px}
+  .refnum{font-weight:700;color:var(--accent)}
+  .refs li{margin:4px 0;color:var(--mut)}
+  h2{scroll-margin-top:80px}
+  .toc{font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:6px 0 6px;columns:2;column-gap:32px}
+  .toc a{color:var(--mut);text-decoration:none}
+  .toc a:hover{color:var(--accent);text-decoration:underline}
+  @media(max-width:720px){.toc{columns:1}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font, "Segoe UI Variable","Segoe UI",system-ui,sans-serif);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-hover,var(--accent));text-decoration:underline}
+h1,h2,h3{font-weight:600;letter-spacing:-0.01em}
+/* Normalize any residual serif headings (e.g. AgenticGem catalog) to Segoe. */
+h1,h2,h3,.stat strong,.section-head h2,.entry h3,blockquote{font-family:var(--font,"Segoe UI Variable","Segoe UI",system-ui,sans-serif)}
+code{font-family:var(--mono,"Cascadia Code",Consolas,monospace)}
+::selection{background:#cfe4f7}
+
+/* ---- Shared hub masthead + site nav (Microsoft Fluent light) ---- */
+.fl-hub{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100}
+.fl-hub-inner{max-width:1240px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.fl-hub-brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:14px;color:var(--ink);white-space:nowrap}
+.fl-hub-logo{width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0f6cbd,#5b2d90)}
+.fl-hub-nav{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.fl-hub-nav a{color:var(--mut);font-size:12px;padding:4px 8px;border-radius:6px;text-decoration:none;font-weight:500}
+.fl-hub-nav a:hover{background:#eef0f4;color:var(--ink);text-decoration:none}
+.fl-hub-nav a.active{color:var(--accent);background:var(--accent-soft, #e7f0f9);font-weight:650}
+@media(max-width:820px){.fl-hub-nav{margin-left:0;width:100%}}
+
+/* ---- Shared page footer ---- */
+.fl-foot{max-width:1240px;margin:0 auto;padding:22px 24px 34px;color:var(--mut2);font-size:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fl-foot code{font-size:11.5px}
+</style>
+</head>
+<body>
+<header class="fl-hub">
+  <div class="fl-hub-inner">
+    <div class="fl-hub-brand"><span class="fl-hub-logo">C</span>Chrona Showcase Hub</div>
+    <nav class="fl-hub-nav">
+      <a href="index.html">Home</a>
+      <a href="one_unified.html">One Unified</a>
+      <a href="openjev-ft.html">OpenJev</a>
+      <a href="vllm-gemma4.html">vLLM Gemma4</a>
+      <a href="qwen35_throughput.html">vLLM Qwen3.5</a>
+      <a href="agentic-inference-opt.html">Agentic Opt</a>
+      <a href="agentic-inference-opt-deck.html">Opt Deck</a>
+      <a href="content-agent.html">Content-Agent</a>
+      <a href="ask-chen.html">Ask-Chen</a>
+      <a href="AgenticGem.PromptCatalog.html">AgenticGem</a>
+      <a href="bench_models.html">Benchmarks</a>
+      <a href="newsrank.html">NewsRank</a>
+      <a href="cliff.html">CLIFF</a>
+      <a href="llm_recommender_design.html" class="active">LLM Rec</a>
+      <a href="speculators.html">Speculators</a>
+      <a href="reproduce_s2_best.html">Reproduce S2</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap">
+
+  <div class="titleblock">
+    <div class="kicker">Chrona Showcase Hub &nbsp;·&nbsp; Feed Ranking — System Design · First Principles</div>
+    <h1>An LLM-Driven Feed Recommendation System, Built from First Principles (No Training Required)</h1>
+    <div class="byline">Chen Wu — MSN Feed Ranking</div>
+    <div class="affil">Design preprint · LLM = DeepSeek (deepseek-v4-flash, DLIS route family <code>recohelper…CallDLIS/HotColdStartHPF</code>) · no model training at this stage · <span class="muted">updated 2026-10-16</span></div>
+  </div>
+
+  <div class="abstract">
+    <span class="abclabel">Abstract&nbsp;</span>
+    Today's MSN Feed ranking is a high-volume DNN funnel (Recall → L2 pre-select → L3 re-rank → L4/WPO) with
+    the LLM reserved for quality gates and, experimentally, narrow re-ranking. This paper asks the inverse
+    question from first principles: <b>if you treat the LLM as the design center rather than an additive layer,
+    what should the architecture be — and what can be built with <u>zero training</u> using DeepSeek?</b> We derive a
+    decision-function framing (rank = score a candidate given a user-context and a corpus) and show where a
+    generic, instruction-following LLM is genuinely superior: semantic/intent understanding, top-K
+    re-ranking and candidate composition, and explainability. We then split the problem into steps —
+    content understanding, user understanding, retrieval, volume ranking, top-K re-rank &amp; composition, and a
+    deterministic quality gate — and assign each to the cheapest component that is provably sufficient
+    (vectors/ML for scale, LLM for judgment). We present a hybrid lane design (A: LLM-as-feature-extractor vs
+    B: LLM-as-top-K-re-ranker), the DeepSeek prompt contracts, the per-stage latency budget against the
+    <b>~300&nbsp;ms p50 end-to-end</b> guardrail, and a stub repo layout. Nothing here requires training a new
+    model; every ML surface is replaced by <i>off-the-shelf</i> embeddings and a reranker, and every judgment
+    surface by a prompt.
+    <div class="keywords">Keywords: &nbsp;LLM-driven recommendation · DeepSeek · top-K re-ranking · retrieval-augmented recommendation · hybrid ranker · explainability · no-training design · GenRec vs LLM-as-reasoner</div>
+  </div>
+
+  <div class="toc">
+    <b>Contents</b>&nbsp;
+    <a href="#s1">1 Introduction &amp; problem framing</a> ·
+    <a href="#s2">2 Why not all-LLM</a> ·
+    <a href="#s3">3 Step split — where the LLM wins</a> ·
+    <a href="#s4">4 Two paradigms</a> ·
+    <a href="#s5">5 Reference architecture</a> ·
+    <a href="#s6">6 Prompt contracts (DeepSeek)</a> ·
+    <a href="#s7">7 Latency budget</a> ·
+    <a href="#s8">8 Stub repo layout</a> ·
+    <a href="#s9">9 Evaluation rails</a> ·
+    <a href="#s10">10 Staging &amp; risks</a> ·
+    <a href="#refs">References</a>
+  </div>
+
+  <hr style="border:none;border-top:1px solid var(--line);margin:26px 0">
+
+  <h2 id="s1"><span class="secnum">1.</span>Introduction &amp; problem framing</h2>
+  <p>A recommender picks, for a user-context <code>u</code> and a candidate corpus <code>C</code>, the top <code>k</code> items,
+  <i>i.e.</i> it implements a ranking decision function <code>rank(u, c) → score</code> over items <code>c ∈ C</code>. The entire field is a
+  question of <b>where that score comes from</b>. A pure DNN stack learns a fixed committee of interaction signals
+  (impression / click / dwell / like = the "explicit + implicit feedback" path) and scales to 180K RPS, but it
+  generalizes poorly to cold items, cannot read free-text intent, and cannot say <i>why</i>. A pure LLM can reason
+  about any text but is too slow and too expensive to score every candidate at volume.</p>
+
+  <p>The design principle this paper uses: <b>assign each sub-problem to the cheapest component that is provably
+  sufficient.</b> Vectors and an ML ranker win when the decision needs <i>scale</i> and <i>statistical interaction
+  signals</i>; the LLM wins when the decision needs <i>language understanding</i>, <i>judgment over a small set</i>, or
+  <i>explanation</i>. Concretely: the LLM (DeepSeek) is used <u>offline</u> to build a semantic content/user layer, and
+  <u>online only at the head of the funnel</u> — re-ranking the top few dozen already cheaply-selected candidates and
+  composing them into a coherent slate.</p>
+
+  <div class="grid">
+    <div class="stat"><div class="k">Scale</div><div class="v">180K RPS</div><div class="s">≈240M daily visitors on MSN Feed</div></div>
+    <div class="stat"><div class="k">Latency guardrail</div><div class="v">~300 ms</div><div class="s">p50 end-to-end budget</div></div>
+    <div class="stat"><div class="k">Training today</div><div class="v">None</div><div class="s">this stage: off-the-shelf embed + reranker + prompted DeepSeek</div></div>
+    <div class="stat"><div class="k">LLM surface</div><div class="v">Top-K only</div><div class="s">re-rank a small head, not the whole corpus</div></div>
+  </div>
+
+  <h2 id="s2"><span class="secnum">2.</span>Why not all-LLM</h2>
+  <p>Ranking every candidate with an LLM fails on three axes simultaneously (Table 1):</p>
+  <p class="tabcap">Table 1 — &nbsp;Why a pure-LLM ranker cannot carry the funnel</p>
+  <table>
+    <thead><tr><th>Axis</th><th>Why the LLM loses</th><th>Mitigation used here</th></tr></thead>
+    <tbody>
+      <tr><td><b>Scale</b></td><td>Corpus far exceeds what an LLM can score in budget; latency per token × candidates is prohibitive.</td><td>LLM sees only the top-K head (&le;48 candidates); vectors carry the tail.</td></tr>
+      <tr><td><b>Interaction stats</b></td><td>LLM cannot natively ingest billions of implicit feedback events; that signal lives in log-sparse ML.</td><td>ML ranker absorbs CTR/dwell; LLM refines that shortlist.</td></tr>
+      <tr><td><b>Cost</b></td><td>Per-request LLM scoring at 180K RPS is unaffordable.</td><td>One short LLM call per request, cached where possible.</td></tr>
+    </tbody>
+  </table>
+  <div class="finding"><b>Corollary.</b> The LLM is a <i>judgment component at the head</i>, not a replacement for the recall/volume tiers. This is exactly the LLM-as-reasoner (hybrid) paradigm, contrasted with Generative Recommendation in §4.</div>
+
+  <h2 id="s3"><span class="secnum">3.</span>Step split — where the LLM wins</h2>
+  <p>Decompose ranking into six steps and score each by "cheapest sufficient engine" (Table 2). The <b>LLM-wins</b>
+  cells are language- or judgment-heavy and limited to a small candidate set; the <b>ML/vector-wins</b> cells are
+  scale- or statistic-heavy.</p>
+  <p class="tabcap">Table 2 — &nbsp;Step-level engine assignment</p>
+  <table>
+    <thead><tr><th>#</th><th>Step</th><th>Winning engine</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Content understanding (item → semantic + extraction)</td><td><b>LLM, offline</b></td><td>Reads title/body/entities, emits tags+embeddings; one batch job; embeddings are cached.</td></tr>
+      <tr><td>2</td><td>User understanding (ctx → long/short-term interest)</td><td><b>LLM, offline/periodic</b></td><td>Interest graph (MAI-Profile style) from history; refreshed daily, not per-request.</td></tr>
+      <tr><td>3</td><td>Retrieval (billions → a few hundred)</td><td>Vectors (off-the-shelf embedder)</td><td>Top-k ANN by embedding similarity; pure scale.</td></tr>
+      <tr><td>4</td><td>Volume ranking (hundreds → ~48)</td><td>ML ranker (static/cheap)</td><td>CTR/dwell interaction stats, freshness, diversity; sub-millisecond scoring.</td></tr>
+      <tr><td>5</td><td>Top-K re-rank + composition (48 → 10–20)</td><td><b>LLM, online</b></td><td>Semantic relevance to free-text intent; dedupe/coherence/ordering of the slate.</td></tr>
+      <tr><td>6</td><td>Quality + business gate</td><td>Deterministic rules + SLM</td><td>Block unsafe/low-quality/gray content; no latency budget for judgment here beyond a cheap pass.</td></tr>
+    </tbody>
+  </table>
+  <div class="finding"><b>Key insight.</b> Steps 1–2 convert document and user <i>text</i> into a durable, cached vector layer; steps 3–4 do the brute-force selection; step 5 is the <i>only</i> place an LLM scores against a <i>live, user-specific</i> goal — and only for &le;48 candidates so it fits the latency budget. Step 6 stays deterministic to guarantee safety.</div>
+
+  <h2 id="s4"><span class="secnum">4.</span>Two paradigms: LLM-as-reasoner vs Generative Recommendation</h2>
+  <p>There are two ways to make an LLM the "design center." Table 3 contrasts them so the choice is explicit.</p>
+  <p class="tabcap">Table 3 — &nbsp;Two LLM-centric paradigms</p>
+  <table>
+    <thead><tr><th>Dimension</th><th>A. LLM-as-reasoner (hybrid)</th><th>B. Generative Recommendation (GenRec)</th></tr></thead>
+    <tbody>
+      <tr><td><b>What LLM does</b></td><td>Re-ranks / composes a shortlist from a cheap ranker</td><td>Autoregressively <i>generates</i> the next-item sequence (HSTU / HLLM / Woodformer-GenRec)</td></tr>
+      <tr><td><b>Training needed</b></td><td><b>None</b> — off-the-shelf embed + reranker + prompted DeepSeek</td><td>Heavy — train a next-item transformer on billions of sessions (GenRec uses 800+ A100)</td></tr>
+      <tr><td><b>Guarantees</b></td><td>Explainable decisions; stable; easy to A/B</td><td>Strong on dense-signal sessions; opaque; brittle to cold users</td></tr>
+      <tr><td><b>Fit to this stage</b></td><td><span class="sc-s2">✓ Recommended</span> (no training)</td><td>✗ Out of scope until later</td></tr>
+    </tbody>
+  </table>
+  <p>For the explicit "no training" constraint we standardize on <b>Paradigm A</b>. GenRec is listed as the
+  long-horizon successor once interaction data and training budget permit.</p>
+
+  <h2 id="s5"><span class="secnum">5.</span>Reference architecture</h2>
+  <div class="pipeline">
+    <span class="pstage llm">1 Content understanding (LLM/offline)</span>
+    <span class="pstage ml">3 Vector retrieval (ANN)</span>
+    <span class="pstage">4 Volume rank (ML → 48)</span>
+    <span class="pstage llm">5 Top-K re-rank + compose (DeepSeek, online)</span>
+    <span class="pstage gate">6 Quality gate (rules + SLM)</span>
+  </div>
+  <p><b>Stage 1 (offline, batched).</b> For every in-scope item, a DeepSeek batch job emits: a 2–3 sentence structured
+  summary, an entity/topic set, intent tags (e.g. <code>["breaking", "finance", "tutorial"]</code>), and an embedding via an
+  off-the-shelf encoder. Cached in a vector DB; refreshed on an ingestion schedule.</p>
+  <p><b>Stage 2 (periodic, cached).</b> A per-user interest profile (long-term + rolling short-term window) is derived with
+  DeepSeek from the user's reading history — the free-form, no-training analogue of MAI Profile's delta-window /
+  decay design (§5.6 of the Profile DAG), stored as a compact interest-vector + tag list.</p>
+  <p><b>Stage 3 (per-request, vectors).</b> Embed the user's current context (query / recent clicks) and run ANN
+  retrieval over the item index to a few hundred candidates.</p>
+  <p><b>Stage 4 (per-request, ML).</b> A stateless ranker (e.g. a lightweight GBDT-style or fine-tuned-foundation reranker)
+  scores the few hundred by interaction signal + freshness + diversity and keeps the top ~48.</p>
+  <p><b>Stage 5 (per-request, DeepSeek — the core of this design).</b> The top-48 shortlist, the user profile, and the task
+  contract in §6 are sent to DeepSeek as one scored re-rank + composition call. It returns a globally-ordered,
+  de-duplicated, diversified slate of 10–20; optionally with a one-line reason per item (the explainability
+  win).</p>
+  <p><b>Stage 6 (guardrail).</b> Deterministic filters (NSFW, gray-trait SLM for quality, business rules) run after re-rank;
+  anything that fails is demoted/replaced. This guarantees safety independent of the LLM.</p>
+
+  <h2 id="s6"><span class="secnum">6.</span>Prompt contracts (DeepSeek)</h2>
+  <p>The online re-ranker (§5 Stage 5) is the contract that matters. Draft contract below — single call, strict
+  output schema, per-item score + reason.</p>
+  <div class="prompt">SYSTEM
+You are a feed-ranking editor. Given a user interest profile and a REL ranking of candidate items,
+re-rank a shortlist into the best coherent slate. Preserve informative diversity, avoid near-duplicate
+stories, and prefer items matching the user's explicit current intent. Return JSON.
+
+USER
+User profile (interest tags + level): {{profile}}
+Current intent / recent clicks: {{intent}}
+Candidates (REL rank, id, title, summary, tags, engagement):
+{{shortlist | json}}
+
+TASK
+1. Score each candidate 0–100 for relevance to the user given profile + intent.
+2. De-duplicate: if two candidates cover the same story, keep the higher-scoring one.
+3. Order into a final slate of up to {{k}} items that reads well as a whole.
+4. For each kept item: reason (≤ 12 words).
+
+OUTPUT (JSON only, no prose)
+{"slate":[{"id":"...","score":88,"reason":"..."}],"dropped":["id", ...]}</div>
+  <p class="tabcap">Table 4 — &nbsp;Contract requirements and failure modes</p>
+  <table>
+    <thead><tr><th>Requirement</th><th>Anchoring</th><th>Failure mode if violated</th></tr></thead>
+    <tbody>
+      <tr><td>Strict JSON, keys fixed</td><td>Explicit output block + schema</td><td>Unparseable output → fall back to REL order (report rate)</td></tr>
+      <tr><td>Input capped (&le;48 items, truncated summaries)</td><td>Tight char budget per item</td><td>Oversized prompt → latency/TTFT blowout</td></tr>
+      <tr><td>Scores on a fixed 0–100 scale</td><td>Prompt states the scale</td><td>Cross-request scale drift → mis-ranking</td></tr>
+      <tr><td>Determinism handled at runtime</td><td>temperature=0 + seed</td><td>Flapping slate between identical requests</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s7"><span class="secnum">7.</span>Latency budget</h2>
+  <p class="tabcap">Table 5 — &nbsp;Per-request p50 budget vs ~300 ms end-to-end guardrail</p>
+  <table>
+    <thead><tr><th>Stage</th><th>Budget</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>3 Vector retrieval</td><td>~10 ms</td><td>ANN over cached index</td></tr>
+      <tr><td>4 Volume rank</td><td>~5 ms</td><td>stateless, sub-ms/item</td></tr>
+      <tr><td><b>5 DeepSeek top-K</b> (&le;48, &le;~2.5K prompt tokens)</td><td><b>~200 ms</b></td><td>TTFT-dominated; small prompt to keep first token fast</td></tr>
+      <tr><td>6 Quality gate</td><td>~20 ms</td><td>rules + cheap SLM pass</td></tr>
+      <tr><td>Overhead / network</td><td>~40 ms</td><td>serialization, hop</td></tr>
+      <tr><td><b>Total</b></td><td><b>~275 ms</b></td><td>within the ~300 ms p50 guardrail</td></tr>
+    </tbody>
+  </table>
+  <div class="finding"><b>Design lever.</b> The budget is dominated by one DeepSeek call. If p95 slips, (a) shrink the
+  shortlist (48 → 24), (b) truncate per-item summaries harder, or (c) enable a streaming / cached-prefix path. Never
+  spend LLM budget on stages 3–4.</div>
+
+  <h2 id="s8"><span class="secnum">8.</span>Stub repo layout</h2>
+  <div class="card">
+    <p style="margin:0 0 8px"><b>Proposed layout (all stub/scaffold — no training module exists):</b></p>
+    <pre style="font-family:var(--mono);font-size:12px;line-height:1.5;margin:0;color:var(--ink)">llm_rec/
+  config/            # per-stage latency + prompt templates (yaml)
+  contracts/         # json-schema for stage-5 input & output (the only hard contract)
+  content_understand/ # offline DeepSeek batch → summary/tags/embedding  [stub]
+  user_profile/       # periodic DeepSeek → interest tags + vector        [stub]
+  retrieval/          # off-the-shelf embedder + ANN index                [stub]
+  volume_rank/        # stateless ML ranker facade                        [stub]
+  toprank/            # DeepSeek top-K re-ranker + composition (the core) [stub]
+    prompt.py         # renders the §6 contract, validates the JSON reply
+    caller.py         # DLIS route (/recohelper…CallDLIS), X-Api-Key via env
+    fallback.py       # REL-order fallback + schema-failure rate monitor
+  quality_gate/       # rules + gray-trait SLM pass                        [stub]
+  eval/               # offline, AI-judge, online A/B (see §9)            [stub]
+  README.md           # this design doc, condensed
+</pre>
+  </div>
+  <p class="muted">Nothing in this layout trains a model. The only real callable today is <code>toprank/caller.py</code> against the
+  existing DeepSeek DLIS route; everything else is an interface you can mock for a first end-to-end smoke test.</p>
+
+  <h2 id="s9"><span class="secnum">9.</span>Evaluation rails</h2>
+  <p>Because there is no training, "validation" means measuring <i>system</i> behavior, not model loss. Three rails:</p>
+  <p class="tabcap">Table 6 — &nbsp;Three evaluation rails</p>
+  <table>
+    <thead><tr><th>Rail</th><th>What it measures</th><th>Instrument</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 Offline</b></td><td>Ranking quality on logged impressions (NDCG/MAP/recall@K) with the LLM re-ranker in the loop</td><td>Replay a day of logs; compare vs production span</td></tr>
+      <tr><td><b>2 AI judge</b></td><td>Relevance / coherence of the composed slate at scale</td><td>DeepSeek-as-judge scores the slate (the FARE-style GPT-based relevance judge)</td></tr>
+      <tr><td><b>3 Online A/B</b></td><td>Real CTR / dwell / long-term engagement, latency, error rate</td><td>Shadow-traffic first, then A/B; guardrail = no regression on p50/p95/QoS</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s10"><span class="secnum">10.</span>Staging and risks</h2>
+  <p><b>Staging.</b> (1) Stand up <code>toprank/</code> against the real DeepSeek DLIS route and run the offline replay rail to see
+  whether LLM re-rank > ML-baseline on logged data. (2) Optionally toggle stage-5 on top of a portion of live
+  traffic behind a flag. (3) Only if gains hold, broaden. This keeps the no-training system deployable in days,
+  not months.</p>
+  <p><b>Primary risks</b> — Table 7.</p>
+  <p class="tabcap">Table 7 — &nbsp;Risk register</p>
+  <table>
+    <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Latency slip at p95</td><td>High</td><td>Shortlist cap + summary truncation + streaming/cached prefix (§7 lever)</td></tr>
+      <tr><td>Cost at 180K RPS</td><td>High</td><td>One call/request; cache identical user-contexts; route only the head to LLM</td></tr>
+      <tr><td>Unstable / flapping slates</td><td>Med</td><td>temperature=0, seed, deterministic ties, monotonic fallback</td></tr>
+      <tr><td>Schema / JSON failure</td><td>Med</td><td>Strict schema + fallback to REL order + failure-rate alert</td></tr>
+      <tr><td>LLM bias / safety sprawl</td><td>Med</td><td>Deterministic quality gate always runs last, independent of the LLM</td></tr>
+    </tbody>
+  </table>
+
+  <div class="appendix-hint"></div>
+  <h2 id="refs">References</h2>
+  <ol class="refs">
+    <li>Z. Wu, "MSN Feed Ranking — system memo," internal KB: <code>msn_feed_recommendation_stack</code> (Apr 2024). Scale, Recall→L2→L3→WPO funnel, MAI/ADA2/CF embeddings.</li>
+    <li>Channel L2/L3 Ranking Working Group notes, internal KB: <code>channel_l2l3_ranking_working_group</code> (SageFormer, DLRM+MMoE+LSS, Woodformer; DLIS serving).</li>
+    <li>Channel Deep Dives — Ranking forward-looking, internal KB: <code>channel_deepdives_ranking_forwardlooking</code> (rankers GBDT→DNN→MMoE→WB-DNN; GenRec HSTU/HLLM; DoCA personalization).</li>
+    <li>C. Wu, "MAI Profile V3 architecture (14-step DAG)" — internal KB: <code>mai_profile_v3_architecture</code> (EMA/delta-window + lifecycle). General reference for the no-training user-profile stage.</li>
+    <li>C. Wu, "One Unified SLM initiative," internal KB: <code>project_one_unified_slm</code> (MAI+Quality+GEM+HPF 4-task SFT) — context for the gray-trait/quality gate reuse.</li>
+    <li>FARE / relevance judge design, internal KB — AI-judge rail analogue.</li>
+    <li>GenRec / HSTU / HLLM — internal ranking deep-dive (Paradigm B, out of scope this stage).</li>
+  </ol>
+
+  <footer>LLM-Driven Feed Recommendation System Design · no-training preprint · 2026-10-16 · DeepSeek = <code>deepseek-v4-flash</code> via DLIS <code>recohelper…CallDLIS</code> route (env <code>X-Api-Key</code>) · design only — no model trained.</footer>
+</div>
+</body>
+</html>
