@@ -348,17 +348,19 @@
               <ul class="talk" style="font-size:13.5px;margin-top:6px">
                 <li><b>Model Families:</b> <b>Gemma-4</b> (26B-A4B MoE), <b>Qwen</b> (Qwen3.5-27B/35B hybrid GDN+Attn, Qwen3-8B/4B, Qwen3.8), <b>Speculators</b></li>
                 <li><b>MAI Profile:</b> L1–L4 user interest &amp; unified profile SLMs</li>
-                <li><b>Video Ranking:</b> multimodal / high-throughput scoring</li>
+                <li><b>Video Ranking:</b> V1→V2 iterative optimization (<b class="up">+44.4% tok/s</b>, <b class="up">-20% latency</b>, <b class="up">-31% wall-clock</b>)</li>
                 <li><b>Feeds Quality:</b> CLIFF freshness (<b class="up">2.3× QPS</b>) &amp; OpenJev clickbait</li>
-                <li><b>GEM &amp; For You:</b> story assembly, One Unified SLM, LLM Rec</li>
+                <li><b>GEM &amp; For You:</b> GEV model (<b class="up">6.82× QPS</b>, <b class="up">-85% P95</b>), story assembly &amp; One Unified SLM</li>
               </ul>
             </div>
           </div>
         </div>
-        <div class="grid g3" style="margin-top:12px">
-          <div class="tile hl"><div class="l">Gemma-4-26B-A4B (1×A100 80GB)</div><div class="v up">839 → 2,635 tok/s</div><div class="d">3.14× total (+28.8% over 2,045 baseline)</div></div>
-          <div class="tile tt"><div class="l">Qwen3.5-27B Hybrid GDN (1×A100 80GB)</div><div class="v">3,879.5 tok/s</div><div class="d">12,728 total tok/s · MTP k=3 (76.6% accept)</div></div>
-          <div class="tile t1"><div class="l">Feeds Quality · CLIFF Freshness</div><div class="v up">2.3× QPS</div><div class="d">3.67 → 8.43 req/s · 100% bitwise identical</div></div>
+        <div class="grid g5" style="margin-top:12px">
+          <div class="tile hl"><div class="l">Gemma-4-26B-A4B (1×A100)</div><div class="v up" style="font-size:21px">839 → 2,635</div><div class="d">tok/s · 3.14× (+28.8% vs 2,045)</div></div>
+          <div class="tile tt"><div class="l">Qwen3.5-27B Hybrid GDN</div><div class="v" style="font-size:21px">3,879.5 tok/s</div><div class="d">12,728 total tok/s · MTP k=3</div></div>
+          <div class="tile t4"><div class="l">For You · GEV Model (1×A100)</div><div class="v up" style="font-size:21px">6.82× QPS</div><div class="d">4.61 → 31.40 req/s · -85% P95</div></div>
+          <div class="tile"><div class="l">Video Ranking (Base → V2)</div><div class="v up" style="font-size:21px">+44.4% TPS</div><div class="d">-20% latency · -31% wall-clock</div></div>
+          <div class="tile t1"><div class="l">Feeds Quality · CLIFF</div><div class="v up" style="font-size:21px">2.3× QPS</div><div class="d">3.67 → 8.43 req/s · 100% bitwise</div></div>
         </div>
       </section>
 
@@ -523,7 +525,7 @@
               <div class="lay"><span class="lt"></span><b>Kernel:</b> tune FP8-Marlin 2D geometry &amp; fused GDN specifically for the speculative batch shape</div>
             </div>
             <div class="cmpout"><b>Global optimum.</b> All 4 layers trade off parameters explicitly against end-to-end production TPS, QPS, TPOT, and quality gates.</div>
-            <div class="layer-out" style="text-align:center;margin-top:8px;font-size:19px;font-weight:900;color:var(--ok)">Gemma4: 2,635 tok/s · Qwen3.5: 3,880 tok/s · CLIFF: 2.3× QPS</div>
+            <div class="layer-out" style="text-align:center;margin-top:8px;font-size:18px;font-weight:900;color:var(--ok)">Gemma4: 2,635 tok/s · Qwen3.5: 3,880 tok/s · For You GEV: 6.82× QPS · CLIFF: 2.3× QPS</div>
           </div>
         </div>
       </section>
@@ -821,9 +823,9 @@
             </tr>
             <tr>
               <td class="b">2 · Video Ranking</td>
-              <td><span class="k">Qwen3.5 / Qwen3.8</span><br><span class="k">Gemma-4</span></td>
-              <td><b>High-Throughput Candidate Scoring &amp; Multimodal Understanding:</b> service-layer dynamic batching, FlashInfer/Triton prefill dispatch, vision-routing for frame features vs text-only fast path for metadata ranking.</td>
-              <td>Low-latency batch scoring under strict tail-SLA; unified vision + text serving recipe.</td>
+              <td><span class="k">Multimodal / Video LLM</span><br><span class="k">Baseline → V1 → V2</span></td>
+              <td><b>Iterative Multi-Stage Serving Optimization (Baseline → V1 → V2):</b> progressive throughput &amp; latency tuning across frame/metadata processing, service batching, and engine execution.</td>
+              <td><b>Token TPS:</b> <span class="k">14.44 → 19.68 → 20.85 tok/s</span> (<span class="up">+44.4%</span>)<br><b>Avg Latency:</b> <span class="k">91.01s → 76.09s → 70.96s</span> (<span class="up">-20%</span>)<br><b>Wall-Clock:</b> <span class="k">183.39s → 134.58s → 126.65s</span> (<span class="up">-31%</span>)</td>
             </tr>
             <tr>
               <td class="b">3 · Feeds Quality</td>
@@ -839,9 +841,9 @@
             </tr>
             <tr>
               <td class="b">5 · For You</td>
-              <td><span class="k">One Unified SLM</span><br><span class="k">DeepSeek-V4 / Qwen</span><br><span class="k">MiniOneRec (1.7B/4B)</span></td>
-              <td><b>Personalized Feed Recommendation &amp; Consolidation:</b> consolidating GEM + HPF + MAI Profile + Quality into <b>One Unified SLM</b> (~570K joint SFT); online top-K LLM-as-reasoner re-ranker via DLIS parallel batching.</td>
-              <td><b>One Unified SLM</b> cuts multi-model maintenance; <b>MIND Rec:</b> <span class="up">0.7144 AUC</span> multi-member ensemble.</td>
+              <td><span class="k">GEV Model (For You)</span><br><span class="k">One Unified SLM</span><br><span class="k">DeepSeek-V4 / Qwen</span></td>
+              <td><b>GEV Model Serving Optimization &amp; Feed Recommendation:</b> Engine-layer <b>FULL CUDA Graph</b> capture, runtime <b>CPU thread optimization</b>, and Service-layer <b>concurrency tuning</b> (<span class="k">c=32</span> on 1×A100 GPU); plus <b>One Unified SLM</b> consolidation (~570K joint SFT).</td>
+              <td><b>For You GEV:</b> <span class="up">6.82× QPS</span> (<span class="k">4.61 → 31.40 req/s</span>) &amp; <span class="up">85% P95 latency reduction</span> @ <span class="k">c=32</span> on 1×A100.</td>
             </tr>
           </tbody>
         </table>
@@ -895,8 +897,9 @@
         <div class="tags">
           <span class="pill g">Gemma-4: 839 → 2,635 tok/s (3.14×)</span>
           <span class="pill t">Qwen3.5-27B: 3,880 out / 12,728 total tok/s</span>
+          <span class="pill p">For You GEV: 6.82× QPS (4.61 → 31.40 req/s) · -85% P95</span>
+          <span class="pill a">Video Ranking: +44.4% tok/s · -20% Latency · -31% Wall-Clock</span>
           <span class="pill b">CLIFF Quality: 2.3× QPS</span>
-          <span class="pill p">Live Hub: agreeable-bush-035f3c510.4.azurestaticapps.net</span>
         </div>
       </section>
 
