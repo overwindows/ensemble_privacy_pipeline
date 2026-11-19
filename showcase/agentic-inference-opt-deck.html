@@ -311,56 +311,56 @@
       <!-- 2 · Executive Overview: The 3 Dimensions -->
       <section class="slide">
         <div class="kicker">Executive Overview · The Whole Story</div>
-        <h2>Three dimensions of our GPU Inference Optimization work</h2>
-        <p class="lede">Instead of treating GPU optimization as isolated kernel tweaks or a single-model point solution, we structure our work across <b>three interlocking dimensions</b> so techniques, tooling, and wins compound across teams.</p>
-        <div class="grid g3" style="margin-top:12px">
-          <div class="scen-card">
+        <h2 style="margin-bottom:6px">Three dimensions of our GPU Inference Optimization work</h2>
+        <p class="lede" style="font-size:15.5px;line-height:1.42;margin-bottom:4px">Instead of treating GPU optimization as isolated kernel tweaks or a single-model point solution, we structure our work across <b>three interlocking dimensions</b> so techniques, tooling, and wins compound across teams.</p>
+        <div class="grid g3" style="margin-top:6px;gap:10px">
+          <div class="scen-card" style="padding:10px 12px;gap:3px">
             <div class="sc-tag">Dimension 01 · What We Optimize</div>
-            <div class="sc-title">Multi-Layer Stack Perspective</div>
-            <div class="sc-desc" style="margin-top:4px">
+            <div class="sc-title" style="font-size:15.5px">Multi-Layer Stack Perspective</div>
+            <div class="sc-desc" style="margin-top:2px;font-size:12.5px;line-height:1.36">
               Optimize across <b>all 4 serving layers</b> together toward a <b>global optimum</b>:
-              <ul class="talk" style="font-size:13.5px;margin-top:6px">
-                <li><b>Application Layer:</b> prompt/schema shaping, thinking gate, tokenization caching, vision-weight stripping</li>
-                <li><b>Service Layer:</b> concurrency &amp; warmup, DLIS/Falcon batching, workload-aware prefix cache policy</li>
-                <li><b>Engine Layer:</b> vLLM scheduler, chunked prefill, token budgets, MTP &amp; DSpark speculative decoding, CUDA Graphs</li>
-                <li><b>Kernel Layer:</b> FP8-Marlin MoE decode-2D geometry, fused GDN mixed-spec kernels, FlashInfer/Triton backends</li>
+              <ul class="talk" style="font-size:12.5px;margin:4px 0 0;padding-left:16px">
+                <li style="margin:2px 0;line-height:1.36"><b>Application Layer:</b> prompt/schema shaping, thinking gate, token caching, vision-weight stripping</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Service Layer:</b> concurrency &amp; warmup, DLIS/Falcon batching, workload-aware prefix cache policy</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Engine Layer:</b> vLLM scheduler, chunked prefill, token budgets, MTP &amp; DSpark spec decode, CUDA Graphs</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Kernel Layer:</b> FP8-Marlin MoE decode-2D geometry, fused GDN mixed-spec kernels, FlashInfer/Triton</li>
               </ul>
             </div>
           </div>
-          <div class="scen-card s-purple">
+          <div class="scen-card s-purple" style="padding:10px 12px;gap:3px">
             <div class="sc-tag">Dimension 02 · How We Work</div>
-            <div class="sc-title">Approach Evolution Perspective</div>
-            <div class="sc-desc" style="margin-top:4px">
+            <div class="sc-title" style="font-size:15.5px">Approach Evolution Perspective</div>
+            <div class="sc-desc" style="margin-top:2px;font-size:12.5px;line-height:1.36">
               A 4-stage maturity progression where automation scales execution while <b>judgment stays human</b>:
-              <ul class="talk" style="font-size:13.5px;margin-top:6px">
-                <li><b>Stage 1 · Manual:</b> human reads code, forms hypotheses, edits &amp; benchmarks by hand</li>
-                <li><b>Stage 2 · AI-Assisted:</b> prompt engineering turns AI into a pair-programmer for sweeps &amp; harnesses</li>
-                <li><b>Stage 3 · Agent Workflow:</b> context engineering + consolidated knowledge &amp; reusable skills on <span class="k">agentbus</span></li>
-                <li><b>Stage 4 · Closed Agent Loop + Human Judge:</b> 7 autonomous roles iterate with memory/playbook; <b>Human Judge</b> owns gates</li>
+              <ul class="talk" style="font-size:12.5px;margin:4px 0 0;padding-left:16px">
+                <li style="margin:2px 0;line-height:1.36"><b>Stage 1 · Manual:</b> human reads code, forms hypotheses, edits &amp; benchmarks by hand</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Stage 2 · AI-Assisted:</b> prompt engineering turns AI into a pair-programmer for sweeps &amp; harnesses</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Stage 3 · Agent Workflow:</b> context engineering + consolidated knowledge &amp; reusable skills on <span class="k">agentbus</span></li>
+                <li style="margin:2px 0;line-height:1.36"><b>Stage 4 · Closed Agent Loop + Human Judge:</b> 7 autonomous roles iterate with memory; <b>Human Judge</b> owns gates</li>
               </ul>
             </div>
           </div>
-          <div class="scen-card s-teal">
+          <div class="scen-card s-teal" style="padding:10px 12px;gap:3px">
             <div class="sc-tag">Dimension 03 · Where It Runs</div>
-            <div class="sc-title">Models &amp; Scenarios Perspective</div>
-            <div class="sc-desc" style="margin-top:4px">
-              One reusable stack and agentic methodology proven across <b>diverse architectures &amp; 5 production verticals</b>:
-              <ul class="talk" style="font-size:13.5px;margin-top:6px">
-                <li><b>Model Families:</b> <b>Gemma-4</b> (26B-A4B MoE), <b>Qwen</b> (Qwen3.5-27B/35B hybrid GDN+Attn, Qwen3-8B/4B, Qwen3.8), <b>Speculators</b></li>
-                <li><b>MAI Profile:</b> L1–L4 user interest &amp; unified profile SLMs</li>
-                <li><b>Video Ranking:</b> V1→V2 iterative optimization (<b class="up">+44.4% tok/s</b>, <b class="up">-20% latency</b>, <b class="up">-31% wall-clock</b>)</li>
-                <li><b>Feeds Quality:</b> CLIFF freshness (<b class="up">2.3× QPS</b>) &amp; OpenJev clickbait</li>
-                <li><b>GEM &amp; For You:</b> GEV model (<b class="up">6.82× QPS</b>, <b class="up">-85% P95</b>), story assembly &amp; One Unified SLM</li>
+            <div class="sc-title" style="font-size:15.5px">Models &amp; Scenarios Perspective</div>
+            <div class="sc-desc" style="margin-top:2px;font-size:12.5px;line-height:1.36">
+              One reusable stack &amp; methodology proven across <b>diverse architectures &amp; 5 production verticals</b>:
+              <ul class="talk" style="font-size:12.5px;margin:4px 0 0;padding-left:16px">
+                <li style="margin:2px 0;line-height:1.36"><b>Models:</b> <b>Gemma-4</b> (26B-A4B MoE), <b>Qwen</b> (Qwen3.5-27B/35B GDN, Qwen3-8B/4B, Qwen3.8), <b>Speculators</b></li>
+                <li style="margin:2px 0;line-height:1.36"><b>MAI Profile:</b> L1–L4 user interest &amp; unified profile SLMs</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Video Ranking:</b> Base→V1→V2 (<b class="up">+44.4% tok/s</b>, <b class="up">-20% latency</b>, <b class="up">-31% wall-clock</b>)</li>
+                <li style="margin:2px 0;line-height:1.36"><b>Feeds Quality:</b> CLIFF freshness (<b class="up">2.3× QPS</b>) &amp; OpenJev clickbait</li>
+                <li style="margin:2px 0;line-height:1.36"><b>GEM &amp; For You:</b> GEV model (<b class="up">6.82× QPS</b>, <b class="up">-85% P95</b>), story assembly &amp; One Unified SLM</li>
               </ul>
             </div>
           </div>
         </div>
-        <div class="grid g5" style="margin-top:12px">
-          <div class="tile hl"><div class="l">Gemma-4-26B-A4B (1×A100)</div><div class="v up" style="font-size:21px">839 → 2,635</div><div class="d">tok/s · 3.14× (+28.8% vs 2,045)</div></div>
-          <div class="tile tt"><div class="l">Qwen3.5-27B Hybrid GDN</div><div class="v" style="font-size:21px">3,879.5 tok/s</div><div class="d">12,728 total tok/s · MTP k=3</div></div>
-          <div class="tile t4"><div class="l">For You · GEV Model (1×A100)</div><div class="v up" style="font-size:21px">6.82× QPS</div><div class="d">4.61 → 31.40 req/s · -85% P95</div></div>
-          <div class="tile"><div class="l">Video Ranking (Base → V2)</div><div class="v up" style="font-size:21px">+44.4% TPS</div><div class="d">-20% latency · -31% wall-clock</div></div>
-          <div class="tile t1"><div class="l">Feeds Quality · CLIFF</div><div class="v up" style="font-size:21px">2.3× QPS</div><div class="d">3.67 → 8.43 req/s · 100% bitwise</div></div>
+        <div class="grid g5" style="margin-top:8px;gap:10px">
+          <div class="tile hl" style="padding:9px 12px"><div class="l" style="font-size:12px">Gemma-4-26B-A4B (1×A100)</div><div class="v up" style="font-size:19px">839 → 2,635</div><div class="d" style="font-size:12px">tok/s · 3.14× (+28.8% vs 2,045)</div></div>
+          <div class="tile tt" style="padding:9px 12px"><div class="l" style="font-size:12px">Qwen3.5-27B Hybrid GDN</div><div class="v" style="font-size:19px">3,879.5 tok/s</div><div class="d" style="font-size:12px">12,728 total tok/s · MTP k=3</div></div>
+          <div class="tile t4" style="padding:9px 12px"><div class="l" style="font-size:12px">For You · GEV Model (1×A100)</div><div class="v up" style="font-size:19px">6.82× QPS</div><div class="d" style="font-size:12px">4.61 → 31.40 req/s · -85% P95</div></div>
+          <div class="tile" style="padding:9px 12px"><div class="l" style="font-size:12px">Video Ranking (Base → V2)</div><div class="v up" style="font-size:19px">+44.4% TPS</div><div class="d" style="font-size:12px">-20% latency · -31% wall-clock</div></div>
+          <div class="tile t1" style="padding:9px 12px"><div class="l" style="font-size:12px">Feeds Quality · CLIFF</div><div class="v up" style="font-size:19px">2.3× QPS</div><div class="d" style="font-size:12px">3.67 → 8.43 req/s · 100% bitwise</div></div>
         </div>
       </section>
 
@@ -755,47 +755,39 @@
       <!-- 14 · Dimension 3: Model Families Deep Dive (Gemma-4 vs Qwen3.5) -->
       <section class="slide">
         <div class="kicker">Dimension 3 · Model Coverage</div>
-        <h2>Deep optimization across distinct architectures: Gemma-4 MoE &amp; Qwen3.5 Hybrid GDN</h2>
-        <div class="grid g2" style="margin-top:6px">
-          <div class="tile" style="border-top:4px solid var(--accent)">
-            <div class="diagcap" style="color:var(--accent)">Model Family A · Google Gemma-4 (<span class="k">gemma-4-26B-A4B</span> MoE)</div>
-            <div class="grid g3" style="margin:6px 0">
-              <div class="tile"><div class="l">Arrival → Base</div><div class="v" style="font-size:20px">839 → 2,045</div><div class="l">tok/s (1×A100)</div></div>
-              <div class="tile hl"><div class="l">+2D Kernel Geom</div><div class="v up" style="font-size:20px">2,403.2</div><div class="d">+17.5% (no train)</div></div>
-              <div class="tile t4"><div class="l">+DSpark Co-Opt</div><div class="v up" style="font-size:20px">2,634.6</div><div class="d">+28.8% (3.14× vs 839)</div></div>
+        <h2 style="font-size:clamp(22px,2.5vw,29px);margin-bottom:6px">Deep optimization across distinct architectures: Gemma-4 MoE &amp; Qwen3.5 Hybrid GDN</h2>
+        <div class="grid g2" style="margin-top:4px;gap:12px">
+          <div class="tile" style="border-top:4px solid var(--accent);padding:10px 14px">
+            <div class="diagcap" style="color:var(--accent);margin-bottom:4px">Model Family A · Google Gemma-4 (<span class="k">gemma-4-26B-A4B</span> MoE)</div>
+            <div class="grid g3" style="margin:4px 0;gap:8px">
+              <div class="tile" style="padding:7px 10px"><div class="l" style="font-size:11.5px">Arrival → Base</div><div class="v" style="font-size:18px">839 → 2,045</div><div class="l" style="font-size:11.5px">tok/s (1×A100)</div></div>
+              <div class="tile hl" style="padding:7px 10px"><div class="l" style="font-size:11.5px">+2D Kernel Geom</div><div class="v up" style="font-size:18px">2,403.2</div><div class="d" style="font-size:11.5px">+17.5% (no train)</div></div>
+              <div class="tile t4" style="padding:7px 10px"><div class="l" style="font-size:11.5px">+DSpark Co-Opt</div><div class="v up" style="font-size:18px">2,634.6</div><div class="d" style="font-size:11.5px">+28.8% (3.14× vs 839)</div></div>
             </div>
-            <ul class="talk" style="font-size:13.8px">
-              <li><b>Architecture Challenge:</b> 26B total / 4B active sparse MoE; decode throughput is bottlenecked by FP8-Marlin small-batch expert dispatch and draft acceptance.</li>
-              <li><b>4-Layer Solution:</b>
-                <ul>
-                  <li><b>App/Service:</b> text-only weight stripping (<span class="k">text_only/</span>) + high-concurrency scheduling.</li>
-                  <li><b>Kernel:</b> custom <b>Decode-2D tile/stage/warp geometry</b> in FP8-Marlin (+17.5%).</li>
-                  <li><b>Engine:</b> trained <b>DSpark</b> speculative draft (<span class="k">k=7, topk=64</span>) co-tuned with the 2D geometry (+28.8% total, 100% quality gates passed on GSM8K/BBH/tool-loop).</li>
-                </ul>
-              </li>
+            <ul class="talk" style="font-size:12.8px;margin:4px 0 0;padding-left:17px">
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Architecture Challenge:</b> 26B total / 4B active sparse MoE; decode throughput is bottlenecked by FP8-Marlin small-batch expert dispatch and draft acceptance.</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>App/Service Layer:</b> text-only weight stripping (<span class="k">text_only/</span>) + high-concurrency scheduling.</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Kernel Layer:</b> custom <b>Decode-2D tile/stage/warp geometry</b> in FP8-Marlin (+17.5%).</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Engine Layer:</b> trained <b>DSpark</b> speculative draft (<span class="k">k=7, topk=64</span>) co-tuned with 2D geometry (+28.8% total, 100% quality gates passed on GSM8K/BBH/tool-loop).</li>
             </ul>
           </div>
 
-          <div class="tile" style="border-top:4px solid var(--teal)">
-            <div class="diagcap" style="color:var(--teal)">Model Family B · Qwen Family (<span class="k">Qwen3.5-27B</span> / <span class="k">35B-A3B</span> / <span class="k">Qwen3-8B &amp; 4B</span> / <span class="k">Qwen3.8</span>)</div>
-            <div class="grid g3" style="margin:6px 0">
-              <div class="tile tt"><div class="l">Output Throughput</div><div class="v" style="font-size:20px">3,879.5</div><div class="d">tok/s (2,000 reqs)</div></div>
-              <div class="tile hl"><div class="l">Total Throughput</div><div class="v" style="font-size:20px">12,728.4</div><div class="d">tok/s · 3.01 QPS</div></div>
-              <div class="tile t1"><div class="l">MTP k=3 Accept</div><div class="v" style="font-size:20px">76.64%</div><div class="d">3.30 tok / verify step</div></div>
+          <div class="tile" style="border-top:4px solid var(--teal);padding:10px 14px">
+            <div class="diagcap" style="color:var(--teal);margin-bottom:4px">Model Family B · Qwen Family (<span class="k">Qwen3.5-27B</span> / <span class="k">35B-A3B</span> / <span class="k">Qwen3-8B &amp; 4B</span> / <span class="k">Qwen3.8</span>)</div>
+            <div class="grid g3" style="margin:4px 0;gap:8px">
+              <div class="tile tt" style="padding:7px 10px"><div class="l" style="font-size:11.5px">Output Throughput</div><div class="v" style="font-size:18px">3,879.5</div><div class="d" style="font-size:11.5px">tok/s (2,000 reqs)</div></div>
+              <div class="tile hl" style="padding:7px 10px"><div class="l" style="font-size:11.5px">Total Throughput</div><div class="v" style="font-size:18px">12,728.4</div><div class="d" style="font-size:11.5px">tok/s · 3.01 QPS</div></div>
+              <div class="tile t1" style="padding:7px 10px"><div class="l" style="font-size:11.5px">MTP k=3 Accept</div><div class="v" style="font-size:18px">76.64%</div><div class="d" style="font-size:11.5px">3.30 tok / verify step</div></div>
             </div>
-            <ul class="talk" style="font-size:13.8px">
-              <li><b>Architecture Challenge:</b> Hybrid <b>Gated Delta Network (GDN linear attention) + Full Attention</b> on 3K-token structured JSON prompts; Mamba state alignment &amp; multi-token verification across recurrent layers.</li>
-              <li><b>4-Layer Solution:</b>
-                <ul>
-                  <li><b>App/Service:</b> <span class="k">--language-model-only</span> + <span class="k">enable_thinking: false</span> + <span class="k">--no-enable-prefix-caching</span> (prevents Mamba block inflation <span class="k">16 → 288</span>).</li>
-                  <li><b>Engine:</b> Native <b>MTP (<span class="k">k=3</span>)</b> + <span class="k">FULL_DECODE_ONLY</span> CUDA Graphs + <span class="k">mnbt=16384, mns=128</span>.</li>
-                  <li><b>Kernel:</b> Fused C++ CUDA <span class="k">chunk_gated_delta_rule</span> mixed-speculative GDN kernel + fast top-k greedy rejection sampler (100% JSON valid, 0 errors).</li>
-                </ul>
-              </li>
+            <ul class="talk" style="font-size:12.8px;margin:4px 0 0;padding-left:17px">
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Architecture Challenge:</b> Hybrid <b>Gated Delta Network (GDN linear attention) + Full Attention</b> on 3K-token JSON prompts; Mamba state alignment across recurrent layers.</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>App/Service Layer:</b> <span class="k">--language-model-only</span> + <span class="k">enable_thinking: false</span> + <span class="k">--no-enable-prefix-caching</span> (prevents Mamba block inflation <span class="k">16 → 288</span>).</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Engine Layer:</b> Native <b>MTP (<span class="k">k=3</span>)</b> + <span class="k">FULL_DECODE_ONLY</span> CUDA Graphs + <span class="k">mnbt=16384, mns=128</span>.</li>
+              <li style="font-size:12.8px;line-height:1.38;margin:2px 0"><b>Kernel Layer:</b> Fused C++ CUDA <span class="k">chunk_gated_delta_rule</span> mixed-speculative GDN kernel + fast top-k greedy rejection sampler (100% JSON valid, 0 errors).</li>
             </ul>
           </div>
         </div>
-        <div class="note green" style="margin-top:8px">
+        <div class="note green" style="margin-top:6px;padding:7px 12px;font-size:12.8px;line-height:1.4">
           <b>Cross-Model Synergy:</b> We also maintain the <b>Speculators Catalog</b> (EAGLE-3 / DSpark / Native MTP across Qwen3-8B, Qwen3.5-35B-A3B, Gemma-4, DeepSeek) and benchmark next-gen backbones (<span class="k">qwen3.8-flash-next</span>, <span class="k">qwen3.8-27b</span>, <span class="k">deepseek-v4-flash</span>) on a unified harness.
         </div>
       </section>
@@ -803,47 +795,47 @@
       <!-- 15 · Dimension 3: The 5 Production Scenarios Matrix -->
       <section class="slide">
         <div class="kicker">Dimension 3 · Scenario Coverage</div>
-        <h2>Powering 5 core production verticals across MSN &amp; MAI</h2>
-        <p class="muted small" style="margin:-4px 0 6px">How the 4-layer optimization stack and agentic workflow map directly to our five production scenarios.</p>
-        <table>
+        <h2 style="margin-bottom:4px">Powering 5 core production verticals across MSN &amp; MAI</h2>
+        <p class="muted small" style="margin:-2px 0 3px;font-size:12.5px">How the 4-layer optimization stack and agentic workflow map directly to our five production scenarios.</p>
+        <table style="font-size:12.5px;margin:2px 0">
           <thead>
             <tr>
-              <th style="width:15%">Scenario</th>
-              <th style="width:21%">Models &amp; Backbones</th>
-              <th style="width:39%">Key Multi-Layer Optimization Levers Applied</th>
-              <th style="width:25%">Production Impact &amp; Proof</th>
+              <th style="width:13%;padding:4px 7px">Scenario</th>
+              <th style="width:20%;padding:4px 7px">Models &amp; Backbones</th>
+              <th style="width:40%;padding:4px 7px">Key Multi-Layer Optimization Levers Applied</th>
+              <th style="width:27%;padding:4px 7px">Production Impact &amp; Proof</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="b">1 · MAI Profile</td>
-              <td><span class="k">Qwen3.5-4B / 27B</span><br><span class="k">Gemma-4-26B-A4B</span><br><span class="k">Muse-Glimmer-30B</span></td>
-              <td><b>Unified L1–L4 Profile SLM (<span class="k">UU_LLM</span>):</b> single model serving 8 hierarchical user-interest tasks; <span class="k">--language-model-only</span>, long-context (49K) KV budget tuning, D2G FP8-Marlin decode geometry &amp; MTP speculative serving.</td>
-              <td><span class="up">2,635 tok/s</span> (Gemma4) &amp; <span class="up">3,880 tok/s</span> (Qwen3.5) on 1×A100; unified L1–L4 SLM beats prod baseline.</td>
+              <td class="b" style="padding:4px 7px;line-height:1.3">1 · MAI Profile</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="k">Qwen3.5-4B / 27B</span><br><span class="k">Gemma-4-26B-A4B</span> · <span class="k">Muse-30B</span></td>
+              <td style="padding:4px 7px;line-height:1.3"><b>Unified L1–L4 Profile SLM (<span class="k">UU_LLM</span>):</b> single model serving 8 hierarchical user-interest tasks; <span class="k">--language-model-only</span>, 49K KV budget tuning, D2G FP8-Marlin decode geometry &amp; MTP speculative serving.</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="up">2,635 tok/s</span> (Gemma4) &amp; <span class="up">3,880 tok/s</span> (Qwen3.5) on 1×A100; unified L1–L4 SLM beats prod baseline.</td>
             </tr>
             <tr>
-              <td class="b">2 · Video Ranking</td>
-              <td><span class="k">Multimodal / Video LLM</span><br><span class="k">Baseline → V1 → V2</span></td>
-              <td><b>Iterative Multi-Stage Serving Optimization (Baseline → V1 → V2):</b> progressive throughput &amp; latency tuning across frame/metadata processing, service batching, and engine execution.</td>
-              <td><b>Token TPS:</b> <span class="k">14.44 → 19.68 → 20.85 tok/s</span> (<span class="up">+44.4%</span>)<br><b>Avg Latency:</b> <span class="k">91.01s → 76.09s → 70.96s</span> (<span class="up">-20%</span>)<br><b>Wall-Clock:</b> <span class="k">183.39s → 134.58s → 126.65s</span> (<span class="up">-31%</span>)</td>
+              <td class="b" style="padding:4px 7px;line-height:1.3">2 · Video Ranking</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="k">Multimodal / Video LLM</span><br><span class="k">Baseline → V1 → V2</span></td>
+              <td style="padding:4px 7px;line-height:1.3"><b>Iterative Multi-Stage Serving Optimization (Baseline → V1 → V2):</b> progressive throughput &amp; latency tuning across frame/metadata processing, service batching, and engine execution.</td>
+              <td style="padding:4px 7px;line-height:1.3"><b>Token TPS:</b> <span class="k">14.44 → 19.68 → 20.85 tok/s</span> (<span class="up">+44.4%</span>)<br><b>Avg Latency:</b> <span class="k">91.01s → 76.09s → 70.96s</span> (<span class="up">-20%</span>) · <b>Wall:</b> <span class="k">183.4s → 126.6s</span> (<span class="up">-31%</span>)</td>
             </tr>
             <tr>
-              <td class="b">3 · Feeds Quality</td>
-              <td><span class="k">CLIFF (Qwen3.5-9B)</span><br><span class="k">OpenJev (Qwen-1.5B)</span><br><span class="k">Content-Agent</span></td>
-              <td><b>Freshness &amp; Clickbait Gateways:</b> App-layer binary-search tokenization caching (<span class="k">37 → 19</span> calls), Engine-layer <span class="k">max_num_batched_tokens</span> (<span class="k">8,320 → 32,768</span>) + <span class="k">max_num_seqs=256</span>, AgentX 7-role autonomous loop.</td>
-              <td><b>CLIFF Freshness:</b> <span class="up">2.3× QPS</span> (<span class="k">3.67 → 8.43 req/s</span>, 100% bitwise identical).<br><b>OpenJev:</b> <span class="up">0.9257 F1</span> @ ~209ms.</td>
+              <td class="b" style="padding:4px 7px;line-height:1.3">3 · Feeds Quality</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="k">CLIFF (Qwen3.5-9B)</span><br><span class="k">OpenJev</span> · <span class="k">Content-Agent</span></td>
+              <td style="padding:4px 7px;line-height:1.3"><b>Freshness &amp; Clickbait Gateways:</b> App-layer binary-search tokenization caching (<span class="k">37 → 19</span> calls), Engine-layer <span class="k">max_num_batched_tokens</span> (<span class="k">8,320 → 32,768</span>) + <span class="k">max_num_seqs=256</span>, AgentX 7-role autonomous loop.</td>
+              <td style="padding:4px 7px;line-height:1.3"><b>CLIFF Freshness:</b> <span class="up">2.3× QPS</span> (<span class="k">3.67 → 8.43 req/s</span>, 100% bitwise identical). <b>OpenJev:</b> <span class="up">0.9257 F1</span> @ ~209ms.</td>
             </tr>
             <tr>
-              <td class="b">4 · GEM</td>
-              <td><span class="k">gem-assembly-slm</span><br><span class="k">Qwen3.5 / GPT-5.4</span><br><span class="k">coreranker DLIS</span></td>
-              <td><b>AgenticGem Story Pipelines (6 apps, 24 prompts):</b> xgrammar <span class="k">json_schema</span> constrained decoding + <span class="k">json_repair</span> truncation recovery, DLIS <span class="k">MaxBatchSize</span> throughput lever, Kusto telemetry mining (~150K SFT pack).</td>
-              <td><b>96–100%</b> valid structured JSON syntax across complex multi-article story assembly schemas.</td>
+              <td class="b" style="padding:4px 7px;line-height:1.3">4 · GEM</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="k">gem-assembly-slm</span><br><span class="k">Qwen3.5 / GPT-5.4</span> · <span class="k">DLIS</span></td>
+              <td style="padding:4px 7px;line-height:1.3"><b>AgenticGem Story Pipelines (6 apps, 24 prompts):</b> xgrammar <span class="k">json_schema</span> constrained decoding + <span class="k">json_repair</span> truncation recovery, DLIS <span class="k">MaxBatchSize</span> throughput lever, Kusto telemetry mining (~150K SFT pack).</td>
+              <td style="padding:4px 7px;line-height:1.3"><b>96–100%</b> valid structured JSON syntax across complex multi-article story assembly schemas.</td>
             </tr>
             <tr>
-              <td class="b">5 · For You</td>
-              <td><span class="k">GEV Model (For You)</span><br><span class="k">One Unified SLM</span><br><span class="k">DeepSeek-V4 / Qwen</span></td>
-              <td><b>GEV Model Serving Optimization &amp; Feed Recommendation:</b> Engine-layer <b>FULL CUDA Graph</b> capture, runtime <b>CPU thread optimization</b>, and Service-layer <b>concurrency tuning</b> (<span class="k">c=32</span> on 1×A100 GPU); plus <b>One Unified SLM</b> consolidation (~570K joint SFT).</td>
-              <td><b>For You GEV:</b> <span class="up">6.82× QPS</span> (<span class="k">4.61 → 31.40 req/s</span>) &amp; <span class="up">85% P95 latency reduction</span> @ <span class="k">c=32</span> on 1×A100.</td>
+              <td class="b" style="padding:4px 7px;line-height:1.3">5 · For You</td>
+              <td style="padding:4px 7px;line-height:1.3"><span class="k">GEV Model (For You)</span><br><span class="k">One Unified SLM</span> · <span class="k">DeepSeek</span></td>
+              <td style="padding:4px 7px;line-height:1.3"><b>GEV Model Serving Optimization &amp; Feed Recommendation:</b> Engine-layer <b>FULL CUDA Graph</b> capture, runtime <b>CPU thread optimization</b>, and Service-layer <b>concurrency tuning</b> (<span class="k">c=32</span> on 1×A100 GPU); plus <b>One Unified SLM</b> consolidation (~570K joint SFT).</td>
+              <td style="padding:4px 7px;line-height:1.3"><b>For You GEV:</b> <span class="up">6.82× QPS</span> (<span class="k">4.61 → 31.40 req/s</span>) &amp; <span class="up">85% P95 latency reduction</span> @ <span class="k">c=32</span> on 1×A100.</td>
             </tr>
           </tbody>
         </table>
