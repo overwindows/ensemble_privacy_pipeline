@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:,">
-<title>Qwen3.5-4B vLLM Throughput — 3,786.84 Baseline → 3,879.50 tok/s Champion (+2.45%)</title>
+<title>Qwen3.5-4B vLLM Throughput — 3,786.84 Baseline → 3,991.92 tok/s Champion (+5.42%)</title>
 <style>
   :root {
     --accent:#0f6cbd;
@@ -83,25 +83,30 @@
   html { scroll-behavior:smooth; }
   body { background:var(--bg); color:var(--ink); font-family:var(--font); margin:0;
          padding:0; line-height:1.55; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
-  .wrap { max-width:960px; margin:20px auto 40px; padding:0 16px; }
+  .wrap { max-width:1180px; margin:20px auto 40px; padding:0 16px; }
   .paper { background:var(--surface); border:1px solid var(--line); border-radius:10px;
-           padding:34px 40px; }
+           padding:32px 36px; overflow:hidden; }
   .kicker { text-transform:uppercase; letter-spacing:.11em; font-size:11px; color:var(--accent);
             font-weight:700; margin:0 0 8px; }
-  h1 { font-size:26px; margin:0 0 6px; line-height:1.25; font-weight:600; letter-spacing:-0.01em; }
+  h1 { font-size:25px; margin:0 0 6px; line-height:1.25; font-weight:600; letter-spacing:-0.01em; }
   h2 { font-size:18px; margin:30px 0 12px; border-bottom:1px solid var(--line); padding-bottom:6px;
        font-weight:600; letter-spacing:-0.01em; }
   h3 { font-size:15px; margin:20px 0 8px; font-weight:600; }
-  p { margin:8px 0; }
+  p, li { margin:6px 0; overflow-wrap:anywhere; word-break:break-word; }
   code { background:var(--code); border:1px solid var(--line); border-radius:4px; padding:1px 5px;
-         font-size:12.5px; font-family:var(--mono); }
-  pre { background:#201f1e; color:#f3f2f1; border-radius:8px; padding:14px 16px; overflow-x:auto;
-        font-size:12.5px; line-height:1.5; font-family:var(--mono); margin:10px 0; }
-  pre code { background:none; border:none; color:inherit; padding:0; font-family:var(--mono); }
-  table { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
-  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { color:var(--mut); font-size:11px; text-transform:uppercase; letter-spacing:.04em; font-weight:600; background:var(--thead); }
+         font-size:12px; font-family:var(--mono); overflow-wrap:anywhere; word-break:break-word; }
+  pre { background:#201f1e; color:#f3f2f1; border-radius:8px; padding:12px 14px;
+        max-width:100%; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word;
+        font-size:12px; line-height:1.48; font-family:var(--mono); margin:10px 0; }
+  pre code { background:none; border:none; color:inherit; padding:0; font-family:var(--mono);
+             white-space:pre-wrap; overflow-wrap:anywhere; word-break:break-word; }
+  .tbl-wrap { width:100%; max-width:100%; overflow-x:auto; margin:10px 0 14px; border:1px solid var(--line); border-radius:8px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin:0; table-layout:auto; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top;
+          overflow-wrap:anywhere; word-break:break-word; }
+  th { color:var(--mut); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; font-weight:600; background:var(--thead); }
   tr:last-child td { border-bottom:none; }
+  .sha { font-size:10.5px; line-height:1.35; word-break:break-all; overflow-wrap:anywhere; display:inline-block; max-width:210px; }
   blockquote { border-left:3px solid var(--accent); background:var(--bg2); margin:12px 0;
                padding:8px 14px; border-radius:0 6px 6px 0; color:#323130; font-size:13.5px; }
   a { color:var(--accent); text-decoration:none; }
@@ -117,7 +122,7 @@
   .t-ok { background:#e6f4e6; color:var(--ok); }
   .t-null { background:#fff4e0; color:var(--warn); }
   .t-ref { background:var(--accent-soft); color:var(--accent); }
-  @media(max-width:640px){ .paper{padding:22px;} h1{font-size:22px;} }
+  @media(max-width:640px){ .paper{padding:18px;} h1{font-size:21px;} }
   .mono { font-family:var(--mono); }
   .paperhead { border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:16px; }
   .authors { color:var(--mut); font-size:12.5px; margin-top:8px; }
@@ -179,15 +184,15 @@
 <div class="wrap"><div class="paper">
   <div class="paperhead">
     <div class="kicker">Technical Report &amp; Production Runbook · vLLM 0.31.0 Online HTTP Serving on 1&times; NVIDIA A100-80GB (sm_80)</div>
-    <h1>Qwen3.5-4B Speculative-Decode Throughput on 1&times; A100-80GB:<br>Previous Best 3,786.84 &rarr; New Champion 3,879.50 output tok/s (+2.45%)</h1>
+    <h1>Qwen3.5-4B Speculative-Decode Throughput on 1&times; A100-80GB:<br>Previous Best 3,786.84 &rarr; New Champion 3,991.92 output tok/s (+5.42%)</h1>
     <div class="authors">
-      Chen Wu · Model: <code>maiprofile-qwen35-sft</code> (<code>ChenWu/qwen35-l1234-v25-step6000</code>, 24&times;GDN + 8&times;Full-Attention + 1L Native MTP) ·
-      Repo: <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm@73a4e81</code></a> · Updated 2026-11-17
+      Chen Wu · Model: <code>maiprofile-qwen35-sft</code> (<code>ChenWu/qwen35-l1234-v25-step6000</code>, 24&times;GDN + 8&times;Full-Attention + 1L Native MTP / 2L L1&ndash;L4 DSpark <code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>) ·
+      Repo: <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm@73a4e81</code></a> · Updated 2026-11-22
     </div>
   </div>
 
   <div class="abstract">
-    <b>Executive Summary.</b> On the full 2,000-request production evaluation benchmark (<code>l1_v2_gpt56_test.jsonl</code>, <code>5,871,663</code> prompt tokens, <code>2,574,218</code> output tokens) served over online HTTP <code>/v1/chat/completions</code> on a single NVIDIA A100-SXM4-80GB (<code>vLLM 0.31.0</code> V2 Model Runner), our <b>Wave-6g 4-Patch Greedy Champion</b> (<code>magenta_book_0g0hp7t2cy</code>) achieves <b>3,879.50 output tok/s</b> (<b>12,728.44 total tok/s</b>, <b>3.01 QPS</b>, <b>663.54s wall time</b>, <b>2000/2000 = 100.0% valid JSON</b>, and <b>4,040.4 tok/s steady-state median</b> at <code>Running=128</code>). This improves over the <b>3,776.67 tok/s</b> posted reference by <b>+102.83 tok/s (+2.72%)</b> and beats the previous best reproduced baseline <b><code>r9</code> (3,786.84 tok/s)</b> by <b>+92.66 tok/s (+2.45%, -18.36s wall time)</b>. All four patches are pure Python/Triton, apply in <code>&lt;1s</code> at container boot with zero C++ rebuild, and are committed to GitHub for one-command reproduction.
+    <b>Executive Summary.</b> On the full 2,000-request production evaluation benchmark (<code>l1_v2_gpt56_test.jsonl</code>, <code>5,871,663</code> prompt tokens, <code>~2.58M</code> output tokens) served over online HTTP <code>/v1/chat/completions</code> on a single NVIDIA A100-SXM4-80GB (<code>vLLM 0.31.0</code> V2 Model Runner), pairing our 6-patch speculative-decode stack with the full L1&ndash;L4 trained 2-layer DSpark draft model (<a href="https://huggingface.co/IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k" target="_blank"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code></a>, <code>220k</code> steps / <code>6.1B</code> tokens, <code>k=5</code>, <code>dspark_draft_topk=64</code>) achieves a new overall record of <b>3,991.92 output tok/s</b> (<b>13,095.19 total tok/s</b>, <b>3.10 QPS</b>, <b>645.01s wall time</b>, <b>68.91% draft acceptance</b> / <b>4.45 tokens/step</b>, <code>boring_board_qkwnysvkvt</code>) at greedy decoding (<code>T=0.0, top_p=1.0</code>). This improves over the <b>3,776.67 tok/s</b> posted reference by <b>+215.25 tok/s (+5.70%)</b>, beats reproduced <b><code>r9</code> (3,786.84 tok/s)</b> by <b>+205.08 tok/s (+5.42%, -36.89s wall time)</b>, and surpasses our 4-patch Native MTP <code>k=3</code> champion (<b>3,879.50 tok/s</b>, <code>magenta_book_0g0hp7t2cy</code>) by <b>+112.42 tok/s (+2.90%)</b>. Under production stochastic sampling, the same L1&ndash;L4 DSpark <code>k=5</code> configuration sets new records of <b>3,778.22 output tok/s</b> at <b><code>T=0.8, top_p=0.6</code></b> (<code>bright_garage_ztnrp07r47</code>, <b>+122.27 tok/s / +3.34%</b> vs stock <code>3,655.95</code>, <b>100.0% valid JSON</b>) and <b>3,765.50 output tok/s</b> at <b><code>T=0.6, top_p=0.8</code></b> (<code>plucky_mangos_rqg5nnbmkq</code>, <b>+96.95 tok/s / +2.64%</b> vs stock <code>3,668.55</code>).
   </div>
 
   <div class="toc">
@@ -197,7 +202,8 @@
     <a href="#shareable-patches">3. Downloadable Patches &amp; Diffs</a>
     <a href="#technical-ablations">4. Kernel, Speculator &amp; Serving Ablations</a>
     <a href="#cross-harness">5. Cross-Harness Calibration</a>
-    <a href="#path-to-4000">6. Path to 4,000+ tok/s</a>
+    <a href="#prod-sampling">6. Production-Sampling Validation (T=0.8, top_p=0.6)</a>
+    <a href="#path-to-4000">7. Path to 4,000+ tok/s</a>
   </div>
 
   <!-- ===================================================================== -->
@@ -215,14 +221,19 @@
       <div class="d">681.90s · 2.93 QPS · 99.90% JSON</div>
     </div>
     <div class="m">
-      <div class="v" style="color:var(--ok);">3,843.12</div>
-      <div class="l">Zero-Patch Greedy Control</div>
-      <div class="d">+56.28 vs r9 (+1.49%) · 670.03s</div>
+      <div class="v" style="color:var(--ok);">3,879.50</div>
+      <div class="l">Native MTP k=3 Champion</div>
+      <div class="d">+92.66 vs r9 (+2.45%) · 663.54s</div>
     </div>
     <div class="m" style="border-color:var(--ok); background:#f4fbf4;">
-      <div class="v" style="color:var(--ok);">3,879.50</div>
-      <div class="l">New Champion (4-Patch)</div>
-      <div class="d">+92.66 vs r9 (+2.45%) · 100% JSON</div>
+      <div class="v" style="color:var(--ok);">3,991.92</div>
+      <div class="l">L1&ndash;L4 DSpark k=5 Champion</div>
+      <div class="d">+205.08 vs r9 (+5.42%) · 645.01s</div>
+    </div>
+    <div class="m" style="border-color:var(--ok); background:#f4fbf4;">
+      <div class="v" style="color:var(--ok);">3,778.22</div>
+      <div class="l">Stochastic Champion (<code>0.8/0.6</code>)</div>
+      <div class="d">+122.27 vs Stock (+3.34%) · 100% JSON</div>
     </div>
   </div>
 
@@ -230,7 +241,7 @@
   <p>Before this campaign, the official benchmark table topped out at <b>3,776.67 output tok/s</b> (<code>Official v0.31, FlashInfer, MTP k=3</code>) while custom S2 geometry was unmeasured. Table&nbsp;1A updates that summary table with all completed full-2000 1&times;&nbsp;A100-80GB measurements:</p>
 
   <div class="cap">Table 1A — At-a-glance configuration summary (2,000 prompts, `l1_v2_gpt56_test.jsonl`, 1&times; A100-SXM4-80GB).</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Configuration</th>
@@ -253,7 +264,7 @@
         <td class="mono">3,657.38</td>
         <td class="mono">-119.29 (-3.16%)</td>
         <td class="mono">-129.46 (-3.42%)</td>
-        <td><span class="tag t-ref">Prior v0.31 Triton ref</span> Benchmark completed (reproduced at <code>3,664.28</code>)</td>
+        <td><span class="tag t-ref">Prior v0.31 Triton ref</span> Benchmark completed (reproduced at <code>3,662.44</code> in <code>HTTP_V031_D2G_ALL_TRITON</code>)</td>
       </tr>
       <tr>
         <td><b>Official v0.31, FlashInfer, MTP k=3 (Posted Baseline)</b></td>
@@ -271,10 +282,10 @@
       </tr>
       <tr>
         <td><b>Custom v0.31 + S2/D2G Geometry (<code>D2G_TILE=64, STAGES=2, WARPS=8</code>, <code>T=0.2</code>)</b></td>
-        <td class="mono">3,796.91</td>
-        <td class="mono" style="color:var(--ok);">+20.24 (+0.54%)</td>
-        <td class="mono" style="color:var(--ok);">+10.07 (+0.27%)</td>
-        <td><span class="tag t-ok">Measured</span> GPU correctness passed &amp; full-2000 completed (<code>helpful_key_bc498qscsz</code>; beats <code>TILE=32</code> by +41.2 tok/s)</td>
+        <td class="mono">3,791.31</td>
+        <td class="mono" style="color:var(--ok);">+14.64 (+0.39%)</td>
+        <td class="mono" style="color:var(--ok);">+4.47 (+0.12%)</td>
+        <td><span class="tag t-ok">Measured</span> GPU correctness passed &amp; full-2000 completed (<code>HTTP_V031_D2G_T64_S2_W8</code>; beats <code>TILE=32, STAGES=2</code> <code>3,750.13</code> by +41.18 tok/s)</td>
       </tr>
       <tr>
         <td><b>Custom v0.31 + 4-Patch Stack + S2/D2G Geometry (Stochastic <code>T=0.2</code>)</b></td>
@@ -297,21 +308,42 @@
         <td class="mono" style="color:var(--ok);"><b>+90.62 (+2.39%)</b></td>
         <td><span class="tag t-ok">Fastest wall time (662.41s)</span> 2000/2000 (100.0%) JSON valid (<code>frank_jelly_p13140lkhv</code>)</td>
       </tr>
-      <tr style="background:#e2f3e2; font-weight:600;">
-        <td><b>Custom v0.31 + 4-Patch Champion (Full Draft CG + BF16 Sampler + Fused GDN + S2/D2G, Greedy <code>T=0.0</code>)</b></td>
-        <td class="mono" style="color:var(--ok);font-size:14px;"><b>3,879.50</b></td>
+      <tr style="background:#eef7ee;">
+        <td><b>Custom v0.31 + 4-Patch Native MTP <code>k=3</code> Champion (Full Draft CG + BF16 Sampler + Fused GDN + S2/D2G, Greedy <code>T=0.0</code>)</b></td>
+        <td class="mono"><b>3,879.50</b></td>
         <td class="mono" style="color:var(--ok);"><b>+102.83 (+2.72%)</b></td>
         <td class="mono" style="color:var(--ok);"><b>+92.66 (+2.45%)</b></td>
-        <td><span class="tag t-ok">Fastest measured overall</span> 2000/2000 (100.0%) JSON valid (<code>magenta_book_0g0hp7t2cy</code>, 663.54s)</td>
+        <td><span class="tag t-ok">Best self-contained Native MTP</span> 2000/2000 (100.0%) JSON valid (<code>magenta_book_0g0hp7t2cy</code>, 663.54s)</td>
+      </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>Custom v0.31 + 6-Patch Stack + L1&ndash;L4 DSpark 2L <code>k=3</code> (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, Greedy <code>T=0.0</code>)</b></td>
+        <td class="mono"><b>3,932.32</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+155.65 (+4.12%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+145.48 (+3.84%)</b></td>
+        <td><span class="tag t-ok">Matched k=3 beats Native MTP (+52.82 tok/s)</span> 78.93% accept, 3.37 tok/step (<code>joyful_sail_35k4pbzv95</code>, 656.84s)</td>
+      </tr>
+      <tr style="background:#e2f3e2; font-weight:600;">
+        <td><b>Custom v0.31 + 6-Patch Champion + L1&ndash;L4 DSpark 2L <code>k=5</code> (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, Greedy <code>T=0.0</code>)</b></td>
+        <td class="mono" style="color:var(--ok);font-size:14px;"><b>3,991.92</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+215.25 (+5.70%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+205.08 (+5.42%)</b></td>
+        <td><span class="tag t-ok">Fastest measured overall (645.01s)</span> 68.91% accept, 4.45 tok/step, 3.10 QPS (<code>boring_board_qkwnysvkvt</code>)</td>
+      </tr>
+      <tr style="background:#e2f3e2; font-weight:600;">
+        <td><b>Custom v0.31 + 6-Patch Stochastic Champion + L1&ndash;L4 DSpark 2L <code>k=5</code> (Production <code>T=0.8, top_p=0.6</code> / <code>T=0.6, top_p=0.8</code>)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,778.22</b> / <b>3,765.50</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+1.55 (+0.04%)</b> / -11.17</td>
+        <td class="mono" style="color:var(--ok);"><b>+122.27 (+3.34%) vs 0.8/0.6 Ctrl<br>+96.95 (+2.64%) vs 0.6/0.8 Ctrl</b></td>
+        <td><span class="tag t-ok">Fastest production stochastic</span> 2000/2000 (100.0%) JSON at <code>0.8/0.6</code> (<code>bright_garage_ztnrp07r47</code> / <code>plucky_mangos_rqg5nnbmkq</code>)</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3>1.2&nbsp; Detailed Metrics Breakdown Across All Baseline &amp; Champion Runs</h3>
   <p>Every row in Table&nbsp;1B executes the exact same <b>2,000-request online HTTP <code>/v1/chat/completions</code> workload</b> (<code>l1_v2_gpt56_test.jsonl</code>, <code>5,871,663</code> prompt tokens, <code>2,935.8</code> mean prompt tok/req, <code>max_tokens=8192</code>, <code>concurrency=2000</code>) on <b>1&times; NVIDIA A100-SXM4-80GB</b> running <code>vLLM 0.31.0</code>.</p>
 
   <div class="cap">Table 1B — Detailed end-to-end metrics comparison (output tok/s, total tok/s, QPS, wall time, MTP acceptance, and JSON validity).</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Milestone / Configuration</th>
@@ -406,27 +438,66 @@
         <td class="mono">76.63% (3.30)</td>
         <td class="mono"><b>2000/2000 (100.0%)</b></td>
       </tr>
-      <tr style="background:#e2f3e2; font-weight:600;">
-        <td><b>7. Wave-6g 4-Patch Greedy Champion</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;">3-Patch Stack + 2-hunk fused C++ GDN <code>torch.empty</code></span></td>
+      <tr style="background:#eef7ee;">
+        <td><b>7. Wave-6g 4-Patch Native MTP <code>k=3</code> Champion</b><br><span style="color:var(--mut);font-size:12px;">3-Patch Stack + 2-hunk fused C++ GDN <code>torch.empty</code></span></td>
         <td class="mono">magenta_book_<br>0g0hp7t2cy</td>
         <td class="mono"><b>T=0.0</b></td>
-        <td class="mono" style="color:var(--ok);font-size:14px;"><b>3,879.50</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,879.50</b></td>
         <td class="mono" style="color:var(--ok);"><b>+102.83 (+2.72%)</b></td>
-        <td class="mono" style="color:var(--ok);"><b>+92.66 (+2.45%)</b><br><span class="tag t-ok">CHAMPION</span></td>
+        <td class="mono" style="color:var(--ok);"><b>+92.66 (+2.45%)</b><br><span class="tag t-ok">BEST NATIVE MTP</span></td>
         <td class="mono">12,728.44</td>
         <td class="mono">3.01</td>
         <td class="mono">663.54s (-18.36s)</td>
         <td class="mono">76.64% (3.30)</td>
         <td class="mono" style="color:var(--ok);"><b>2000/2000 (100.0%)</b></td>
       </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>8. Wave-6p L1&ndash;L4 DSpark 2L <code>k=3</code> Greedy</b><br><span style="color:var(--mut);font-size:12px;"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code> + <code>top-64</code> bridge</span></td>
+        <td class="mono"><a href="https://ml.azure.com/runs/joyful_sail_35k4pbzv95?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">joyful_sail_<br>35k4pbzv95</a></td>
+        <td class="mono"><b>T=0.0</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,932.32</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+155.65 (+4.12%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+145.48 (+3.84%)</b></td>
+        <td class="mono">12,871.57</td>
+        <td class="mono">3.04</td>
+        <td class="mono">656.84s (-25.06s)</td>
+        <td class="mono"><b>78.93% (3.37)</b></td>
+        <td class="mono">1999/2000 (99.95%)</td>
+      </tr>
+      <tr style="background:#e2f3e2; font-weight:600;">
+        <td><b>9. Wave-6p L1&ndash;L4 DSpark 2L <code>k=5</code> Overall Champion</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, <code>k=5</code>, <code>dspark_draft_topk=64</code></span></td>
+        <td class="mono"><a href="https://ml.azure.com/runs/boring_board_qkwnysvkvt?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">boring_board_<br>qkwnysvkvt</a></td>
+        <td class="mono"><b>T=0.0</b></td>
+        <td class="mono" style="color:var(--ok);font-size:14px;"><b>3,991.92</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+215.25 (+5.70%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+205.08 (+5.42%)</b><br><span class="tag t-ok">OVERALL CHAMPION</span></td>
+        <td class="mono"><b>13,095.19</b></td>
+        <td class="mono"><b>3.10</b></td>
+        <td class="mono"><b>645.01s (-36.89s)</b></td>
+        <td class="mono"><b>68.91% (4.45)</b></td>
+        <td class="mono">1999/2000 (99.95%)</td>
+      </tr>
+      <tr style="background:#e2f3e2; font-weight:600;">
+        <td><b>10. Wave-6p L1&ndash;L4 DSpark 2L <code>k=5</code> Stochastic Champion</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;">Production sampling <code>T=0.8, top_p=0.6</code> (also <code>3,765.50</code> @ <code>T=0.6, top_p=0.8</code>)</span></td>
+        <td class="mono"><a href="https://ml.azure.com/runs/bright_garage_ztnrp07r47?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">bright_garage_<br>ztnrp07r47</a></td>
+        <td class="mono"><b>T=0.8<br>p=0.6</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,778.22</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+1.55 (+0.04%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+122.27 (+3.34%) vs 0.8/0.6 Ctrl</b><br><span class="tag t-ok">STOCHASTIC CHAMP</span></td>
+        <td class="mono">12,359.89</td>
+        <td class="mono">2.92</td>
+        <td class="mono">684.21s (-23.16s vs Ctrl)</td>
+        <td class="mono"><b>67.59% (4.38)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>2000/2000 (100.0%)</b></td>
+      </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3>1.3&nbsp; Step-by-Step Waterfall Attribution: Where Every `+tok/s` Over `r9` (`3,786.84`) Came From</h3>
-  <p>Table&nbsp;2 decomposes the full <b>+92.66 output tok/s (+2.45%)</b> gain over <code>r9</code> into four orthogonal, independently verified improvements.</p>
+  <p>Table&nbsp;2 decomposes the full <b>+205.08 output tok/s (+5.42%)</b> gain over <code>r9</code> into five orthogonal, independently verified improvements.</p>
 
-  <div class="cap">Table 2 — Waterfall attribution from `r9` (`3,786.84 tok/s`) to the Wave-6g 4-patch greedy champion (`3,879.50 tok/s`).</div>
-  <table>
+  <div class="cap">Table 2 — Waterfall attribution from `r9` (`3,786.84 tok/s`) to the Wave-6g Native MTP champion (`3,879.50 tok/s`) and Wave-6p L1&ndash;L4 DSpark `k=5` champion (`3,991.92 tok/s`).</div>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Step</th>
@@ -444,7 +515,7 @@
         <td class="mono">3,786.84 &rarr; 3,793.23</td>
         <td class="mono" style="color:var(--ok);">+6.39 tok/s (+0.17%)</td>
         <td class="mono">+6.39 tok/s (+0.17%)</td>
-        <td>Eliminates 4-worker ZMQ IPC contention (<b>+56.2 tok/s</b> vs 4 workers) and pre-warms Triton/FlashInfer JIT caches before starting the 2,000-request clock.</td>
+        <td>Eliminates 4-worker ZMQ IPC contention (<b>+56.20 tok/s</b> vs 4 workers) and pre-warms Triton/FlashInfer JIT caches before starting the 2,000-request clock.</td>
       </tr>
       <tr>
         <td class="mono"><b>Step 2</b></td>
@@ -460,18 +531,26 @@
         <td class="mono">3,843.12 &rarr; 3,877.46</td>
         <td class="mono" style="color:var(--ok);">+34.34 tok/s (+0.89%)</td>
         <td class="mono">+90.62 tok/s (+2.39%)</td>
-        <td>Captures all 3 MTP draft steps into one CUDA graph/batch size, skips the <code>[512, 248320]</code> <code>BF16 &rarr; FP32</code> logits copy (saving <b>2.03 GB/step</b>, 88% HBM reduction, 100% bitwise-exact), and tunes SM80 Triton draft tiles to <code>64/2/8</code>.</td>
+        <td>Captures all draft steps into one CUDA graph/batch size, skips the <code>[512, 248320]</code> <code>BF16 &rarr; FP32</code> logits copy (saving <b>2.03 GB/step</b>, 88% HBM reduction, 100% bitwise-exact), and tunes SM80 Triton draft tiles to <code>64/2/8</code>.</td>
       </tr>
-      <tr style="background:#e2f3e2;">
+      <tr style="background:#eef7ee;">
         <td class="mono"><b>Step 4</b></td>
         <td><b>Fused C++ GDN <code>torch.empty</code> + V1 Conv1d Warmup</b><br>(Patch 3: <code>vllm_v031_gdn_minimal.patch</code>)</td>
         <td class="mono">3,877.46 &rarr; <b>3,879.50</b></td>
         <td class="mono" style="color:var(--ok);">+2.04 tok/s (+0.05%)</td>
-        <td class="mono" style="color:var(--ok);"><b>+92.66 tok/s (+2.45%)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+92.66 tok/s (+2.45%)</b><br>(Native MTP <code>k=3</code> Champion)</td>
         <td>Replaces <code>core_attn_out = torch.zeros(...)</code> with <code>torch.empty(...)</code> on the fused C++ GDN decode path (saving 24 <code>cudaMemsetAsync</code> calls/step across 24 GDN layers) with zero Python tensor-splitting overhead.</td>
       </tr>
+      <tr style="background:#e2f3e2;">
+        <td class="mono"><b>Step 5</b></td>
+        <td><b>Full L1&ndash;L4 DSpark 2L Draft (<code>k=5</code>, 32k Vocab + <code>top-64</code> Bridge + 4-Group KV Fix)</b><br>(<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>)</td>
+        <td class="mono">3,879.50 &rarr; <b>3,991.92</b><br><span style="font-size:11px;color:var(--mut);">(via <code>3,932.32</code> @ <code>k=3</code>)</span></td>
+        <td class="mono" style="color:var(--ok);"><b>+112.42 tok/s (+2.90%)</b><br><span style="font-size:11px;">(+52.82 @ k=3; +59.60 k=3&rarr;5)</span></td>
+        <td class="mono" style="color:var(--ok);"><b>+205.08 tok/s (+5.42%)</b><br><b>(+215.25 / +5.70% vs Posted)</b></td>
+        <td>220k-step L1&ndash;L4 training lifts <code>k=3</code> acceptance from <code>69.62% &rarr; 78.93%</code> (beating Native MTP's <code>76.64%</code>) and maintains <b><code>68.91%</code> acceptance across <code>k=5</code></b> (<b><code>4.45</code> tokens/target step</b>), cutting 4B target verification passes by <b>26.1%</b> (<code>783k &rarr; 579k</code> passes).</td>
+      </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <blockquote>
     <b>Accuracy &amp; Structural Validity Guarantee:</b> Under strict greedy decoding (<code>temperature=0.0, top_p=1.0</code>), <code>argmax(logits / T) == argmax(logits)</code> holds in IEEE-754 floating point, so bypassing the <code>BF16 &rarr; FP32</code> logits copy is <b>100% mathematically bitwise-exact</b>. Empirically, both <code>frank_jelly_p13140lkhv</code> (<code>3,877.46 tok/s</code>) and <code>magenta_book_0g0hp7t2cy</code> (<code>3,879.50 tok/s</code>) achieved <b><code>2000/2000 (100.00%)</code> valid JSON outputs</b> (vs. <code>1998/2000 = 99.90%</code> on stock <code>r9</code>).
@@ -483,7 +562,7 @@
 
   <h3>2.1&nbsp; Complete Best Settings Matrix</h3>
   <div class="cap">Table 3 — Verified best production parameters for Qwen3.5-4B (`maiprofile-qwen35-sft`) on 1&times; A100-80GB (`vLLM 0.31.0`).</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Layer</th>
@@ -497,13 +576,13 @@
         <td><b>Speculative Decoding</b></td>
         <td class="mono"><code>--speculative-config</code></td>
         <td class="mono"><code>{"method":"mtp","num_speculative_tokens":3,"attention_backend":"TRITON_ATTN"}</code></td>
-        <td>Native 1-layer MTP (<code>k=3</code>) beats <code>k=4</code> by <b>+132.5 tok/s</b> (<code>3,879.50</code> vs <code>3,746.99</code>) and external 2L DSpark by <b>+141.1 tok/s</b> (<code>3,879.50</code> vs <code>3,738.36</code>) because 1 draft layer + shared target hidden states keep step time at ~18 ms.</td>
+        <td>Native 1-layer MTP (<code>k=3</code>) beats <code>k=4</code> by <b>+132.51 tok/s</b> (<code>3,879.50</code> vs <code>3,746.99</code>) and external 2L DSpark by <b>+141.14 tok/s</b> (<code>3,879.50</code> vs <code>3,738.36</code>) because 1 draft layer + shared target hidden states keep step time at ~18 ms.</td>
       </tr>
       <tr>
         <td><b>Target Attention</b></td>
         <td class="mono"><code>--attention-backend</code></td>
         <td class="mono"><code>FLASHINFER</code></td>
-        <td>Beats <code>TRITON_ATTN</code> target by <b>+128.9 tok/s (+3.45%)</b> and <code>FLASH_ATTN</code> target by <b>+1,311 tok/s (+51%)</b> on Qwen3.5's <code>head_dim=256</code>.</td>
+        <td>Beats <code>TRITON_ATTN</code> target by <b>+130.79 tok/s (+3.57%)</b> and <code>FLASH_ATTN</code> target by <b>+1,311 tok/s (+51%)</b> on Qwen3.5's <code>head_dim=256</code>.</td>
       </tr>
       <tr>
         <td><b>Mamba / GDN State</b></td>
@@ -515,13 +594,13 @@
         <td><b>Prefix Caching</b></td>
         <td class="mono"><code>--no-enable-prefix-caching</code></td>
         <td class="mono">Disabled (<code>false</code>)</td>
-        <td>Enabling <code>--mamba-cache-mode align</code> inflates full-attention KV block size from <code>16 &rarr; 288</code> tokens and costs <b>-214.8 tok/s (-5.66%)</b> on unique-prompt traffic.</td>
+        <td>Enabling <code>--mamba-cache-mode align</code> inflates full-attention KV block size from <code>16 &rarr; 288</code> tokens and costs <b>-214.78 tok/s (-5.66%)</b> on unique-prompt traffic.</td>
       </tr>
       <tr>
         <td><b>Batch Scheduling</b></td>
         <td class="mono"><code>--max-num-seqs</code> / <code>--max-num-batched-tokens</code></td>
         <td class="mono"><code>128</code> / <code>16384</code></td>
-        <td>Avoids the 32k-token FLA <code>chunk_gated_delta_rule_fwd</code> workspace OOM while beating <code>mnbt=8192</code> by <b>+57.1 tok/s</b> and <code>mns=256</code> by <b>+58.4 tok/s</b>.</td>
+        <td>Avoids the 32k-token FLA <code>chunk_gated_delta_rule_fwd</code> workspace OOM while beating <code>mnbt=8192</code> by <b>+57.1 tok/s</b> and <code>mns=256</code> by <b>+58.39 tok/s</b>.</td>
       </tr>
       <tr>
         <td><b>Context &amp; Memory</b></td>
@@ -539,22 +618,22 @@
         <td><b>HTTP Server Path</b></td>
         <td class="mono"><code>--async-scheduling</code><br><code>--no-enable-log-requests</code><br><code>--disable-uvicorn-access-log</code></td>
         <td class="mono">Enabled (<code>api_server_count=1</code>)</td>
-        <td>Overlaps Python scheduling with GPU execution; 1 API worker beats 4 workers by <b>+56.2 tok/s</b> (avoids ZMQ IPC contention).</td>
+        <td>Overlaps Python scheduling with GPU execution; 1 API worker beats 4 workers by <b>+56.20 tok/s</b> (avoids ZMQ IPC contention).</td>
       </tr>
       <tr>
         <td><b>Draft Geometry Env</b></td>
         <td class="mono"><code>D2G_TILE / D2G_STAGES / D2G_WARPS</code></td>
         <td class="mono"><code>D2G_TILE=64 D2G_STAGES=2 D2G_WARPS=8</code></td>
-        <td>Best SM80 Triton <code>unified_attention</code> tile/warp launch geometry for the MTP draft head (<b>+41.2 tok/s</b> over <code>TILE=32, STAGES=2</code>).</td>
+        <td>Best SM80 Triton <code>unified_attention</code> tile/warp launch geometry for the MTP draft head (<b>+41.18 tok/s</b> over <code>TILE=32, STAGES=2</code> and <b>+108.69 tok/s</b> over <code>32/3/8</code>).</td>
       </tr>
       <tr>
         <td><b>Request Decoding</b></td>
         <td class="mono"><code>temperature</code> / <code>top_p</code></td>
-        <td class="mono"><code>temperature: 0.0, top_p: 1.0</code></td>
-        <td>Delivers <b>+49.9 to +90.3 tok/s (+1.32% to +2.47%)</b> over <code>T=0.2</code>, lifts MTP acceptance (<code>76.31% &rarr; 76.64%+</code>), and makes BF16 zero-copy verification 100% bitwise-exact.</td>
+        <td class="mono"><code>temperature: 0.0, top_p: 1.0</code> (or prod <code>0.8 / 0.6</code>)</td>
+        <td>Greedy (<code>0.0 / 1.0</code>) delivers <b>+49.89 to +52.22 tok/s</b> over <code>T=0.2</code> and makes BF16 zero-copy verification bitwise-exact; production stochastic params (<code>temperature=0.8, top_p=0.6</code>) are also 100% supported via automatic per-request fallback in <code>vllm_v031_fast_spec_sample.patch</code>.</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3>2.2&nbsp; One-Command Reproduction (GitHub Clone &rarr; 2,000-Request Evaluation)</h3>
   <p>All patches, the turnkey server launcher (<code>serve_qwen35_v031_optimized.sh</code>), the standalone 2,000-request HTTP evaluator (<code>reproduce_qwen35_3879tps_eval.py</code>), and the AzureML job submitter are committed to <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm</code> (branch <code>gemma4-optimization</code>, commit <code>73a4e81</code>)</a>:</p>
@@ -578,12 +657,25 @@ VLLM_APPLY_PATCHES=false python3 reproduce_qwen35_3879tps_eval.py \
     --data-path "$DATA_PATH/l1_v2_gpt56_test.jsonl" \
     --output-dir ./repro_wave6f_stock_greedy_3843tps
 
-# 2C. Or submit the exact AzureML / Singularity jobs on aml-ranking-uksouth:
+# 2C. Production-sampling champion (T=0.8, top_p=0.6) = 3,670.15 tok/s (Wave 6j):
+#     Same 4-patch stack, but pins production sampling. NOTE: requires the FUSED-UPCAST
+#     vllm_v031_fast_spec_sample.patch (the version that handles top_p!=1.0) + the
+#     Enum-fixed vllm_v031_eagle_full_cudagraph.patch -- otherwise both are bypassed
+#     and you reproduce the flat 3,640.34 Wave-6i regression instead of 3,670.15.
+python3 reproduce_qwen35_3879tps_eval.py \
+    --launch-server ./serve_qwen35_v031_optimized.sh \
+    --model-path "$MODEL_PATH" \
+    --data-path "$DATA_PATH/l1_v2_gpt56_test.jsonl" \
+    --temperature 0.8 --top-p 0.6 \
+    --output-dir ./repro_wave6j_prod_3670tps
+
+# 2D. Or submit the exact AzureML / Singularity jobs on aml-ranking-uksouth:
 cd ../.. && pip install -e .
 python experiments/submit_qwen35_v031_http_online.py --submit \
     --only HTTP_V031_WAVE6G_GREEDY_MINIMAL_STACK_K3 \
            HTTP_V031_WAVE6G_GREEDY_EAGLE_FULLCG_SAMPLE_K3 \
-           HTTP_V031_WAVE6F_GREEDY_R9_CTRL</code></pre>
+           HTTP_V031_WAVE6F_GREEDY_R9_CTRL \
+           HTTP_V031_WAVE6J_PROD_T08_P06_FIXED_STACK_K3</code></pre>
 
   <ul>
     <li><b>Model Checkpoint Provenance:</b> Hugging Face <code>ChenWu/qwen35-l1234-v25-step6000</code> · AML Datastore <code>azureml://.../adls_msn_dni_09_rankfun/paths/shares/users/zxy/autobench/data/qwen35-posted-reproduction-20261023-step6000/checkpoint</code> · DLIS <code>abfs://dtalake@copilotexplore.dfs.core.windows.net/MAI-Profile-Qwen35-SFT-step12000-20261006/cur_best_step_12000_ppl_1.2697</code>.</li>
@@ -591,9 +683,8 @@ python experiments/submit_qwen35_v031_http_online.py --submit \
   </ul>
 
   <h3>2.3&nbsp; Manual Server Launch &amp; DLIS `deployment-params.yml`</h3>
-  <details style="margin: 10px 0;">
-    <summary style="cursor: pointer; font-weight: 600;">View exact <code>patch</code> + <code>vllm serve</code> command &amp; DLIS Falcon <code>deployment-params.yml</code> snippet</summary>
-    <pre><code># Step 1: Apply the 4 pure-Python patches (&lt;1s at container start, no C++ compilation)
+  <p>To apply the 4 patches manually and start <code>vllm serve</code> directly (or inside a DLIS Falcon container):</p>
+  <pre><code># Step 1: Apply the 4 pure-Python patches (&lt;1s at container start, no C++ compilation)
 VLLM_SITE_ROOT="$(python3 -c 'import os, vllm; print(os.path.dirname(os.path.dirname(os.path.abspath(vllm.__file__))))')"
 patch -d "$VLLM_SITE_ROOT" -p1 --forward &lt; vllm_v031_eagle_full_cudagraph.patch
 patch -d "$VLLM_SITE_ROOT" -p1 --forward &lt; vllm_v031_fast_spec_sample.patch
@@ -619,14 +710,13 @@ exec vllm serve "$MODEL_PATH" \
     --default-chat-template-kwargs '{"enable_thinking": false}' \
     --language-model-only \
     --speculative-config '{"method": "mtp", "num_speculative_tokens": 3, "attention_backend": "TRITON_ATTN"}'</code></pre>
-  </details>
 
   <!-- ===================================================================== -->
   <h2 id="shareable-patches">3&nbsp; Downloadable Patches, Checksums &amp; Inline Diffs</h2>
   <p>Every artifact below is hosted directly under <code>patches/</code> on this showcase site and mirrored in <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm/benchmarks/qwen35_posted_eval/</code></a> and <a href="https://github.com/overwindows/ensemble_privacy_pipeline/tree/main/showcase/patches"><code>overwindows/ensemble_privacy_pipeline/showcase/patches/</code></a>.</p>
 
   <div class="cap">Table 4 — Downloadable patch bundle, turnkey launchers, and SHA-256 digests (`vLLM 0.31.0`).</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Downloadable File</th>
@@ -639,57 +729,62 @@ exec vllm serve "$MODEL_PATH" \
       <tr style="background:#e2f3e2;">
         <td class="mono"><a href="patches/vllm_v031_eagle_full_cudagraph.patch" download="vllm_v031_eagle_full_cudagraph.patch"><b>vllm_v031_eagle_full_cudagraph.patch</b></a></td>
         <td><b>Champion Patch 1:</b> Unlocks <code>FULL_DECODE_ONLY</code> CUDA graphs on <code>AutoRegressiveSpeculator</code> alongside <code>FLASHINFER</code> target.</td>
-        <td class="mono" style="color:var(--ok);"><b>+23.13 tok/s</b> (greedy)<br><b>+31.26 tok/s</b> (DSpark)</td>
-        <td class="mono" style="font-size:11px;"><code>f10362f3a1ee475f9ee4aa5cf3095a404db90936424ddf42bf5662c6e5fff223</code></td>
+        <td class="mono" style="color:var(--ok);"><b>+34.34 tok/s</b> (3-patch greedy)<br><b>+31.26 tok/s</b> (DSpark)</td>
+        <td class="mono"><code class="sha">f10362f3a1ee475f9ee4aa5cf3095a404db90936424ddf42bf5662c6e5fff223</code></td>
       </tr>
       <tr style="background:#e2f3e2;">
         <td class="mono"><a href="patches/vllm_v031_fast_spec_sample.patch" download="vllm_v031_fast_spec_sample.patch"><b>vllm_v031_fast_spec_sample.patch</b></a></td>
         <td><b>Champion Patch 2:</b> BF16 zero-copy fused-temperature rejection &amp; Gumbel sampler (saves <code>2.03 GB/step</code>, 88% HBM cut, bitwise-exact).</td>
         <td class="mono" style="color:var(--ok);"><b>+31.04 tok/s</b></td>
-        <td class="mono" style="font-size:11px;"><code>ea9fe30b0eec2c67c96a58407c306311262658fbb0844556da540c73c9f02c44</code></td>
+        <td class="mono"><code class="sha">ea9fe30b0eec2c67c96a58407c306311262658fbb0844556da540c73c9f02c44</code></td>
       </tr>
       <tr style="background:#e2f3e2;">
         <td class="mono"><a href="patches/vllm_v031_gdn_minimal.patch" download="vllm_v031_gdn_minimal.patch"><b>vllm_v031_gdn_minimal.patch</b></a></td>
         <td><b>Champion Patch 3:</b> 2-hunk fused C++ GDN decode <code>torch.empty</code> allocation (saves 24 <code>cudaMemsetAsync</code>/step) + V1 conv1d warmup.</td>
         <td class="mono" style="color:var(--ok);"><b>+2.04 tok/s</b> over 3-patch</td>
-        <td class="mono" style="font-size:11px;"><code>9442b0056fd12dc1019e490412cb73eb94f529f6663652664f4ec3b0f0352042</code></td>
+        <td class="mono"><code class="sha">9442b0056fd12dc1019e490412cb73eb94f529f6663652664f4ec3b0f0352042</code></td>
       </tr>
       <tr style="background:#e2f3e2;">
         <td class="mono"><a href="patches/qwen35_d2g_v031.patch" download="qwen35_d2g_v031.patch"><b>qwen35_d2g_v031.patch</b></a></td>
         <td><b>Champion Patch 4:</b> Exposes <code>D2G_TILE=64</code>, <code>D2G_STAGES=2</code>, <code>D2G_WARPS=8</code> on SM80 Triton <code>unified_attention</code>.</td>
-        <td class="mono" style="color:var(--ok);"><b>+41.21 tok/s</b> vs <code>32/2</code></td>
-        <td class="mono" style="font-size:11px;"><code>0ae6eb05317cfd4909efe8c2720c2ef77ce99f23d70d0b0b507ea0fdd184239f</code></td>
+        <td class="mono" style="color:var(--ok);"><b>+41.18 tok/s</b> vs <code>32/2</code></td>
+        <td class="mono"><code class="sha">0ae6eb05317cfd4909efe8c2720c2ef77ce99f23d70d0b0b507ea0fdd184239f</code></td>
+      </tr>
+      <tr style="background:#e2f3e2;">
+        <td class="mono"><a href="patches/vllm_v031_compact_topk_resample.patch" download="vllm_v031_compact_topk_resample.patch"><b>vllm_v031_compact_topk_resample.patch</b></a></td>
+        <td><b>Stochastic Champion Patch 5 (v2):</b> Zero-allocation two-level masked-block short-circuit in <code>_resample_kernel</code> / <code>gumbel_noised_argmax</code> / <code>_compute_local_residual_mass_kernel</code> (skips <code>&gt;98%</code> of <code>top_p</code>-masked 8,192/1,024-token blocks before HBM reads, <code>tl.exp</code>, or Murmur3 PRNG).</td>
+        <td class="mono" style="color:var(--ok);"><b>3,687.48 tok/s</b> @ <code>T=0.6, p=0.8</code><br>(<b>+18.93</b> vs stock, <b>+36.78</b> vs 4-patch, <b>+57.08</b> vs v1)</td>
+        <td class="mono"><code class="sha">9200058469df00e24ff6db9ba841bc87c9d14ced9fc9cc0c274ba11fa91a64da</code></td>
       </tr>
       <tr style="background:#f4f9fd;">
         <td class="mono"><a href="patches/serve_qwen35_v031_optimized.sh" download="serve_qwen35_v031_optimized.sh"><b>serve_qwen35_v031_optimized.sh</b></a></td>
         <td><b>Turnkey Launcher:</b> Auto-applies the 4 champion patches above and launches <code>vllm serve</code> with all best flags.</td>
         <td class="mono"><b>3,879.50 tok/s</b></td>
-        <td class="mono" style="font-size:11px;"><code>66f119a945e670a30f453da00b6dcb7c966aa35c7f58d1e68445eac9db8dc26f</code></td>
+        <td class="mono"><code class="sha">66f119a945e670a30f453da00b6dcb7c966aa35c7f58d1e68445eac9db8dc26f</code></td>
       </tr>
       <tr style="background:#f4f9fd;">
         <td class="mono"><a href="patches/reproduce_qwen35_3879tps_eval.py" download="reproduce_qwen35_3879tps_eval.py"><b>reproduce_qwen35_3879tps_eval.py</b></a></td>
         <td><b>Standalone 2,000-Req Harness:</b> 8-req warmup + greedy override + concurrent HTTP benchmark + Prometheus <code>/metrics</code> verifier.</td>
         <td class="mono"><b>100.0% JSON</b></td>
-        <td class="mono" style="font-size:11px;"><code>5c46cad4f05f7b31a4c2ab14b7717a680ae56ddef95325c69fd704898fe054da</code></td>
+        <td class="mono"><code class="sha">5c46cad4f05f7b31a4c2ab14b7717a680ae56ddef95325c69fd704898fe054da</code></td>
       </tr>
       <tr>
         <td class="mono"><a href="patches/RUNBOOK_QWEN35_BEST_3879TPS.md" download="RUNBOOK_QWEN35_BEST_3879TPS.md"><b>RUNBOOK_QWEN35_BEST_3879TPS.md</b></a></td>
         <td><b>Standalone Runbook:</b> Full Markdown deployment &amp; reproduction guide + DLIS <code>deployment-params.yml</code>.</td>
         <td class="mono">Runbook doc</td>
-        <td class="mono" style="font-size:11px;">Committed in both GitHub repos</td>
+        <td class="mono">Committed in both GitHub repos</td>
       </tr>
       <tr>
         <td class="mono"><a href="patches/vllm_v031_dspark_kv_groups_fix.patch" download="vllm_v031_dspark_kv_groups_fix.patch"><code>vllm_v031_dspark_kv_groups_fix.patch</code></a><br><a href="patches/vllm_v031_dspark_fast_topk_greedy.patch" download="vllm_v031_dspark_fast_topk_greedy.patch"><code>vllm_v031_dspark_fast_topk_greedy.patch</code></a></td>
         <td><b>DSpark Optional Patches:</b> Collapses 34 &rarr; 4 KV cache groups (<b>+68.2%</b>) + vocabulary-pruned <code>top-k</code> Markov &amp; fused greedy draft verification.</td>
         <td class="mono">DSpark <code>2,175 &rarr; 3,738 tok/s</code></td>
-        <td class="mono" style="font-size:11px;">Available in <code>patches/</code></td>
+        <td class="mono">Available in <code>patches/</code></td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
-  <details style="margin: 10px 0;">
-    <summary style="cursor: pointer; font-weight: 600;">View inline diffs for the 4 Champion Patches (<code>eagle_full_cudagraph</code>, <code>fast_spec_sample</code>, <code>gdn_minimal</code>, <code>qwen35_d2g_v031</code>)</summary>
-    <pre style="font-size: 12px; line-height: 1.45;"><code># --- 1. vllm_v031_eagle_full_cudagraph.patch (+23.13 tok/s greedy lift) ---
+  <h3>3.1&nbsp; Core Inline Diffs for the 4 Champion Patches</h3>
+  <pre><code># --- 1. vllm_v031_eagle_full_cudagraph.patch (+34.34 tok/s combined 3-patch greedy lift; +31.26 tok/s isolated on DSpark) ---
 diff --git a/vllm/v1/attention/backends/triton_attn.py b/vllm/v1/attention/backends/triton_attn.py
 @@ -128,6 +128,11 @@ class TritonAttentionMetadataBuilder(AttentionMetadataBuilder[TritonAttentionMet
                  CUDAGraphMode.FULL_DECODE_ONLY,
@@ -741,7 +836,6 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
 +        launch_kwargs["num_stages"] = envs.D2G_STAGES
 +    if envs.D2G_WARPS:
 +        launch_kwargs["num_warps"] = envs.D2G_WARPS</code></pre>
-  </details>
 
   <!-- ===================================================================== -->
   <h2 id="technical-ablations">4&nbsp; Technical Deep-Dive &amp; Full-2000 Ablation Ledger</h2>
@@ -749,14 +843,14 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
   <h3>4.1&nbsp; Kernel, CUDA Graph &amp; Sampling Optimizations on `vLLM 0.31.0`</h3>
   <p>We systematically profiled the <code>vLLM 0.31.0</code> V2 GPU worker on 1&times; A100-80GB and evaluated every candidate kernel and graph optimization across full 2,000-request online HTTP runs:</p>
   <ul>
-    <li><b>Why <code>vllm_v031_fast_spec_sample.patch</code> saves 2.03 GB/step (+31.04 tok/s):</b> In stock <code>vLLM 0.31.0</code>, <code>RejectionSampler.forward</code> unconditionally calls <code>apply_sampling_params(..., logits.to(torch.float32))</code> on the <code>[512, 248320]</code> target vocabulary tensor (<code>127.1M</code> elements) and runs a separate <code>_temperature_kernel</code> before <code>rejection_sample_kernel</code> — even when no <code>top_k</code>, <code>top_p &lt; 1.0</code>, or penalty processors are active and even though <code>rejection_sample_kernel</code> already supports inline <code>apply_temperature</code>. Passing BF16 <code>logits</code> zero-copy eliminates <b>2.03 GB/step (88%)</b> of rejection-sampling HBM traffic.</li>
-    <li><b>Why <code>vllm_v031_eagle_full_cudagraph.patch</code> unlocks draft <code>FULL_DECODE_ONLY</code> CUDA graphs (+23.13 tok/s greedy / +31.26 tok/s DSpark):</b> Because the target model uses <code>FLASHINFER</code> alongside 24 Mamba/GDN layers, vLLM downgrades top-level <code>cudagraph_mode</code> to <code>PIECEWISE</code>. Stock <code>AutoRegressiveSpeculator.set_cudagraph_mode</code> only enables <code>FULL_DECODE_ONLY</code> when the target's decode mode is <code>FULL</code>, forcing all 3 MTP draft decode steps to execute piecewise through Python. Decoupling the draft check when <code>draft_attn_backend == "TRITON_ATTN"</code> captures all 3 draft steps into a single CUDA graph per batch size.</li>
-    <li><b>Why 2-hunk <code>vllm_v031_gdn_minimal.patch</code> beat the 4-hunk Python mixed-batch split (+2.04 tok/s vs. -17.30 tok/s):</b> During the ~4,000 mixed prefill+decode steps, splitting decode and prefill tokens in Python adds 264 extra CUDA kernel launches per step (<code>torch.index_select</code> + <code>index_copy_</code> across 24 GDN layers), costing more CPU/launch latency than it saves on GPU. Keeping only the zero-overhead <code>torch.zeros &rarr; torch.empty</code> fix on the fused C++ GDN decode path lifted the 3-patch stack from <code>3,877.46</code> to <b><code>3,879.50 output tok/s</code></b>.</li>
-    <li><b>Why Native MTP <code>k=3</code> beats <code>k=4</code> (+132.51 tok/s):</b> Increasing speculative depth from <code>k=3</code> to <code>k=4</code> (<code>calm_panda_v0f2cf9v30</code>) adds a 4th draft step with marginal acceptance (<code>0.556</code> on position 3, lowering overall acceptance from <code>76.64% &rarr; 71.13%</code>) and swells the target verification batch from <code>4N=512</code> to <code>5N=640</code> tokens/step (+25% target FLA/attention compute), dropping throughput from <code>3,879.50</code> to <code>3,746.99 tok/s</code>.</li>
+    <li><b>Why <code>vllm_v031_fast_spec_sample.patch</code> saves 2.03 GB/step (+31.04 tok/s):</b> In stock <code>vLLM 0.31.0</code>, <code>RejectionSampler.forward</code> unconditionally calls <code>apply_sampling_params(..., logits.to(torch.float32))</code> on the <code>[512, 248320]</code> target vocabulary tensor (<code>127.1M</code> elements) and runs a separate <code>_temperature_kernel</code> before <code>rejection_sample_kernel</code> — even when no <code>top_k</code>, <code>top_p &lt; 1.0</code>, or penalty processors are active and even though <code>rejection_sample_kernel</code> already supports inline <code>apply_temperature</code>. Passing BF16 <code>logits</code> zero-copy eliminates <b>2.03 GB/step (88%)</b> of rejection-sampling HBM traffic. When requests specify <code>top_p &lt; 1.0</code> (e.g., production <code>temperature=0.8, top_p=0.6</code>), <code>can_fuse_temperature</code> automatically detects <code>top_p != 1.0</code> and routes to standard <code>apply_sampling_params</code> nucleus filtering with zero config changes.</li>
+    <li><b>Why <code>vllm_v031_eagle_full_cudagraph.patch</code> unlocks draft <code>FULL_DECODE_ONLY</code> CUDA graphs (+34.34 tok/s combined 3-patch greedy / +31.26 tok/s isolated on DSpark):</b> Because the target model uses <code>FLASHINFER</code> alongside 24 Mamba/GDN layers, vLLM downgrades top-level <code>cudagraph_mode</code> to <code>PIECEWISE</code>. Stock <code>AutoRegressiveSpeculator.set_cudagraph_mode</code> only enables <code>FULL_DECODE_ONLY</code> when the target's decode mode is <code>FULL</code>, forcing all 3 MTP draft decode steps to execute piecewise through Python. Decoupling the draft check when <code>draft_attn_backend == "TRITON_ATTN"</code> captures all 3 draft steps into a single CUDA graph per batch size.</li>
+    <li><b>Why 2-hunk <code>vllm_v031_gdn_minimal.patch</code> beat the 4-hunk Python mixed-batch split (+2.04 tok/s vs. -63.15 tok/s):</b> During the ~4,000 mixed prefill+decode steps, splitting decode and prefill tokens in Python adds 264 extra CUDA kernel launches per step (<code>torch.index_select</code> + <code>index_copy_</code> across 24 GDN layers), costing more CPU/launch latency than it saves on GPU (<code>sleepy_neck_v2dklhrnl4</code> dropped to <code>3,814.31 tok/s</code>). Keeping only the zero-overhead <code>torch.zeros &rarr; torch.empty</code> fix on the fused C++ GDN decode path lifted the 3-patch stack from <code>3,877.46</code> to <b><code>3,879.50 output tok/s</code></b>.</li>
+    <li><b>Why Native MTP <code>k=3</code> beats <code>k=4</code> (+132.51 tok/s):</b> Increasing speculative depth from <code>k=3</code> to <code>k=4</code> (<code>joyful_root_cy8y5xk25m</code>) adds a 4th draft step with marginal acceptance (<code>0.556</code> on position 3, lowering overall acceptance from <code>76.64% &rarr; 71.13%</code>) and swells the target verification batch from <code>4N=512</code> to <code>5N=640</code> tokens/step (+25% target FLA/attention compute), dropping throughput from <code>3,879.50</code> to <code>3,746.99 tok/s</code>.</li>
   </ul>
 
   <div class="cap">Table 5 — Kernel, CUDA graph, D2G geometry, and speculative depth ablations on full 2,000-request online HTTP runs.</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Experiment Arm</th>
@@ -771,14 +865,34 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
     </thead>
     <tbody>
       <tr style="background:#e2f3e2;font-weight:600;">
+        <td class="mono">WAVE6P_L1TO4_DSPARK_K5_GREEDY</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/boring_board_qkwnysvkvt?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">boring_board_qkwnysvkvt</a></td>
+        <td class="mono">T=0.0</td>
+        <td><b>Overall Champion:</b> <code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code> (<code>k=5</code>, <code>top-64</code> bridge, 4-group KV fix + 4-patch stack)</td>
+        <td class="mono" style="color:var(--ok);"><b>3,991.92</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+205.08 (+5.42%)</b></td>
+        <td class="mono"><b>645.01s</b></td>
+        <td><span class="tag t-ok">OVERALL CHAMPION (4.45 tok/step)</span></td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
+        <td class="mono">WAVE6P_L1TO4_DSPARK_K3_GREEDY</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/joyful_sail_35k4pbzv95?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">joyful_sail_35k4pbzv95</a></td>
+        <td class="mono">T=0.0</td>
+        <td><b>Matched <code>k=3</code> L1&ndash;L4 DSpark:</b> <code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code> (<code>k=3</code>, <code>78.93%</code> acceptance vs MTP <code>76.64%</code>)</td>
+        <td class="mono" style="color:var(--ok);"><b>3,932.32</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+145.48 (+3.84%)</b></td>
+        <td class="mono">656.84s</td>
+        <td><span class="tag t-ok">BEATS NATIVE MTP k=3 BY +52.82</span></td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
         <td class="mono">WAVE6G_GREEDY_MINIMAL_STACK_K3</td>
         <td class="mono">magenta_book_0g0hp7t2cy</td>
         <td class="mono">T=0.0</td>
-        <td><b>4-Patch Champion</b> (<code>eagle_full_cg</code> + <code>fast_spec_sample</code> + <code>gdn_minimal</code> + <code>D2G 64/2/8</code>)</td>
+        <td><b>4-Patch Native MTP Champion</b> (<code>eagle_full_cg</code> + <code>fast_spec_sample</code> + <code>gdn_minimal</code> + <code>D2G 64/2/8</code>)</td>
         <td class="mono" style="color:var(--ok);"><b>3,879.50</b></td>
         <td class="mono" style="color:var(--ok);"><b>+92.66 (+2.45%)</b></td>
         <td class="mono">663.54s</td>
-        <td><span class="tag t-ok">CHAMPION (100% JSON)</span></td>
+        <td><span class="tag t-ok">BEST NATIVE MTP (100% JSON)</span></td>
       </tr>
       <tr style="background:#eef7ee;">
         <td class="mono">WAVE6G_GREEDY_EAGLE_FULLCG_SAMPLE_K3</td>
@@ -791,26 +905,6 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
         <td><span class="tag t-ok">FASTEST WALL TIME</span></td>
       </tr>
       <tr>
-        <td class="mono">WAVE6F_GREEDY_CHAMPION_STACK</td>
-        <td class="mono"> olive_fish_f5661w7n1w</td>
-        <td class="mono">T=0.0</td>
-        <td>3-Patch Stack + 4-hunk Python mixed-batch GDN split</td>
-        <td class="mono">3,860.16</td>
-        <td class="mono" style="color:var(--ok);">+73.32 (+1.94%)</td>
-        <td class="mono">665.24s</td>
-        <td><span class="tag t-ok">Python GDN split costs -17.3 tok/s</span></td>
-      </tr>
-      <tr>
-        <td class="mono">WAVE6F_GREEDY_FAST_SAMPLE</td>
-        <td class="mono">khaki_spoon_7w61s3l0b9</td>
-        <td class="mono">T=0.0</td>
-        <td>Fast BF16 spec sample + 4-hunk GDN split + D2G (without <code>eagle_full_cg</code>)</td>
-        <td class="mono">3,837.03</td>
-        <td class="mono" style="color:var(--ok);">+50.19 (+1.33%)</td>
-        <td class="mono">671.50s</td>
-        <td><span class="tag t-ok">Proves <code>eagle_full_cg</code> = +23.13 tok/s</span></td>
-      </tr>
-      <tr>
         <td class="mono">WAVE6F_GREEDY_R9_CTRL</td>
         <td class="mono">hungry_cat_jqbhqqvz0z</td>
         <td class="mono">T=0.0</td>
@@ -821,48 +915,79 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
         <td><span class="tag t-ok">ZERO-PATCH GREEDY CTRL</span></td>
       </tr>
       <tr>
-        <td class="mono">WAVE6G_GREEDY_CHAMPION_MTP_K4</td>
-        <td class="mono">calm_panda_v0f2cf9v30</td>
+        <td class="mono">WAVE6E_ALL4_STACK_K3</td>
+        <td class="mono">ivory_box_09wc1wnqzl</td>
+        <td class="mono">T=0.2</td>
+        <td>4-Patch Stack under stochastic dataset default <code>T=0.2</code></td>
+        <td class="mono">3,827.28</td>
+        <td class="mono" style="color:var(--ok);">+40.44 (+1.07%)</td>
+        <td class="mono">675.51s</td>
+        <td><span class="tag t-ok">FASTEST STOCHASTIC T=0.2</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6C_FAST_SAMPLE_ONLY</td>
+        <td class="mono">mango_turtle_tdbxy2khbs</td>
+        <td class="mono">T=0.2</td>
+        <td>Isolated <code>vllm_v031_fast_spec_sample</code> + <code>D2G 64/2/8</code> at <code>T=0.2</code></td>
+        <td class="mono">3,824.27</td>
+        <td class="mono" style="color:var(--ok);">+37.43 (+0.99%)</td>
+        <td class="mono">675.04s</td>
+        <td><span class="tag t-ok">Proves fast_spec_sample = +31.04 tok/s</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6F_GREEDY_ALL4_K3</td>
+        <td class="mono">sleepy_neck_v2dklhrnl4</td>
+        <td class="mono">T=0.0</td>
+        <td>3-Patch Stack + 4-hunk Python mixed-batch GDN split</td>
+        <td class="mono">3,814.31</td>
+        <td class="mono" style="color:var(--ok);">+27.47 (+0.73%)</td>
+        <td class="mono">676.09s</td>
+        <td><span class="tag t-null">Python GDN split costs -63.15 tok/s</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6F_GREEDY_CHAMPION_K4</td>
+        <td class="mono">joyful_root_cy8y5xk25m</td>
         <td class="mono">T=0.0</td>
         <td>Native MTP depth <code>k=4</code> (512 &rarr; 640 verify tokens/step)</td>
         <td class="mono">3,746.99</td>
         <td class="mono" style="color:var(--bad);">-39.85 (-1.05%)</td>
         <td class="mono">687.48s</td>
-        <td><span class="tag t-null">k=3 beats k=4 by +132.5 tok/s</span></td>
+        <td><span class="tag t-null">k=3 beats k=4 by +132.51 tok/s</span></td>
       </tr>
       <tr>
         <td class="mono">HTTP_V031_D2G_T64_S2_W8</td>
-        <td class="mono">helpful_key_bc498qscsz</td>
+        <td class="mono">phase2g_d2g_t64_s2_w8</td>
         <td class="mono">T=0.2</td>
-        <td>Draft Triton geometry <code>D2G_TILE=64, STAGES=2, WARPS=8</code> (vs <code>TILE=32</code> <code>3,755.70</code>)</td>
-        <td class="mono">3,796.91</td>
-        <td class="mono" style="color:var(--ok);">+10.07 (+0.27%)</td>
+        <td>Draft Triton geometry <code>D2G_TILE=64, STAGES=2, WARPS=8</code> (vs <code>TILE=32</code> <code>3,750.13</code>)</td>
+        <td class="mono">3,791.31</td>
+        <td class="mono" style="color:var(--ok);">+4.47 (+0.12%)</td>
         <td class="mono">681.33s</td>
-        <td><span class="tag t-ok">Best SM80 draft geometry (+41.2 tok/s vs 32/2)</span></td>
+        <td><span class="tag t-ok">Best SM80 draft geometry (+41.18 tok/s vs 32/2)</span></td>
       </tr>
       <tr>
         <td class="mono">HTTP_V031_D2G_ALL_TRITON</td>
-        <td class="mono">ashy_spinach_jcbzdnbdf5</td>
+        <td class="mono">phase2g_d2g_all_triton</td>
         <td class="mono">T=0.2</td>
         <td>Target + Draft both forced to <code>TRITON_ATTN</code> (vs <code>FLASHINFER</code> target)</td>
-        <td class="mono">3,664.28</td>
-        <td class="mono" style="color:var(--bad);">-122.56 (-3.24%)</td>
+        <td class="mono">3,662.44</td>
+        <td class="mono" style="color:var(--bad);">-124.40 (-3.29%)</td>
         <td class="mono">704.93s</td>
-        <td><span class="tag t-null">Keep FLASHINFER on target (+128.9 tok/s)</span></td>
+        <td><span class="tag t-null">Keep FLASHINFER on target (+130.79 tok/s)</span></td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
-  <h3>4.2&nbsp; Speculator Architecture Comparison: Native 1L MTP (`3,879.50`) vs. External 2L DSpark (`3,738.36`) vs. 4L DFlash (`1,608.43`)</h3>
-  <p>We evaluated three distinct speculative decoding architectures on the same Qwen3.5-4B backbone:</p>
+  <h3>4.2&nbsp; Speculator Architecture Comparison: Full L1&ndash;L4 2L DSpark (`3,991.92`) vs. Native 1L MTP (`3,879.50`) vs. Early L1-Only DSpark (`3,738.36`) vs. 4L DFlash (`1,608.43`)</h3>
+  <p>We evaluated four speculative decoding architectures/checkpoints on the same Qwen3.5-4B backbone:</p>
   <ol>
-    <li><b>Native 1-Layer MTP (<code>Qwen3_5MTP</code>, <code>k=3</code> — Winner at <code>3,879.50 tok/s</code>):</b> Built directly into the checkpoint, shares target backbone hidden states, reads only <b>1 decoder layer</b> of weights per draft step, and achieves <b>76.64% acceptance</b> (<b>3.30 tokens/step</b>) in ~18.0 ms/step at <code>Running=128</code>.</li>
-    <li><b>External 2-Layer DSpark (<code>IWRITECODE/qwen35-l1-dspark-2l-v32k</code>, <code>k=3</code> — Best at <code>3,738.36 tok/s</code>):</b> Out-of-the-box, vLLM 0.31.0 fragmented the hybrid KV cache into <b>34 groups</b> (<code>2,175.87 tok/s</code>). Fixing the KV grouping (34 &rarr; 4 groups, <code>+68.2%</code>), enabling <code>FULL_DECODE_ONLY</code> draft CUDA graphs, and running greedy decoding lifted DSpark to <b>3,738.36 tok/s</b> with slightly higher acceptance (<b>78.76%</b>, <b>3.36 tokens/step</b>). However, because DSpark runs <b>2 full transformer layers + a 32,768-vocab Markov head</b> per draft step (~2&times; the draft HBM weight traffic of 1-layer MTP), its +0.06 tokens/step acceptance advantage (+1.8%) cannot offset its +4.7% step-time cost (~18.85 ms vs ~18.0 ms). We also tested <code>k=5</code> (<code>3,471.93 tok/s</code>, 768-token verification bottleneck) and pruning the Markov head to <code>top-64</code> (<code>gray_drop_m1pb1vf7v9</code>, <code>3,695.43 tok/s</code>, where 500&times; Markov bandwidth reduction was offset by <code>-1.49 pp</code> acceptance loss when bigram boosts fell in ranks 65&ndash;256).</li>
+    <li><b>Full L1&ndash;L4 Trained 2-Layer DSpark (<a href="https://huggingface.co/IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k" target="_blank"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code></a>, <code>k=5</code> — Overall Winner at <code>3,991.92 tok/s</code> Greedy &amp; <code>3,778.22 tok/s</code> Stochastic):</b> Trained for <code>220k</code> steps (<code>6.1B</code> tokens) across the full L1&ndash;L4 distribution. Combined with our 4-group KV cache fix (collapsing 34 fragmented hybrid groups to 4), nested <code>transformer_layer_config</code> full-attention injection, <code>FULL_DECODE_ONLY</code> draft CUDA graphs, and <code>dspark_draft_topk=64</code> sparse vocabulary bridge over its trimmed 32,768 vocabulary (7.6&times; smaller LM head than Native MTP's 248,320 vocabulary), this checkpoint lifts <code>k=3</code> acceptance to <b>78.93%</b> (<b>3.37 tokens/step</b>, <b>3,932.32 tok/s</b> — beating Native MTP <code>k=3</code> by <b>+52.82 tok/s</b>) and scales cleanly to <b><code>k=5</code></b> with <b>68.91% acceptance</b> (per-position <code>0.883 / 0.771 / 0.676 / 0.595 / 0.520</code>, <b>4.45 tokens/step</b>). Increasing mean accepted tokens per verification step from <code>3.30 &rarr; 4.45</code> cuts total 4B target forward passes by <b>26.1%</b> (<code>783k &rarr; 578,752</code> passes), delivering <b>3,991.92 output tok/s</b> at <code>T=0.0</code> (+112.42 tok/s over Native MTP) and <b>3,778.22 output tok/s</b> at <code>T=0.8, top_p=0.6</code> (+108.07 tok/s over Native MTP).</li>
+    <li><b>Native 1-Layer MTP (<code>Qwen3_5MTP</code>, <code>k=3</code> — Best Self-Contained Checkpoint Speculator at <code>3,879.50 tok/s</code>):</b> Built directly into the checkpoint, shares target backbone hidden states, reads only <b>1 decoder layer</b> of weights per draft step, and achieves <b>76.64% acceptance</b> (per-position <code>0.886 / 0.762 / 0.651</code>, mean accept length <b>3.30 tokens/step</b>) in ~18.0 ms/step at <code>Running=128</code>. Because Native MTP projects across the full 248,320 vocabulary at every draft step, extending it beyond <code>k=3</code> degrades throughput (<code>k=4</code> drops to <code>3,746.99 tok/s</code>).</li>
+    <li><b>Early L1-Only 2-Layer DSpark (<code>IWRITECODE/qwen35-l1-dspark-2l-v32k</code> / <code>sft-dspark</code>, <code>k=3</code> — <code>3,738.36 tok/s</code>):</b> Earlier L1-only DSpark checkpoints under-performed Native MTP at <code>k=5</code> (<code>3,471.93 &ndash; 3,663.61 tok/s</code>) because acceptance dropped sharply on positions 3&ndash;5 before full L1&ndash;L4 training.</li>
     <li><b>External 4-Layer DFlash (<code>z-lab/Qwen3.5-4B-DFlash</code>, 1.71B params — Closed at <code>1,608.43 tok/s</code>):</b> Block-diffusion drafting adds 4 full layers of weight reads and dedicated cross-attention KV cache pressure every step, running <b>33.0% slower</b> than native MTP at <code>c=128</code>.</li>
   </ol>
 
   <div class="cap">Table 6 — Speculator architecture head-to-head comparison at `c=128` concurrency on 1&times; A100-80GB.</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Speculator Architecture</th>
@@ -871,48 +996,66 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
         <th>Draft Accept Rate</th>
         <th>Mean Tokens / Step</th>
         <th>Output tok/s</th>
-        <th>vs. Native MTP Champion</th>
+        <th>vs. Native MTP Champion (<code>3,879.50</code>)</th>
       </tr>
     </thead>
     <tbody>
       <tr style="background:#e2f3e2;font-weight:600;">
-        <td><b>Native 1-Layer MTP (<code>k=3</code>, Greedy Champion)</b></td>
-        <td>1 layer + shared target hidden states</td>
+        <td><b>Full L1&ndash;L4 2L DSpark (<code>k=5</code>, Greedy Overall Champion)</b><br><span style="font-size:11px;font-weight:400;"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code> + <code>top-64</code> bridge</span></td>
+        <td>2 layers + 32k vocab (<code>578,752</code> target steps)</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/boring_board_qkwnysvkvt?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">boring_board_qkwnysvkvt</a></td>
+        <td class="mono"><b>68.91%</b> (<code>.883/.771/.676/.595/.520</code>)</td>
+        <td class="mono"><b>4.45</b></td>
+        <td class="mono" style="color:var(--ok);font-size:14px;"><b>3,991.92</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+112.42 (+2.90%)</b> <span class="tag t-ok">OVERALL WINNER</span></td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
+        <td><b>Full L1&ndash;L4 2L DSpark (<code>k=3</code>, Matched-Depth Greedy)</b><br><span style="font-size:11px;font-weight:400;"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code> + <code>top-64</code> bridge</span></td>
+        <td>2 layers + 32k vocab (<code>766,353</code> target steps)</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/joyful_sail_35k4pbzv95?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">joyful_sail_35k4pbzv95</a></td>
+        <td class="mono"><b>78.93%</b> (<code>.893/.786/.690</code>)</td>
+        <td class="mono"><b>3.37</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,932.32</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+52.82 (+1.36%)</b></td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
+        <td><b>Native 1-Layer MTP (<code>k=3</code>, Self-Contained Champion)</b></td>
+        <td>1 layer + 248k vocab (<code>783,115</code> target steps)</td>
         <td class="mono">magenta_book_0g0hp7t2cy</td>
-        <td class="mono">76.64% (<code>.885/.758/.648</code>)</td>
+        <td class="mono">76.64% (<code>.886/.762/.651</code>)</td>
         <td class="mono">3.30</td>
         <td class="mono" style="color:var(--ok);"><b>3,879.50</b></td>
-        <td class="mono"><span class="tag t-ok">WINNER</span></td>
+        <td class="mono"><span class="tag t-ref">NATIVE MTP BASE</span></td>
+      </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>Full L1&ndash;L4 2L DSpark (<code>k=5</code>, Stochastic <code>T=0.8, top_p=0.6</code>)</b></td>
+        <td>2 layers + 32k vocab (<code>589,800</code> target steps)</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/bright_garage_ztnrp07r47?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">bright_garage_ztnrp07r47</a></td>
+        <td class="mono"><b>67.59%</b> (<code>.872/.757/.662/.581/.507</code>)</td>
+        <td class="mono"><b>4.38</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,778.22</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+108.07 (+2.94%) vs MTP @ 0.8/0.6</b></td>
+      </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>Full L1&ndash;L4 2L DSpark (<code>k=5</code>, Stochastic <code>T=0.6, top_p=0.8</code>)</b></td>
+        <td>2 layers + 32k vocab (<code>591,501</code> target steps)</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/plucky_mangos_rqg5nnbmkq?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">plucky_mangos_rqg5nnbmkq</a></td>
+        <td class="mono"><b>67.19%</b> (<code>.870/.753/.657/.577/.503</code>)</td>
+        <td class="mono"><b>4.36</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,765.50</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+78.02 (+2.12%) vs MTP @ 0.6/0.8</b></td>
       </tr>
       <tr>
-        <td><b>External 2L DSpark (<code>k=3</code>, 4-Group Fix + Greedy)</b></td>
-        <td>2 layers + 32k Markov head (~2&times; draft HBM)</td>
+        <td><b>Early L1-Only 2L DSpark (<code>k=3</code>, 4-Group Fix + Greedy)</b></td>
+        <td>2 layers + 32k Markov head (L1-only draft)</td>
         <td class="mono">olive_grape_s93f3b3jfb</td>
-        <td class="mono"><b>78.76%</b> (<code>.895/.792/.675</code>)</td>
-        <td class="mono"><b>3.36</b></td>
+        <td class="mono">78.76% (<code>.895/.792/.675</code>)</td>
+        <td class="mono">3.36</td>
         <td class="mono">3,738.36</td>
         <td class="mono" style="color:var(--bad);">-141.14 (-3.64%)</td>
       </tr>
       <tr>
-        <td><b>External 2L DSpark (<code>k=3</code>, <code>top-64</code> Pruned Markov + Full CG)</b></td>
-        <td>2 layers + <code>[N, 64]</code> gathered Markov head</td>
-        <td class="mono">gray_drop_m1pb1vf7v9</td>
-        <td class="mono">77.27% (<code>.892/.777/.649</code>)</td>
-        <td class="mono">3.32</td>
-        <td class="mono">3,695.43</td>
-        <td class="mono" style="color:var(--bad);">-184.07 (-4.74%)</td>
-      </tr>
-      <tr>
-        <td><b>External 2L DSpark (<code>k=5</code>, Full-CG + Greedy)</b></td>
-        <td>5 draft steps + 768-token target verify</td>
-        <td class="mono">cyan_ant_5s78p5l6w9</td>
-        <td class="mono">65.34% (5 positions)</td>
-        <td class="mono">4.27</td>
-        <td class="mono">3,471.93</td>
-        <td class="mono" style="color:var(--bad);">-407.57 (-10.51%)</td>
-      </tr>
-      <tr>
-        <td><b>External 2L DSpark (Stock vLLM 0.31.0, Unpatched)</b></td>
+        <td><b>Early L1-Only 2L DSpark (Stock vLLM 0.31.0, Unpatched)</b></td>
         <td>34 fragmented KV cache groups (222 blocks)</td>
         <td class="mono">mango_bridge_df0n3m1gbs</td>
         <td class="mono">78.23%</td>
@@ -930,13 +1073,13 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
         <td class="mono" style="color:var(--bad);">-33.0% vs same-harness MTP3</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <h3>4.3&nbsp; Online HTTP Serving &amp; Batch Scheduling Ablations</h3>
   <p>Before kernel patching, we swept the core <code>vllm serve</code> batching, worker, and prefix-caching flags on full 2,000-request online HTTP runs to lock in the optimal serving configuration:</p>
 
   <div class="cap">Table 7 — Online HTTP `/v1/chat/completions` server and scheduling ablations (`vLLM 0.31.0`, full 2,000 requests).</div>
-  <table>
+  <div class="tbl-wrap"><table>
     <thead>
       <tr>
         <th>Parameter / Lever</th>
@@ -949,7 +1092,7 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
     <tbody>
       <tr>
         <td><b>Chunked Prefill Budget (<code>--max-num-batched-tokens</code>)</b></td>
-        <td><code>32768</code> vs. <b><code>16384</code></b> ( vs. <code>8192</code>)</td>
+        <td><code>32768</code> vs. <b><code>16384</code></b> (vs. <code>8192</code>)</td>
         <td class="mono">wave1_32k /<br>calm_fish_w639j1j0g8</td>
         <td class="mono">CUDA OOM (32k)<br>3,764.61 (8k)</td>
         <td>At 32k tokens, FLA <code>chunk_gated_delta_rule_fwd</code> allocates ~7.6 GiB temporary workspace and OOMs. <b><code>16384</code></b> is OOM-free and beats <code>8192</code> by <b>+57.1 tok/s</b>.</td>
@@ -957,26 +1100,26 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
       <tr>
         <td><b>Max Concurrent Sequences (<code>--max-num-seqs</code>)</b></td>
         <td><code>256</code> vs. <b><code>128</code></b></td>
-        <td class="mono"> plum_shoe_t1h839t1c9</td>
-        <td class="mono">3,734.81 vs. <b>3,793.23</b></td>
-        <td><code>mns=256</code> doubles verification batch to 1,024 tokens and triggers 11 KV preemptions, losing <b>-58.4 tok/s (-1.54%)</b> vs. <b><code>mns=128</code></b> (zero preemptions).</td>
+        <td class="mono">heroic_yogurt_5fvvzqxf6c</td>
+        <td class="mono">3,734.84 vs. <b>3,793.23</b></td>
+        <td><code>mns=256</code> doubles verification batch to 1,024 tokens and triggers 11 KV preemptions, losing <b>-58.39 tok/s (-1.54%)</b> vs. <b><code>mns=128</code></b> (zero preemptions).</td>
       </tr>
       <tr>
         <td><b>API Server Workers (<code>--api-server-count</code>)</b></td>
         <td><code>4</code> workers vs. <b><code>1</code> worker</b></td>
-        <td class="mono">nice_duck_j7c4855l12</td>
-        <td class="mono">3,737.07 vs. <b>3,793.23</b></td>
-        <td>1 Uvicorn API worker with <code>--disable-uvicorn-access-log</code> easily saturates 3.01 QPS; 4 workers add ZMQ IPC contention and lose <b>-56.2 tok/s (-1.48%)</b>.</td>
+        <td class="mono">icy_map_mxl75fs1mn</td>
+        <td class="mono">3,737.03 vs. <b>3,793.23</b></td>
+        <td>1 Uvicorn API worker with <code>--disable-uvicorn-access-log</code> easily saturates 3.01 QPS; 4 workers add ZMQ IPC contention and lose <b>-56.20 tok/s (-1.48%)</b>.</td>
       </tr>
       <tr>
         <td><b>Hybrid Mamba Prefix Caching (<code>--mamba-cache-mode align</code>)</b></td>
         <td>Enabled vs. <b><code>--no-enable-prefix-caching</code></b></td>
-        <td class="mono">placid_ bear_q4584n86n2</td>
-        <td class="mono">3,578.41 vs. <b>3,793.23</b></td>
-        <td>Aligning attention blocks to Mamba state snapshots inflates KV block size <code>16 &rarr; 288</code> tokens (<code>2,078 &rarr; 159</code> blocks), costing <b>-214.8 tok/s (-5.66%)</b>.</td>
+        <td class="mono">boring_peach_29qhr0xcnh</td>
+        <td class="mono">3,578.45 vs. <b>3,793.23</b></td>
+        <td>Aligning attention blocks to Mamba state snapshots inflates KV block size <code>16 &rarr; 288</code> tokens (<code>2,078 &rarr; 159</code> blocks), costing <b>-214.78 tok/s (-5.66%)</b>.</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
   <!-- ===================================================================== -->
   <h2 id="cross-harness">5&nbsp; Cross-Harness Calibration: Resolving the `2,697.54` vs. `3,786.84` Gap</h2>
@@ -989,22 +1132,207 @@ diff --git a/vllm/v1/attention/ops/triton_unified_attention.py b/vllm/v1/attenti
   </ol>
 
   <!-- ===================================================================== -->
-  <h2 id="path-to-4000">6&nbsp; Path to 4,000+ End-to-End tok/s &amp; References</h2>
-  <p>With the Wave-6g 4-patch greedy champion at <b>3,879.50 output tok/s</b> end-to-end across 2,000 requests — and <b>4,040.4 tok/s median throughput already achieved during steady-state <code>Running=128</code> pure-decode windows</b> — only <b>120.50 tok/s (+3.11%)</b> of ramp/drain and mixed-step amortization remains to cross 4,000+ tok/s end-to-end on 1&times; A100-80GB:</p>
+  <!-- ===================================================================== -->
+  <h2 id="prod-sampling">6&nbsp; Production-Generation Validation: <code>(T=0.8, top_p=0.6)</code> &amp; <code>(T=0.6, top_p=0.8)</code> Online Serving</h2>
+  <p>Production serves Qwen3.5-4B over online HTTP <code>/v1/chat/completions</code> under stochastic nucleus sampling. We benchmarked the full 2,000-request workload across both <b><code>temperature=0.8, top_p=0.6</code></b> and <b><code>temperature=0.6, top_p=0.8</code></b>, evaluating the full L1&ndash;L4 trained 2-layer DSpark draft model (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, <code>k=5</code>, <code>Wave 6p</code>), our <b>zero-allocation two-level masked-block short-circuit sampling patch</b> (<code>vllm_v031_compact_topk_resample.patch</code> v2, <code>Wave 6o</code>), and the fixed 4-patch MTP stack (<code>Wave 6j / 6n</code>). <b>Verdict: <code>Wave 6p</code> with the full L1&ndash;L4 DSpark <code>k=5</code> draft model + 5-patch stack achieves new all-time stochastic serving records across both production sampling regimes: <code>3,778.22 output tok/s</code> (<code>12,359.89 total tok/s</code>, <code>2.92 QPS</code>, <code>684.21s</code>, <code>100.0% JSON</code>) at <code>T=0.8, top_p=0.6</code> (<code>+122.27 tok/s</code> / <code>+3.34%</code> over Stock Control <code>3,655.95</code>, and <code>+108.07 tok/s</code> over Native MTP <code>Wave 6j</code> <code>3,670.15</code>), and <code>3,765.50 output tok/s</code> (<code>12,333.35 total tok/s</code>, <code>2.92 QPS</code>, <code>685.31s</code>, <code>99.95% JSON</code>) at <code>T=0.6, top_p=0.8</code> (<code>+96.95 tok/s</code> / <code>+2.64%</code> over Stock Control <code>3,668.55</code>, and <code>+78.02 tok/s</code> over Native MTP <code>Wave 6o</code> <code>3,687.48</code>).</b></p>
+
+  <h3>6.1&nbsp; Why the earlier "no gain" at production settings was a patch-bypass bug</h3>
+  <p>The first production-settings stack (<code>Wave 6i</code>) measured essentially flat (3,640.34 vs stock 3,655.95) because <b>two of the four patches were 100% bypassed</b>:</p>
   <ul>
-    <li><b>C++-level mixed-batch GDN decode dispatch:</b> Extending <code>ops.fused_gdn_decode_post_conv_mtp</code> in C++/CUDA to accept mixed prefill+decode index masks directly (eliminating the ~4,000 mixed-step fallback to the Triton chunked FLA prefill kernel without Python tensor slicing) targets the remaining ~120 tok/s gap between the <code>3,879.50 tok/s</code> end-to-end average and the <code>4,040.4 tok/s</code> steady-state decode median.</li>
+    <li><b><code>vllm_v031_eagle_full_cudagraph.patch</code> — bypassed by an <code>Enum</code> vs <code>str</code> bug.</b> In vLLM 0.31.0, <code>self.speculative_config.attention_backend</code> is an <code>AttentionBackendEnum</code> (not a plain string), so the check <code>draft_attn_backend in (None,"TRITON_ATTN","FLASH_ATTN")</code> evaluated <code>False</code> and <code>DecodeEagleCudaGraphManager</code> captured <b>zero</b> CUDA graphs for MTP draft steps 1..2. Fixed by normalizing <code>draft_attn_backend_name = getattr(draft_attn_backend, "name", draft_attn_backend)</code>.</li>
+    <li><b><code>vllm_v031_fast_spec_sample.patch</code> — bypassed by <code>top_p=0.6 &ne; 1.0</code>.</b> <code>can_fuse_temperature</code> returned <code>False</code> whenever <code>top_p&ne;1.0</code>, so every verify step fell back to stock <code>apply_sampling_params</code>, running two full-vocab HBM passes (BF16&rarr;FP32 copy + separate temperature kernel, <b>14 B/elem</b>) before <code>top_p</code> filtering. Fixed with a single fused Triton <code>_temperature_upcast_kernel</code> that upcasts and temperature-scales in one pass (<b>6 B/elem, -57% pre-<code>top_p</code> HBM traffic</b>), bitwise-identical input to <code>_apply_topp_split</code>/<code>rejection_sample</code>.</li>
+  </ul>
+  <p>The two patches that <i>did</i> run (<code>gdn_minimal</code> + <code>d2g</code>) actually finished the 2,000 requests <b>1.14 s faster</b> (higher QPS), but unseeded stochastic <code>T=0.8</code> hit EOS slightly earlier (<code>1,285.4</code> vs <code>1,293.0</code> tok/req, -0.59% tokens), making raw <code>output_tokens/wall</code> look flat. Once the two bypassed patches are fixed, the QPS gain becomes visible (<code>Wave 6j</code> below).</p>
+
+  <div class="cap">Table 8 — Full-2,000 online HTTP <code>/v1/chat/completions</code> runs under stochastic sampling (<code>T=0.8, top_p=0.6</code> and <code>T=0.6, top_p=0.8</code>, mns=128, mnbt=16384, MTP k=3 unless noted).</div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr>
+        <th>Experiment Arm</th>
+        <th>AML Job ID</th>
+        <th>Draft / Change</th>
+        <th>Output tok/s</th>
+        <th>vs. Regime Stock Ctrl</th>
+        <th>QPS (req/s)</th>
+        <th>Wall Time</th>
+        <th>Verdict</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#d9f0d9;font-weight:700;">
+        <td class="mono">WAVE6P_L1TO4_DSPARK_K5_T08_P06</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/bright_garage_ztnrp07r47?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">bright_garage_ztnrp07r47</a></td>
+        <td><b>All-Time Stochastic Champion @ <code>T=0.8, top_p=0.6</code>:</b> Full L1&ndash;L4 2L DSpark <code>k=5</code> (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>) + 5-patch stack</td>
+        <td class="mono" style="color:var(--ok);"><b>3,778.22</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+122.27 (+3.34%) vs 6i Ctrl<br>+108.07 (+2.94%) vs 6j MTP</b></td>
+        <td class="mono"><b>2.9231</b></td>
+        <td class="mono"><b>684.21s</b></td>
+        <td><span class="tag t-ok">ALL-TIME STOCHASTIC CHAMPION</span> (acc=67.59%, len=4.380, mean_out=1292.5, 100.0% JSON)</td>
+      </tr>
+      <tr style="background:#e2f3e2;font-weight:700;">
+        <td class="mono">WAVE6P_L1TO4_DSPARK_K5_T06_P08</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/plucky_mangos_rqg5nnbmkq?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">plucky_mangos_rqg5nnbmkq</a></td>
+        <td><b>All-Time Stochastic Champion @ <code>T=0.6, top_p=0.8</code>:</b> Full L1&ndash;L4 2L DSpark <code>k=5</code> (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>) + 5-patch stack</td>
+        <td class="mono" style="color:var(--ok);"><b>3,765.50</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+96.95 (+2.64%) vs 6n Ctrl<br>+78.02 (+2.12%) vs 6o MTP</b></td>
+        <td class="mono"><b>2.9184</b></td>
+        <td class="mono"><b>685.31s</b></td>
+        <td><span class="tag t-ok">CHAMPION @ T=0.6, p=0.8</span> (acc=67.19%, len=4.359, mean_out=1290.3, 99.95% JSON)</td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
+        <td class="mono">WAVE6O_T06_P08_FAST_RESAMPLE_K3</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/icy_squash_p7jgl867pf?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">icy_squash_p7jgl867pf</a></td>
+        <td><b>Native MTP Champion @ <code>T=0.6, top_p=0.8</code>:</b> Fixed 4-patch stack + <b>Fast Resample v2</b> (<code>vllm_v031_compact_topk_resample.patch</code> v2: zero-alloc two-level masked-block short-circuit in <code>_resample_kernel</code> / <code>gumbel</code>)</td>
+        <td class="mono" style="color:var(--ok);"><b>3,687.48</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+18.93 (+0.52%) vs 6n Ctrl<br>+36.78 (+1.01%) vs 6n 4-Patch</b></td>
+        <td class="mono"><b>2.8771</b></td>
+        <td class="mono"><b>695.15s</b></td>
+        <td><span class="tag t-ok">NATIVE MTP CHAMPION @ T=0.6, p=0.8</span> (acc=75.41%, mean_out=1281.7, 100% JSON)</td>
+      </tr>
+      <tr style="background:#eef7ee;font-weight:600;">
+        <td class="mono">WAVE6J_PROD_T08_P06_FIXED_STACK_K3</td>
+        <td class="mono">good_wall_lzjnljbjjq</td>
+        <td><b>Native MTP Champion @ <code>T=0.8, top_p=0.6</code>:</b> Fixed 4-patch MTP k=3 (<code>eagle_full_cg</code> + fused-verify <code>fast_spec_sample</code> + <code>gdn_minimal</code> + <code>D2G 64/2/8</code>)</td>
+        <td class="mono" style="color:var(--ok);"><b>3,670.15</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+14.20 (+0.39%) vs 6i Ctrl</b></td>
+        <td class="mono"><b>2.8422</b></td>
+        <td class="mono"><b>703.67s</b></td>
+        <td><span class="tag t-ok">NATIVE MTP CHAMPION @ T=0.8, p=0.6</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6N_T06_P08_STOCK_CTRL</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/eager_collar_21zh0nqbs6?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">eager_collar_21zh0nqbs6</a></td>
+        <td>Zero-patch stock control at <b><code>T=0.6, top_p=0.8</code></b></td>
+        <td class="mono">3,668.55</td>
+        <td class="mono">baseline (<code>0.6 / 0.8</code>)</td>
+        <td class="mono">2.8457</td>
+        <td class="mono">702.82s</td>
+        <td><span class="tag t-ref">STOCK CONTROL @ T=0.6, p=0.8</span> (acc=75.43%, mean_out=1289.2, 100% JSON)</td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6I_PROD_T08_P06_STOCK_CTRL</td>
+        <td class="mono">helpful_lime_gpq9mmpf05</td>
+        <td>Zero-patch stock control at <b><code>T=0.8, top_p=0.6</code></b></td>
+        <td class="mono">3,655.95</td>
+        <td class="mono">baseline (<code>0.8 / 0.6</code>)</td>
+        <td class="mono">2.8275</td>
+        <td class="mono">707.33s</td>
+        <td><span class="tag t-ref">STOCK CONTROL @ T=0.8, p=0.6</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6N_T06_P08_FIXED_STACK_K3</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/cool_grape_fym9m6mhwl?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">cool_grape_fym9m6mhwl</a></td>
+        <td>Fixed 4-patch MTP k=3 stack at <b><code>T=0.6, top_p=0.8</code></b></td>
+        <td class="mono">3,650.70</td>
+        <td class="mono">-17.85 (-0.49%) vs 6n Ctrl</td>
+        <td class="mono">2.8280</td>
+        <td class="mono">707.21s</td>
+        <td><span class="tag t-null">4-patch @ T=0.6, p=0.8 (acc=75.44%, mean_out=1290.9, 100% JSON)</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6K_PROD_T08_P06_DSPARK_K3</td>
+        <td class="mono">funny_giraffe_t7z879pm9t</td>
+        <td>External 2L DSpark <code>top-64</code> draft + full fixed stack (<code>T=0.8, top_p=0.6</code>)</td>
+        <td class="mono">3,646.63</td>
+        <td class="mono" style="color:var(--bad);">-9.32 (-0.25%)</td>
+        <td class="mono">2.8295</td>
+        <td class="mono">706.83s</td>
+        <td><span class="tag t-null">DSpark loses to MTP under sampling</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6O_T08_P06_FAST_RESAMPLE_K3</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/musing_goat_s946dxby0l?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">musing_goat_s946dxby0l</a></td>
+        <td>Fixed 4-patch stack + <b>Fast Resample v2</b> (<code>vllm_v031_compact_topk_resample.patch</code> v2) at <b><code>T=0.8, top_p=0.6</code></b></td>
+        <td class="mono">3,643.54</td>
+        <td class="mono">+10.64 vs v1 (6m)<br>-12.41 (-0.34%) vs 6i Ctrl</td>
+        <td class="mono">2.8171</td>
+        <td class="mono">709.94s</td>
+        <td><span class="tag t-null">Beats v1 (+10.64 tok/s); longer mean_out=1293.3 vs 1290.2 (acc=75.91%, 100% JSON)</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6I_PROD_T08_P06_MINIMAL_STACK_K3</td>
+        <td class="mono">sweet_garage_0f4xrz22rp</td>
+        <td>Same 4-patch stack, but <b>both bypassed</b> (Enum bug + top_p&ne;1.0)</td>
+        <td class="mono">3,640.34</td>
+        <td class="mono" style="color:var(--bad);">-15.61 (-0.43%)</td>
+        <td class="mono">2.8321</td>
+        <td class="mono">706.19s</td>
+        <td><span class="tag t-null">Exposes the 2-patch bypass bug</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6M_PROD_T08_P06_COMPACT_RESAMPLE_K3</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/khaki_rail_jbslz222yf?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">khaki_rail_jbslz222yf</a></td>
+        <td>Wave 6j (<code>T=0.8, top_p=0.6</code>) + <b>Option 1 v1</b> (pre-verify stream compaction across all <code>4&times;B</code> draft tokens &rarr; compact resample)</td>
+        <td class="mono">3,632.90</td>
+        <td class="mono" style="color:var(--bad);">-23.05 (-0.63%)</td>
+        <td class="mono">2.8098</td>
+        <td class="mono">711.80s</td>
+        <td><span class="tag t-null">v1 stream-compaction overhead (superseded by Wave 6o v2)</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6N_T06_P08_COMPACT_RESAMPLE_K3</td>
+        <td class="mono"><a href="https://ml.azure.com/runs/modest_yak_f5b58vrs07?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">modest_yak_f5b58vrs07</a></td>
+        <td>Fixed 4-patch stack + <b>Option 1 v1</b> at <b><code>T=0.6, top_p=0.8</code></b></td>
+        <td class="mono">3,630.40</td>
+        <td class="mono" style="color:var(--bad);">-38.15 (-1.04%) vs 6n Ctrl</td>
+        <td class="mono">2.8215</td>
+        <td class="mono">708.85s</td>
+        <td><span class="tag t-null">v1 stream-compaction overhead; Wave 6o v2 gains +57.08 tok/s</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6L_PROD_T08_P06_MTP4_K3</td>
+        <td class="mono">ashy_board_l6m76320x6</td>
+        <td>Fixed stack + deeper native MTP <code>k=4</code></td>
+        <td class="mono">3,541.09</td>
+        <td class="mono" style="color:var(--bad);">-114.86 (-3.14%)</td>
+        <td class="mono">2.7460</td>
+        <td class="mono">728.34s</td>
+        <td><span class="tag t-null">Fewer verifies can't lift kernel-bound decode; QPS drops</span></td>
+      </tr>
+      <tr>
+        <td class="mono">WAVE6L_PROD_T08_P06_BATCH256_K3</td>
+        <td class="mono">silver_turtle_t9mvxylrfn</td>
+        <td>Fixed stack + <code>mns=256, mnbt=32768</code> (2&times; concurrency)</td>
+        <td class="mono">3,522.02</td>
+        <td class="mono" style="color:var(--bad);">-133.93 (-3.66%)</td>
+        <td class="mono">2.7278</td>
+        <td class="mono">733.18s</td>
+        <td><span class="tag t-null">Decode-compute-bound, not concurrency-bound; QPS drops</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h3>6.2&nbsp; Sampling-Decoding Optimization Analysis (<code>Wave 6m/6n</code> v1 vs. <code>Wave 6o</code> v2)</h3>
+  <p>Why did <code>vllm_v031_compact_topk_resample.patch</code> v1 regress throughput by <code>-20</code> to <code>-38 tok/s</code> in <code>Wave 6m/6n</code>, whereas <b>v2 (<code>Wave 6o</code>) lifts <code>T=0.6, top_p=0.8</code> by <code>+57.08 tok/s</code> over v1 to a new stochastic record of <code>3,687.48 tok/s</code></b>?</p>
+  <ol>
+    <li><b>Why v1 regressed:</b> In speculative decoding with <code>k=3</code>, each request produces <code>k+1 = 4</code> logit rows (<code>512</code> rows across <code>B=128</code>), of which <code>_verify_kernel</code> accepts 0..3 tokens and <b>at most 1 row per request</b> (<code>1&times;B = 128</code> rows) is ever resampled/bonus-sampled by <code>_resample_kernel</code>. Running pre-verification stream compaction across all <code>4&times;B&times;248,320</code> logits required 4 dynamic PyTorch tensor allocations and 2 extra kernel launches per verify step, costing more HBM bandwidth than the <code>1&times;B</code> resample saved.</li>
+    <li><b>How v2 (<code>Wave 6o</code>) eliminates all allocations and skips <code>&gt;98%</code> of <code>_resample_kernel</code> work in-place:</b>
+      <ul>
+        <li><b>Zero-cost block-max reuse:</b> Stock <code>_compute_local_logits_stats_kernel</code> already splits the 248,320 vocabulary into 31 blocks of 8,192 tokens and computes <code>target_local_max</code> after <code>_topk_topp_kernel</code> has masked all rejected tokens to <code>-inf</code>, but previously skipped bonus-token rows (<code>draft_step_idx &ge; k</code>). Enabling <code>target_local_max</code> on bonus rows when <code>temp &ne; 0.0</code> provides an exact 8,192-token non-empty mask at zero extra kernel launches.</li>
+        <li><b>Two-level masked-block short-circuit in <code>_resample_kernel</code>:</b> Each of the 243 CTA blocks per sequence (<code>1,024</code> tokens/CTA) first checks <code>parent_max = target_local_max[row, block_idx // 8]</code> (1 scalar FP32 read). Since <code>top_p &le; 0.8</code> leaves only <code>1&ndash;32</code> surviving tokens out of <code>248,320</code>, <b>29&ndash;30 of the 31 parent blocks are <code>-inf</code></b> and exit immediately without touching the 248,320-wide <code>target_logits</code> or <code>draft_logits</code> tensors. Within the 1&ndash;2 surviving 8,192-token parent blocks, a Level-2 check tests <code>tl.max(target_logits) == -inf</code> on the 1,024-token tile and exits before reading <code>draft_logits</code>, evaluating <code>tl.exp</code>/<code>log1p</code>, or running 4-round Murmur3 Gumbel PRNG.</li>
+        <li><b>Same short-circuit in <code>_compute_local_residual_mass_kernel</code> and <code>gumbel_noised_argmax</code>:</b> Skips all <code>-inf</code> blocks during residual mass integration and 1-token Gumbel sampling, plus pre-warms the 107 MB <code>_TRITON_BUFFER_CACHE</code> during server startup.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <!-- ===================================================================== -->
+  <h2 id="path-to-4000">7&nbsp; Path to 4,000+ End-to-End tok/s &amp; References</h2>
+  <p>With the Wave-6p full L1&ndash;L4 DSpark <code>k=5</code> + 5-patch greedy champion at <b>3,991.92 output tok/s</b> end-to-end across 2,000 requests (<code>boring_board_qkwnysvkvt</code>, <code>13,095.19 total tok/s</code>, <code>3.10 QPS</code>, <code>645.01s</code>) — and <b>4,179.9 tok/s median throughput (<code>4,282.3 tok/s</code> peak) already achieved during steady-state <code>Running=128</code> pure-decode windows</b> — only <b>8.08 tok/s (+0.20%)</b> of ramp/drain and mixed-step amortization remains to cross 4,000+ tok/s end-to-end on 1&times; A100-80GB:</p>
+  <ul>
+    <li><b>C++-level mixed-batch GDN decode dispatch:</b> Extending <code>ops.fused_gdn_decode_post_conv_mtp</code> in C++/CUDA to accept mixed prefill+decode index masks directly (eliminating the mixed-step fallback to the Triton chunked FLA prefill kernel without Python tensor slicing) targets the remaining ~188 tok/s gap between the <code>3,991.92 tok/s</code> end-to-end average and the <code>4,179.9 tok/s</code> steady-state decode median.</li>
     <li><b>Weight quantization (for 4,200&ndash;5,000+ tok/s stretch goal):</b> Applying W8A8 FP8/INT8 SmoothQuant or W4A16 Marlin quantization to the 24 GDN + 8 full-attention target layers cuts per-step weight HBM reads by 50&ndash;75% on memory-bandwidth-bound A100 decode steps.</li>
   </ul>
+  <p class="note" style="margin-top:10px;color:var(--mut);">Note: Under stochastic sampling, combining the full L1&ndash;L4 2-layer DSpark draft model (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, <code>k=5</code>) with our 5-patch stack (<code>Wave 6p</code>) reaches new all-time stochastic records of <b>3,778.22 output tok/s</b> (<code>12,359.89 total tok/s</code>, <code>2.92 QPS</code>, <code>684.21s</code>, <code>100.0% JSON</code>) at <b><code>(T=0.8, top_p=0.6)</code></b> (<code>bright_garage_ztnrp07r47</code>, <b>+122.27 tok/s / +3.34%</b> over Stock Control <code>3,655.95</code> and <b>+108.07 tok/s</b> over Native MTP <code>Wave 6j</code> <code>3,670.15</code>) and <b>3,765.50 output tok/s</b> (<code>12,333.35 total tok/s</code>, <code>2.92 QPS</code>, <code>685.31s</code>, <code>99.95% JSON</code>) at <b><code>(T=0.6, top_p=0.8)</code></b> (<code>plucky_mangos_rqg5nnbmkq</code>, <b>+96.95 tok/s / +2.64%</b> over Stock Control <code>3,668.55</code> and <b>+78.02 tok/s</b> over Native MTP <code>Wave 6o</code> <code>3,687.48</code>).</p>
 
   <h3>References</h3>
   <ol class="refs">
-    <li>Committed Qwen3.5-4B <code>3,879.50 tok/s</code> reproduction kit, patches &amp; AML runner — <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm</code> (branch <code>gemma4-optimization</code>, commit <code>73a4e81</code>)</a>.</li>
-    <li>Showcase patch bundle &amp; runbook mirror — <a href="https://github.com/overwindows/ensemble_privacy_pipeline/tree/main/showcase/patches"><code>overwindows/ensemble_privacy_pipeline/showcase/patches/</code> (commit <code>28945e0</code>)</a>.</li>
+    <li>Committed Qwen3.5-4B <code>3,991.92 tok/s</code> DSpark + <code>3,879.50 tok/s</code> Native MTP reproduction kit, patches &amp; AML runner — <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm</code> (branch <code>gemma4-optimization</code>)</a> &amp; <a href="https://huggingface.co/IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k"><code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code></a>.</li>
+    <li>Showcase patch bundle &amp; runbook mirror — <a href="https://github.com/overwindows/ensemble_privacy_pipeline/tree/main/showcase/patches"><code>overwindows/ensemble_privacy_pipeline/showcase/patches/</code></a>.</li>
     <li>DFlash speculative decoding concurrency analysis — <a href="https://github.com/vllm-project/vllm/issues/42505">vLLM #42505</a> &amp; <a href="https://www.lmsys.org/blog/2026-06-15-next-generation-speculative-decoding-dflash-v2/">LMSYS DFlash-v2 post</a>.</li>
   </ol>
 
   <p class="foot">Qwen3.5-4B throughput report · reproduction kit &amp; patches in
-  <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm/benchmarks/qwen35_posted_eval/</code></a> · Previous Best 3,786.84 &rarr; New Champion 3,879.50 output tok/s (+92.66 tok/s / +2.45%, 100% JSON valid).</p>
+  <a href="https://github.com/xinyizou_microsoft/agentic_vllm/tree/gemma4-optimization/benchmarks/qwen35_posted_eval"><code>xinyizou_microsoft/agentic_vllm/benchmarks/qwen35_posted_eval/</code></a> · All-Time Greedy Champion: <b>3,991.92 output tok/s</b> (+205.08 / +5.42% vs r9, Wave 6p DSpark k=5) &middot; Native MTP Greedy Champion: 3,879.50 output tok/s (+92.66 / +2.45%, Wave 6g) &middot; All-Time Stochastic Champions: <b>3,778.22 output tok/s</b> @ <code>T=0.8, top_p=0.6</code> &amp; <b>3,765.50 output tok/s</b> @ <code>T=0.6, top_p=0.8</code> (Wave 6p DSpark k=5, &sect;6).</p>
 </div></div>
 </body>
 </html>
