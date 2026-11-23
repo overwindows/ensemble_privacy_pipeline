@@ -478,7 +478,7 @@
         <td class="mono">1999/2000 (99.95%)</td>
       </tr>
       <tr style="background:#e2f3e2; font-weight:600;">
-        <td><b>10. Wave-6p L1&ndash;L4 DSpark 2L <code>k=5</code> Stochastic Champion</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;">Production sampling <code>T=0.8, top_p=0.6</code> (also <code>3,765.50</code> @ <code>T=0.6, top_p=0.8</code>)</span></td>
+        <td><b>10. Wave-6p L1&ndash;L4 DSpark 2L <code>k=5</code> Stochastic Champion (<code>0.8 / 0.6</code>)</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;">Production sampling <code>T=0.8, top_p=0.6</code> (<code>2,585,092</code> out tokens, <code>589,800</code> drafts)</span></td>
         <td class="mono"><a href="https://ml.azure.com/runs/bright_garage_ztnrp07r47?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">bright_garage_<br>ztnrp07r47</a></td>
         <td class="mono"><b>T=0.8<br>p=0.6</b></td>
         <td class="mono" style="color:var(--ok);"><b>3,778.22</b></td>
@@ -486,14 +486,178 @@
         <td class="mono" style="color:var(--ok);"><b>+122.27 (+3.34%) vs 0.8/0.6 Ctrl</b><br><span class="tag t-ok">STOCHASTIC CHAMP</span></td>
         <td class="mono">12,359.89</td>
         <td class="mono">2.92</td>
-        <td class="mono">684.21s (-23.16s vs Ctrl)</td>
+        <td class="mono">684.21s (-23.12s vs Ctrl)</td>
         <td class="mono"><b>67.59% (4.38)</b></td>
         <td class="mono" style="color:var(--ok);"><b>2000/2000 (100.0%)</b></td>
+      </tr>
+      <tr style="background:#eef7ee; font-weight:600;">
+        <td><b>11. Wave-6p L1&ndash;L4 DSpark 2L <code>k=5</code> Stochastic Champion (<code>0.6 / 0.8</code>)</b><br><span style="color:var(--mut);font-size:12px;font-weight:400;">Production sampling <code>T=0.6, top_p=0.8</code> (<code>2,580,544</code> out tokens, <code>591,501</code> drafts)</span></td>
+        <td class="mono"><a href="https://ml.azure.com/runs/plucky_mangos_rqg5nnbmkq?wsid=/subscriptions/b6dc87f3-c479-49c8-8cb5-7896da3ff895/resourcegroups/AMLStudio/workspaces/NewsFeedL2_AML&amp;tid=72f988bf-86f1-41af-91ab-2d7cd011db47" target="_blank">plucky_mangos_<br>rqg5nnbmkq</a></td>
+        <td class="mono"><b>T=0.6<br>p=0.8</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,765.50</b></td>
+        <td class="mono">-11.17 (-0.30%)</td>
+        <td class="mono" style="color:var(--ok);"><b>+96.95 (+2.64%) vs 0.6/0.8 Ctrl</b><br><span class="tag t-ok">0.6/0.8 CHAMP</span></td>
+        <td class="mono">12,333.35</td>
+        <td class="mono">2.92</td>
+        <td class="mono">685.31s (-17.51s vs Ctrl)</td>
+        <td class="mono"><b>67.19% (4.36)</b></td>
+        <td class="mono">1999/2000 (99.95%)</td>
       </tr>
     </tbody>
   </table></div>
 
-  <h3>1.3&nbsp; Step-by-Step Waterfall Attribution: Where Every `+tok/s` Over `r9` (`3,786.84`) Came From</h3>
+  <h3>1.3&nbsp; Double-Confirmed Forensic Audit of All 4 Wave-6p Full-2000 Runs</h3>
+  <p>Every Wave-6p run below was audited directly from its raw <code>result_1_20261122_*.json</code> and <code>run_1.log</code> artifacts. All four runs completed <code>2,000 / 2,000</code> HTTP 200 responses with <code>0</code> failures after an isolated 8-request pre-timer warmup, satisfied exact arithmetic division (<code>output_tokens / wall_seconds == output_tps</code>), and satisfied Prometheus speculative token conservation (<code>num_drafts [bonus/target tokens] + num_accepted_tokens + 2,000 [prefill first tokens] &approx; output_tokens</code>):</p>
+
+  <div class="cap">Table 1C — Forensic counter-by-counter verification of the 4 Wave-6p L1&ndash;L4 DSpark (`IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k`) runs.</div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr>
+        <th>Verification Field</th>
+        <th><code>boring_board_qkwnysvkvt</code><br>(<code>k=5</code> Greedy <code>0.0 / 1.0</code>)</th>
+        <th><code>joyful_sail_35k4pbzv95</code><br>(<code>k=3</code> Greedy <code>0.0 / 1.0</code>)</th>
+        <th><code>bright_garage_ztnrp07r47</code><br>(<code>k=5</code> Prod <code>0.8 / 0.6</code>)</th>
+        <th><code>plucky_mangos_rqg5nnbmkq</code><br>(<code>k=5</code> Prod <code>0.6 / 0.8</code>)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Raw Artifact File</b></td>
+        <td class="mono">result_1_20261122_032538.json</td>
+        <td class="mono">result_1_20261122_032902.json</td>
+        <td class="mono">result_1_20261122_033014.json</td>
+        <td class="mono">result_1_20261122_021844.json</td>
+      </tr>
+      <tr>
+        <td><b>Requests (<code>ok / fail / stop</code>)</b></td>
+        <td class="mono">2000 / 0 / 2000</td>
+        <td class="mono">2000 / 0 / 2000</td>
+        <td class="mono">2000 / 0 / 2000</td>
+        <td class="mono">2000 / 0 / 2000</td>
+      </tr>
+      <tr>
+        <td><b>Prompt Tokens (<code>mean_in</code>)</b></td>
+        <td class="mono">5,871,663 (2,935.83)</td>
+        <td class="mono">5,871,663 (2,935.83)</td>
+        <td class="mono">5,871,663 (2,935.83)</td>
+        <td class="mono">5,871,663 (2,935.83)</td>
+      </tr>
+      <tr>
+        <td><b>Output Tokens (<code>mean_out</code>)</b></td>
+        <td class="mono">2,574,815 (1,287.41)</td>
+        <td class="mono">2,582,907 (1,291.45)</td>
+        <td class="mono">2,585,092 (1,292.55)</td>
+        <td class="mono">2,580,544 (1,290.27)</td>
+      </tr>
+      <tr>
+        <td><b>Wall Clock (<code>wall_seconds</code>)</b></td>
+        <td class="mono"><b>645.006054 s</b><br><span style="font-size:11px;color:var(--mut);">03:14:51 &rarr; 03:25:36 UTC</span></td>
+        <td class="mono"><b>656.840819 s</b><br><span style="font-size:11px;color:var(--mut);">03:18:03 &rarr; 03:29:00 UTC</span></td>
+        <td class="mono"><b>684.209751 s</b><br><span style="font-size:11px;color:var(--mut);">03:18:48 &rarr; 03:30:12 UTC</span></td>
+        <td class="mono"><b>685.313075 s</b><br><span style="font-size:11px;color:var(--mut);">02:07:17 &rarr; 02:18:42 UTC</span></td>
+      </tr>
+      <tr style="background:#e2f3e2;">
+        <td><b>Exact <code>output_tokens / wall_s</code></b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,991.9238 tok/s</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,932.3180 tok/s</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,778.2157 tok/s</b></td>
+        <td class="mono" style="color:var(--ok);"><b>3,765.4965 tok/s</b></td>
+      </tr>
+      <tr>
+        <td><b>Exact <code>(prompt+out) / wall_s</code></b></td>
+        <td class="mono"><b>13,095.19 tok/s</b></td>
+        <td class="mono"><b>12,871.57 tok/s</b></td>
+        <td class="mono"><b>12,359.89 tok/s</b></td>
+        <td class="mono"><b>12,333.35 tok/s</b></td>
+      </tr>
+      <tr>
+        <td><b>Exact <code>2000 / wall_s</code> (QPS)</b></td>
+        <td class="mono"><b>3.1007 req/s</b></td>
+        <td class="mono"><b>3.0449 req/s</b></td>
+        <td class="mono"><b>2.9231 req/s</b></td>
+        <td class="mono"><b>2.9184 req/s</b></td>
+      </tr>
+      <tr>
+        <td><b>Steady-State Decode (<code>Running=128</code>)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>4,179.9 tok/s med</b> (4,282.3 pk)</td>
+        <td class="mono">4,108.4 tok/s med (4,218.2 pk)</td>
+        <td class="mono">3,962.0 tok/s med (4,066.9 pk)</td>
+        <td class="mono">3,948.1 tok/s med (4,051.4 pk)</td>
+      </tr>
+      <tr>
+        <td><b>Verify Events (<code>num_drafts</code>)</b></td>
+        <td class="mono">578,752 (-26.1% vs MTP)</td>
+        <td class="mono">766,353</td>
+        <td class="mono">589,800</td>
+        <td class="mono">591,501</td>
+      </tr>
+      <tr>
+        <td><b>Drafted / Accepted Tokens</b></td>
+        <td class="mono">2,893,760 / 1,994,043</td>
+        <td class="mono">2,299,059 / 1,814,557</td>
+        <td class="mono">2,949,000 / 1,993,267</td>
+        <td class="mono">2,957,505 / 1,987,015</td>
+      </tr>
+      <tr>
+        <td><b>Draft Acceptance Rate</b></td>
+        <td class="mono"><b>68.91%</b> (<code>k=5</code>)</td>
+        <td class="mono"><b>78.93%</b> (<code>k=3</code>)</td>
+        <td class="mono"><b>67.59%</b> (<code>k=5</code>)</td>
+        <td class="mono"><b>67.19%</b> (<code>k=5</code>)</td>
+      </tr>
+      <tr>
+        <td><b>Mean Acceptance Length ($1+\alpha k$)</b></td>
+        <td class="mono"><b>4.4454 tok/verify</b></td>
+        <td class="mono"><b>3.3678 tok/verify</b></td>
+        <td class="mono"><b>4.3796 tok/verify</b></td>
+        <td class="mono"><b>4.3593 tok/verify</b></td>
+      </tr>
+      <tr>
+        <td><b>Per-Position Acceptance</b></td>
+        <td class="mono">[88.3, 77.1, 67.6, 59.5, 52.0]%</td>
+        <td class="mono">[89.3, 78.6, 69.0]%</td>
+        <td class="mono">[87.2, 75.7, 66.2, 58.1, 50.7]%</td>
+        <td class="mono">[87.0, 75.3, 65.7, 57.7, 50.3]%</td>
+      </tr>
+      <tr>
+        <td><b>Token Conservation Check</b></td>
+        <td class="mono">578,752 + 1,994,043 + 2,000<br>= <b>2,574,795</b> (&approx; 2,574,815)</td>
+        <td class="mono">766,353 + 1,814,557 + 2,000<br>= <b>2,582,910</b> (&approx; 2,582,907)</td>
+        <td class="mono">589,800 + 1,993,267 + 2,000<br>= <b>2,585,067</b> (&approx; 2,585,092)</td>
+        <td class="mono">591,501 + 1,987,015 + 2,000<br>= <b>2,580,516</b> (&approx; 2,580,544)</td>
+      </tr>
+      <tr>
+        <td><b>Effective <code>(T, top_p)</code> Verified</b></td>
+        <td class="mono">([0.0], [1.0]) greedy=true</td>
+        <td class="mono">([0.0], [1.0]) greedy=true</td>
+        <td class="mono">([0.8], [0.6]) greedy=false</td>
+        <td class="mono">([0.6], [0.8]) greedy=false</td>
+      </tr>
+      <tr>
+        <td><b>JSON Parseable</b></td>
+        <td class="mono">1999 / 2000 (99.95%)</td>
+        <td class="mono">1999 / 2000 (99.95%)</td>
+        <td class="mono" style="color:var(--ok);"><b>2000 / 2000 (100.0%)</b></td>
+        <td class="mono">1999 / 2000 (99.95%)</td>
+      </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>Gain vs. Stock Baseline</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+205.08 (+5.42% vs r9)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+145.48 (+3.84% vs r9)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+122.27 (+3.34% vs 3,655.95)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+96.95 (+2.64% vs 3,668.55)</b></td>
+      </tr>
+      <tr style="background:#eef7ee;">
+        <td><b>Gain vs. Best Native MTP</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+112.42 (+2.90% vs 3,879.50)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+52.82 (+1.36% vs 3,879.50)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+108.07 (+2.94% vs 3,670.15)</b></td>
+        <td class="mono" style="color:var(--ok);"><b>+78.02 (+2.12% vs 3,687.48)</b></td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h3>1.4&nbsp; Step-by-Step Waterfall Attribution: Where Every `+tok/s` Over `r9` (`3,786.84`) Came From</h3>
   <p>Table&nbsp;2 decomposes the full <b>+205.08 output tok/s (+5.42%)</b> gain over <code>r9</code> into five orthogonal, independently verified improvements.</p>
 
   <div class="cap">Table 2 — Waterfall attribution from `r9` (`3,786.84 tok/s`) to the Wave-6g Native MTP champion (`3,879.50 tok/s`) and Wave-6p L1&ndash;L4 DSpark `k=5` champion (`3,991.92 tok/s`).</div>
@@ -557,8 +721,8 @@
   </blockquote>
 
   <!-- ===================================================================== -->
-  <h2 id="production-runbook">2&nbsp; Production Serving Runbook &amp; One-Command Reproduction (`3,879.50 tok/s`)</h2>
-  <p>This runbook provides the complete, copy-pasteable recipe to deploy or reproduce the <b>3,879.50 output tok/s</b> online HTTP <code>/v1/chat/completions</code> server on any 1&times; NVIDIA A100-80GB machine or AzureML cluster. A standalone Markdown copy is also available as <a href="patches/RUNBOOK_QWEN35_BEST_3879TPS.md" download="RUNBOOK_QWEN35_BEST_3879TPS.md"><code>RUNBOOK_QWEN35_BEST_3879TPS.md</code></a>.</p>
+  <h2 id="production-runbook">2&nbsp; Production Serving Runbook &amp; One-Command Reproduction (`3,991.92 tok/s` DSpark &amp; `3,879.50 tok/s` Native MTP)</h2>
+  <p>This runbook provides the complete, copy-pasteable recipe to deploy or reproduce the <b>3,991.92 output tok/s</b> L1&ndash;L4 DSpark <code>k=5</code> champion (and <b>3,778.22 tok/s</b> @ <code>T=0.8, top_p=0.6</code> / <b>3,765.50 tok/s</b> @ <code>T=0.6, top_p=0.8</code>) or the <b>3,879.50 output tok/s</b> self-contained Native MTP <code>k=3</code> champion over online HTTP <code>/v1/chat/completions</code> on any 1&times; NVIDIA A100-80GB machine or AzureML cluster. A standalone Markdown copy is also available as <a href="patches/RUNBOOK_QWEN35_BEST_3879TPS.md" download="RUNBOOK_QWEN35_BEST_3879TPS.md"><code>RUNBOOK_QWEN35_BEST_3879TPS.md</code></a>.</p>
 
   <h3>2.1&nbsp; Complete Best Settings Matrix</h3>
   <div class="cap">Table 3 — Verified best production parameters for Qwen3.5-4B (`maiprofile-qwen35-sft`) on 1&times; A100-80GB (`vLLM 0.31.0`).</div>
@@ -567,7 +731,7 @@
       <tr>
         <th>Layer</th>
         <th>Flag / Parameter</th>
-        <th>Champion Value (<code>3,879.50 tok/s</code>)</th>
+        <th>Champion Value (<code>3,991.92 tok/s</code> DSpark / <code>3,879.50</code> MTP)</th>
         <th>Why It Matters (Measured Ablation Delta)</th>
       </tr>
     </thead>
@@ -575,8 +739,8 @@
       <tr>
         <td><b>Speculative Decoding</b></td>
         <td class="mono"><code>--speculative-config</code></td>
-        <td class="mono"><code>{"method":"mtp","num_speculative_tokens":3,"attention_backend":"TRITON_ATTN"}</code></td>
-        <td>Native 1-layer MTP (<code>k=3</code>) beats <code>k=4</code> by <b>+132.51 tok/s</b> (<code>3,879.50</code> vs <code>3,746.99</code>) and external 2L DSpark by <b>+141.14 tok/s</b> (<code>3,879.50</code> vs <code>3,738.36</code>) because 1 draft layer + shared target hidden states keep step time at ~18 ms.</td>
+        <td class="mono"><b>Overall Champion (DSpark <code>k=5</code>):</b><br><code>{"method":"dspark","num_speculative_tokens":5,"attention_backend":"TRITON_ATTN","model":"IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k"}</code><br><b>Self-Contained (Native MTP <code>k=3</code>):</b><br><code>{"method":"mtp","num_speculative_tokens":3,"attention_backend":"TRITON_ATTN"}</code></td>
+        <td>Full L1&ndash;L4 2L DSpark (<code>IWRITECODE/qwen35-l1to4-full-dspark-2l-v32k</code>, <code>k=5</code>, <code>dspark_draft_topk=64</code>) achieves <b>4.45 tokens/verify step</b> (<code>68.91%</code> acceptance), cutting 4B target verify passes by <b>26.1%</b> and beating Native MTP <code>k=3</code> by <b>+112.42 tok/s</b> Greedy (<code>3,991.92</code> vs <code>3,879.50</code>) and <b>+108.07 tok/s</b> @ <code>0.8/0.6</code> (<code>3,778.22</code> vs <code>3,670.15</code>).</td>
       </tr>
       <tr>
         <td><b>Target Attention</b></td>
@@ -774,10 +938,10 @@ exec vllm serve "$MODEL_PATH" \
         <td class="mono">Runbook doc</td>
         <td class="mono">Committed in both GitHub repos</td>
       </tr>
-      <tr>
-        <td class="mono"><a href="patches/vllm_v031_dspark_kv_groups_fix.patch" download="vllm_v031_dspark_kv_groups_fix.patch"><code>vllm_v031_dspark_kv_groups_fix.patch</code></a><br><a href="patches/vllm_v031_dspark_fast_topk_greedy.patch" download="vllm_v031_dspark_fast_topk_greedy.patch"><code>vllm_v031_dspark_fast_topk_greedy.patch</code></a></td>
-        <td><b>DSpark Optional Patches:</b> Collapses 34 &rarr; 4 KV cache groups (<b>+68.2%</b>) + vocabulary-pruned <code>top-k</code> Markov &amp; fused greedy draft verification.</td>
-        <td class="mono">DSpark <code>2,175 &rarr; 3,738 tok/s</code></td>
+      <tr style="background:#e2f3e2;">
+        <td class="mono"><a href="patches/vllm_v031_dspark_kv_groups_fix.patch" download="vllm_v031_dspark_kv_groups_fix.patch"><b>vllm_v031_dspark_kv_groups_fix.patch</b></a><br><a href="patches/vllm_v031_dspark_fast_topk_greedy.patch" download="vllm_v031_dspark_fast_topk_greedy.patch"><b>vllm_v031_dspark_fast_topk_greedy.patch</b></a></td>
+        <td><b>DSpark Champion Patches 6 &amp; 7:</b> Collapses 34 &rarr; 4 KV cache groups (<b>+68.2%</b>) + nested <code>transformer_layer_config</code> full-attention injection + vocabulary-pruned <code>dspark_draft_topk=64</code> sparse probability bridge over 32,768 draft vocab.</td>
+        <td class="mono" style="color:var(--ok);"><b>3,991.92 tok/s</b> Greedy (<code>k=5</code>)<br><b>3,778.22 tok/s</b> @ <code>0.8/0.6</code><br><b>3,765.50 tok/s</b> @ <code>0.6/0.8</code></td>
         <td class="mono">Available in <code>patches/</code></td>
       </tr>
     </tbody>
